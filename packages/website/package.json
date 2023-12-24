@@ -1,0 +1,16 @@
+{
+  "name": "@comedy-cellar-bot/website",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "cp src/* dist/",
+    "dev": "http-server ./src"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
