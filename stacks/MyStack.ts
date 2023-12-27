@@ -6,9 +6,18 @@ export function API({ stack }: StackContext) {
   //   job: "packages/functions/src/cron.handler",
   // });
 
+  const htmlRoutes = {
+    "GET /html/dates": "packages/functions/src/html/dates.handler",
+    "GET /html/list": "packages/functions/src/html/list.handler",
+  };
+  const apiRoutes = {
+    "GET /api/list": "packages/functions/src/api/list.handler",
+  };
+
   const api = new Api(stack, "api", {
     routes: {
-      "GET /": "packages/functions/src/lambda.handler",
+      ...htmlRoutes,
+      ...apiRoutes,
     },
   });
 
