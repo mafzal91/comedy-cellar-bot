@@ -8,6 +8,7 @@ import {
 } from "date-fns";
 import { getFutureDatesByDay } from "../../../core/src/getFutureDatesByDay";
 import { mobileDateButton } from "../../../views/mobileDateButton";
+import { calendarDateButton } from "../../../views/calendarDateButton";
 
 const splitDate = (date: string): [number, number, number] => {
   const splitDate = date.split("-");
@@ -97,7 +98,7 @@ const getPreviousMonthsDates = (currentDate: string) => {
 };
 const getNextMonthsDates = (currentDate: string) => {
   const [currentYear, currentMonth] = splitDate(currentDate);
-  // JS month values are 0 index based
+  // JS month values are 0 index based so 12 is december but january in JS
   const nextMonth = currentMonth;
   const nextMonthDates = getDatesInMonth(
     format(new Date(currentYear, nextMonth, 1), "yyyy-MM-dd")
@@ -129,18 +130,17 @@ export const handler = ApiHandler(async (_evt) => {
     gridSize - (numericStartOfMonth + datesOfMonth.daysInMonth)
   );
 
-  console.log({ previousMonthsDates, previousMonthDatesToDisplay });
-  console.log(
-    "--------------------",
-    gridSize - (numericStartOfMonth + datesOfMonth.daysInMonth)
-  );
-  console.log({ nextMonthDates, nextMonthDatesToDisplay });
+  // console.log({ previousMonthsDates, previousMonthDatesToDisplay });
+  // console.log(
+  //   "--------------------",
+  //   gridSize - (numericStartOfMonth + datesOfMonth.daysInMonth)
+  // );
+  // console.log({ nextMonthDates, nextMonthDatesToDisplay });
   let gridCalendarDates = [
     ...previousMonthDatesToDisplay,
     ...datesOfMonth.datesBetweenStartAndEnd,
     ...nextMonthDatesToDisplay,
   ];
-  console.log(gridCalendarDates, gridCalendarDates.length);
 
   return {
     statusCode: 200,
