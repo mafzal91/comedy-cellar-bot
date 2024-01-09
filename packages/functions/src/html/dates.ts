@@ -32,12 +32,7 @@ const getDatesInMonth = (date: string) => {
   const datesBetweenStartAndEnd = new Array(daysInMonth).fill(0).map((_, i) => {
     return format(new Date(currentYear, currentMonth - 1, i + 1), "yyyy-MM-dd");
   });
-  console.log({
-    daysInMonth,
-    startOfMonth,
-    endOfMonth,
-    datesBetweenStartAndEnd,
-  });
+
   return {
     daysInMonth,
     startOfMonth,
@@ -130,12 +125,6 @@ export const handler = ApiHandler(async (_evt) => {
     gridSize - (numericStartOfMonth + datesOfMonth.daysInMonth)
   );
 
-  // console.log({ previousMonthsDates, previousMonthDatesToDisplay });
-  // console.log(
-  //   "--------------------",
-  //   gridSize - (numericStartOfMonth + datesOfMonth.daysInMonth)
-  // );
-  // console.log({ nextMonthDates, nextMonthDatesToDisplay });
   let gridCalendarDates = [
     ...previousMonthDatesToDisplay,
     ...datesOfMonth.datesBetweenStartAndEnd,
@@ -147,6 +136,6 @@ export const handler = ApiHandler(async (_evt) => {
     headers: {
       "Content-Type": "text/html",
     },
-    body: "",
+    body: `<p>from server</p>`,
   };
 });

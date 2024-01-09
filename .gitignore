@@ -13,5 +13,3 @@ node_modules
 
 # local env files
 .env*.local
-
-packages/website/dist

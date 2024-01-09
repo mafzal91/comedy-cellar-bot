@@ -12,6 +12,7 @@ export function API({ stack }: StackContext) {
   };
   const apiRoutes = {
     "GET /api/list": "packages/functions/src/api/list.handler",
+    "GET /api/details": "packages/functions/src/api/details.handler",
   };
 
   const api = new Api(stack, "api", {

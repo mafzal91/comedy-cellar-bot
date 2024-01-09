@@ -1,7 +1,9 @@
 import axios from "axios";
 import { ApiResponse } from "../../types/api";
 
-export const fetchShows = async (date: string) => {
+export const fetchShows = async (
+  date: string
+): Promise<ApiResponse.Response> => {
   let data = JSON.stringify({
     date,
   });
@@ -24,9 +26,10 @@ export const fetchShows = async (date: string) => {
 
   try {
     const res = await axios.request(config);
-    const data = res.data as ApiResponse;
-    return data.data;
+    const responseData = res.data;
+    return responseData.data as ApiResponse.Response;
   } catch (error) {
     console.log(error);
+    throw error; // You might want to re-throw the error so that callers can handle it
   }
 };
