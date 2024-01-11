@@ -1,4 +1,14 @@
 export namespace ApiResponse {
+  export type GetLineUpResponse = {
+    reservationUrl: string | undefined;
+    timestamp: string | undefined;
+    lineUp: {
+      img: string | undefined;
+      name: string | undefined;
+      description: string | undefined;
+      website: string | undefined;
+    }[];
+  }[];
   export type Show = {
     id: number;
     time: string;
@@ -39,7 +49,7 @@ export namespace ApiResponse {
     age: Age;
   };
 
-  export type Response = {
+  export type GetShowsResponse = {
     message: string;
     data: {
       showInfo: ShowInfo;
