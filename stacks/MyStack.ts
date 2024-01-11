@@ -6,18 +6,14 @@ export function API({ stack }: StackContext) {
   //   job: "packages/functions/src/cron.handler",
   // });
 
-  const htmlRoutes = {
-    "GET /html/dates": "packages/functions/src/html/dates.handler",
-    "GET /html/list": "packages/functions/src/html/list.handler",
-  };
   const apiRoutes = {
     "GET /api/list": "packages/functions/src/api/list.handler",
     "GET /api/details": "packages/functions/src/api/details.handler",
+    "GET /api/line-up": "packages/functions/src/api/lineUp.handler",
   };
 
   const api = new Api(stack, "api", {
     routes: {
-      ...htmlRoutes,
       ...apiRoutes,
     },
   });
