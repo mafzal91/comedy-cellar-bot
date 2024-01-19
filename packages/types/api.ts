@@ -1,8 +1,8 @@
 export namespace ApiResponse {
   export type GetLineUpResponse = {
     reservationUrl: string | undefined;
-    timestamp: string | undefined;
-    lineUp: {
+    timestamp: number | undefined;
+    acts: {
       img: string | undefined;
       name: string | undefined;
       description: string | undefined;

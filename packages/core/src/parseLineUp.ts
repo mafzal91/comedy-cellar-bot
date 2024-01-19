@@ -29,8 +29,8 @@ export const parseLineUp = ({ html }: { html: string }): ShowInfoList => {
     const showId = reservationUrl?.split("showid=")[1];
     const showInfo: {
       reservationUrl: string | undefined;
-      timestamp: string | undefined;
-      lineUp: {
+      timestamp: number | undefined;
+      acts: {
         img: string | undefined;
         name: string | undefined;
         description: string | undefined;
@@ -38,8 +38,8 @@ export const parseLineUp = ({ html }: { html: string }): ShowInfoList => {
       }[];
     } = {
       reservationUrl,
-      timestamp: showId,
-      lineUp: [],
+      timestamp: showId ? parseInt(showId, 10) : undefined,
+      acts: [],
     };
     $(show)
       .find(".set-content")
@@ -48,7 +48,7 @@ export const parseLineUp = ({ html }: { html: string }): ShowInfoList => {
         const { name, description } = parseNameDescription($, lineUp);
         const website = $(lineUp).find("a").attr("href");
 
-        showInfo.lineUp.push({
+        showInfo.acts.push({
           img,
           name,
           description,

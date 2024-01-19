@@ -17,6 +17,7 @@ export const handler = ApiHandler(async (_evt) => {
   }
 
   const response = await handleLineUp({ date });
+
   return {
     statusCode: 200,
     headers: {
