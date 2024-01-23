@@ -13,7 +13,7 @@ export function API({ app, stack }: StackContext) {
 
   const customDomain = {
     customDomain: {
-      domainName: "proxy.mafz.al",
+      domainName: "comedycellar-api.mafz.al",
       isExternalDomain: true,
       cdk: {
         certificate: Certificate.fromCertificateArn(stack, "MyCert", certArn),
