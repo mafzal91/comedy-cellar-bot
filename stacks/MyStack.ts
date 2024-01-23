@@ -1,10 +1,25 @@
-import { Api, Cron, StaticSite, StackContext } from "sst/constructs";
+import { Api, Cron, StackContext } from "sst/constructs";
+import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 
-export function API({ stack }: StackContext) {
+const certArn =
+  "arn:aws:acm:us-east-1:824714483059:certificate/9d410133-2ddc-4260-807e-8c7eeb279592";
+
+export function API({ app, stack }: StackContext) {
   // new Cron(stack, "Cron", {
   //   schedule: "cron(*/10 * * * ? *)",
   //   job: "packages/functions/src/cron.handler",
   // });
+  const stage = app.stage;
+
+  const customDomain = {
+    customDomain: {
+      domainName: "proxy.mafz.al",
+      isExternalDomain: true,
+      cdk: {
+        certificate: Certificate.fromCertificateArn(stack, "MyCert", certArn),
+      },
+    },
+  };
 
   const apiRoutes = {
     "GET /api/list": "packages/functions/src/api/list.handler",
@@ -13,15 +28,10 @@ export function API({ stack }: StackContext) {
   };
 
   const api = new Api(stack, "api", {
+    ...(stage === "prod" && customDomain),
     routes: {
       ...apiRoutes,
     },
-  });
-
-  new StaticSite(stack, "HtmxSite", {
-    path: "packages/website",
-    buildOutput: "dist",
-    buildCommand: "npm run build",
   });
 
   stack.addOutputs({
