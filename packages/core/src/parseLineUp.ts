@@ -2,7 +2,7 @@ import * as cheerio from "cheerio";
 import { CheerioAPI, Element } from "cheerio";
 import { ApiResponse } from "../../types/api";
 
-type ShowInfoList = ApiResponse.GetLineUpResponse;
+type ShowInfoList = ApiResponse.LineUp;
 
 const parseNameDescription = ($: CheerioAPI, $lineUp: Element) => {
   // get the name element. Grab the text from the name element. Traverse up to the parent, remove the name element, get the text

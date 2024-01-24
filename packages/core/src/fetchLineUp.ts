@@ -4,7 +4,7 @@ import { parseLineUp } from "./parseLineUp";
 
 export const fetchLineUp = async (
   date: string
-): Promise<ApiResponse.GetLineUpResponse> => {
+): Promise<ApiResponse.LineUp> => {
   const data = {
     action: "cc_get_shows",
     json: JSON.stringify({

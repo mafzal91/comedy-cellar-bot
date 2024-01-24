@@ -1,12 +1,12 @@
 export namespace ApiResponse {
-  export type GetLineUpResponse = {
-    reservationUrl: string | undefined;
-    timestamp: number | undefined;
+  export type LineUp = {
+    reservationUrl?: string;
+    timestamp?: number;
     acts: {
-      img: string | undefined;
-      name: string | undefined;
-      description: string | undefined;
-      website: string | undefined;
+      img?: string;
+      name?: string;
+      description?: string;
+      website?: string;
     }[];
   }[];
   export type Show = {

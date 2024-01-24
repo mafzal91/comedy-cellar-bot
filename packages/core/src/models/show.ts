@@ -1,5 +1,8 @@
 import { ApiResponse } from "../../../types/api";
 
+const COMEDY_CELLAR_RESERVATION_URL =
+  "https://www.comedycellar.com/reservation/?showid=";
+
 const roomDictionary: Record<number, string> = {
   1: "MacDougal St",
   2: "Village Underground",
@@ -59,6 +62,14 @@ class Show {
     return this.totalGuests >= this.max;
   }
 
+  get occupancyRate() {
+    return this.totalGuests / this.max;
+  }
+
+  get reservationUrl() {
+    return `${COMEDY_CELLAR_RESERVATION_URL}${this.timestamp}`;
+  }
+
   // Serialize the object to JSON
   toJSON() {
     return {
@@ -69,6 +80,7 @@ class Show {
       forwardUrl: this.forwardUrl,
       // soldout from comedy cellar api is not accurate, so we use our own calculation
       soldout: this.soldout,
+      occupancyRate: this.occupancyRate,
       max: this.max,
       special: this.special,
       roomId: this.roomId,
@@ -82,6 +94,7 @@ class Show {
       available: this.available,
       timestamp: this.timestamp,
       roomName: this.roomName,
+      reservationUrl: this.reservationUrl,
     };
   }
 }
