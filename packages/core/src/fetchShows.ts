@@ -1,4 +1,4 @@
-import axios from "axios";
+import { requester } from "./requester";
 import { ApiResponse } from "../../types/api";
 
 export const fetchShows = async (
@@ -8,19 +8,12 @@ export const fetchShows = async (
     date,
   });
 
-  let config = {
-    method: "POST",
-    maxBodyLength: Infinity,
-    url: "https://www.comedycellar.com/reservations/api/getShows",
-    data,
-  };
-
   try {
-    const res = await axios.request(config);
+    const res = await requester.post("/reservations/api/getShows", data);
     const responseData = res.data as ApiResponse.GetShowsResponse;
     return responseData.data.showInfo;
   } catch (error) {
     console.log(error);
-    throw error; // You might want to re-throw the error so that callers can handle it
+    throw error;
   }
 };
