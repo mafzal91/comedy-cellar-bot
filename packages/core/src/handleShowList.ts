@@ -1,7 +1,6 @@
 import { fetchShows } from "./fetchShows";
 import { getFutureDatesByDay } from "./getFutureDatesByDay";
 import { filterShows } from "./filterShows";
-import { Show } from "../../types/api";
 
 export const handleShowList = async ({ days }: { days: number }) => {
   const dates = getFutureDatesByDay(days);
