@@ -22,9 +22,11 @@ export function API({ app, stack }: StackContext) {
   };
 
   const apiRoutes = {
-    "GET /api/list": "packages/functions/src/api/list.handler",
-    "GET /api/details": "packages/functions/src/api/details.handler",
-    "GET /api/line-up": "packages/functions/src/api/lineUp.handler",
+    "GET /api/shows/scan": "packages/functions/src/api/shows.scanShows", // Get shows over the next x days
+    "GET /api/shows": "packages/functions/src/api/shows.listShows", // Get shows for a specific date yyyy-mm-dd
+    "GET /api/shows/{timestamp}": "packages/functions/src/api/shows.getShow", // Get show details
+    "GET /api/line-up": "packages/functions/src/api/lineUp.handler", // Get line-up for all shows on a specific date yyyy-mm-dd
+    "POST /api/reservation": "packages/functions/src/api/reservation.create", // Make a reservation for a show
   };
 
   const api = new Api(stack, "api", {

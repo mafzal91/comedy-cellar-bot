@@ -55,4 +55,72 @@ export namespace ApiResponse {
       showInfo: ShowInfo;
     };
   };
+
+  export type CreateReservationResponse = {
+    message: string;
+    data: {
+      created: boolean;
+      message: string;
+      resultCode: number;
+      statusCode: string;
+      content: {
+        email: {
+          success: boolean;
+          message: string;
+        };
+        message: string;
+        conversionInfo: {
+          cover: number;
+          guestCount: number;
+          guestValue: number;
+          totalValue: number;
+        };
+      };
+      responseCode: number;
+      reservationId: number;
+    };
+  };
+}
+
+export namespace ApiRequest {
+  export type CreateReservationRequest = {
+    guest: {
+      email: string;
+      firstName: string;
+      lastName: string;
+      size: number;
+      phone: string;
+      howHeard:
+        | "Other"
+        | "Been There"
+        | "Citysearch.com"
+        | "Comedian"
+        | "Conan O'Brien"
+        | "E-mail"
+        | "Family/Friends"
+        | "Guide Book"
+        | "Host Brought Me In"
+        | "Hotel"
+        | "Howard Stern"
+        | "Internet"
+        | "Live In The Area"
+        | "Magazine"
+        | "New York Magazine"
+        | "Newspaper"
+        | "NYU"
+        | "Olive Tree"
+        | "Passed By"
+        | "Phone Book"
+        | "Radio Show"
+        | "Time Out"
+        | "TV Show"
+        | "Village Voice"
+        | "Word of Mouth"
+        | "Zagat";
+      smsOk: "Yes" | "No";
+    };
+    showId: number;
+    date: string;
+    settime: string;
+  };
 }
