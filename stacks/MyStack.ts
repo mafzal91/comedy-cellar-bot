@@ -1,4 +1,5 @@
 import { Api, Cron, StackContext } from "sst/constructs";
+import { LayerVersion } from "aws-cdk-lib/aws-lambda";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 
 const certArn =
@@ -21,6 +22,22 @@ export function API({ app, stack }: StackContext) {
     },
   };
 
+  // Configure Sentry
+  if (!app.local) {
+    const sentry = LayerVersion.fromLayerVersionArn(
+      stack,
+      "SentryLayer",
+      `arn:aws:lambda:${app.region}:943013980633:layer:SentryNodeServerlessSDK:35`
+    );
+
+    stack.addDefaultFunctionLayers([sentry]);
+    stack.addDefaultFunctionEnv({
+      SENTRY_DSN: process.env.SENTRY_DSN!,
+      SENTRY_TRACES_SAMPLE_RATE: "1.0",
+      NODE_OPTIONS: "-r @sentry/serverless/dist/awslambda-auto",
+    });
+  }
+
   const apiRoutes = {
     "GET /api/shows/scan": "packages/functions/src/api/shows.scanShows", // Get shows over the next x days
     "GET /api/shows": "packages/functions/src/api/shows.listShows", // Get shows for a specific date yyyy-mm-dd
@@ -32,6 +49,9 @@ export function API({ app, stack }: StackContext) {
 
   const api = new Api(stack, "api", {
     ...(stage === "prod" && customDomain),
+    cors: {
+      allowMethods: ["GET", "POST", "OPTIONS"],
+    },
     routes: {
       ...apiRoutes,
     },

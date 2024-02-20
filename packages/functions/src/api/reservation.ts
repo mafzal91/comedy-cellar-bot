@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/serverless";
 import { isPast } from "date-fns";
 import { ApiHandler } from "sst/node/api";
 import { useJsonBody, usePathParam } from "sst/node/api";
@@ -20,69 +21,84 @@ const validateTimestamp = (timestamp: string) => {
 
 const timestampRegex = /\b\d{10}\b/;
 
-export const create = ApiHandler(async (_evt) => {
-  const timestamp = usePathParam("timestamp")!;
-  const json = useJsonBody();
+const testBody = {
+  guest: {
+    email: "johndoe@gmail.com",
+    firstName: "John",
+    lastName: "Doe",
+    size: 1,
+    phone: "1234567890",
+    howHeard: "Other",
+    // smsOk: false,
+  },
+  showId: 20038917,
+};
 
-  // If the timetamp is not valid then we can return early
-  if (validateTimestamp(timestamp) === false) {
-    return createErrorResponse(400, "Invalid show timestamp");
-  }
-  if (isPast(+timestamp * 1000)) {
-    return createErrorResponse(400, "This show has already passed");
-  }
+export const create = Sentry.AWSLambda.wrapHandler(
+  ApiHandler(async (_evt) => {
+    const timestamp = usePathParam("timestamp")!;
+    const json = testBody || useJsonBody();
 
-  // Validate the request payload
-  const reservationDetails = new Reservation({
-    ...json,
-    timestamp: +timestamp,
-  });
-  const validatedRequest = reservationDetails.validate();
+    // If the timetamp is not valid then we can return early
+    if (validateTimestamp(timestamp) === false) {
+      return createErrorResponse(400, "Invalid show timestamp");
+    }
+    if (isPast(+timestamp * 1000)) {
+      return createErrorResponse(400, "This show has already passed");
+    }
 
-  if (!validatedRequest.success) {
-    console.log(validatedRequest.error);
-    const fieldErrors = validatedRequest.error.issues.map((e) => ({
-      field: e.path.join("."),
-      message: e.message,
-    }));
-    return createErrorResponse(400, { fieldErrors });
-  }
+    // Validate the request payload
+    const reservationDetails = new Reservation({
+      ...json,
+      timestamp: +timestamp,
+    });
+    const validatedRequest = reservationDetails.validate();
 
-  const { showId, date, settime } = reservationDetails;
+    if (!validatedRequest.success) {
+      console.log(validatedRequest.error);
+      const fieldErrors = validatedRequest.error.issues.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return createErrorResponse(400, { fieldErrors });
+    }
 
-  console.log({
-    showId,
-    settime,
-    date: reservationDetails.date,
-  });
+    const { showId, date, settime } = reservationDetails;
 
-  try {
-    const showsForDate = await handleShowDetails({
+    console.log({
+      showId,
+      settime,
       date: reservationDetails.date,
     });
-    const show = showsForDate?.shows.find((s) => s.id === showId);
 
-    if (!show) {
-      return createErrorResponse(400, "Cannot find Show");
+    try {
+      const showsForDate = await handleShowDetails({
+        date: reservationDetails.date,
+      });
+      const show = showsForDate?.shows.find((s) => s.id === showId);
+
+      if (!show) {
+        return createErrorResponse(400, "Cannot find Show");
+      }
+
+      if (show.soldout) {
+        return createErrorResponse(400, "Show is sold out");
+      }
+
+      if (settime !== show.time) {
+        return createErrorResponse(400, "Invalid show time");
+      }
+
+      const createdReservation = await handleReservation(reservationDetails);
+
+      return {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(createdReservation),
+      };
+    } catch (error) {
+      console.error({ error });
+      return createErrorResponse(500, "Internal Server Error");
     }
-
-    if (show.soldout) {
-      return createErrorResponse(400, "Show is sold out");
-    }
-
-    if (settime !== show.time) {
-      return createErrorResponse(400, "Invalid show time");
-    }
-
-    const createdReservation = await handleReservation(reservationDetails);
-
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(createdReservation),
-    };
-  } catch (error) {
-    console.error({ error });
-    return createErrorResponse(500, "Internal Server Error");
-  }
-});
+  })
+);
