@@ -1,6 +1,6 @@
 import { fetchShows } from "../../core/src/fetchShows";
 import { getFutureDatesByWeek } from "../../core/src/getFutureDatesByWeek";
-import { filterShows } from "../../core/src/filterShows";
+
 import { Show } from "../../types/api";
 
 const formatShow = (show: Show) => {
@@ -18,11 +18,6 @@ export const handler = async () => {
     if (!shows.length) {
       console.log(`No shows for ${date}`);
       continue;
-    }
-    const { availableShows } = filterShows(shows);
-    console.log(`Found ${availableShows.length} shows for ${date}`);
-    for (const show of availableShows) {
-      console.log(formatShow(show));
     }
   }
 
