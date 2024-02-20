@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { format } from "date-fns";
+import { parseTimestampString } from "../utils";
 import { ApiRequest } from "../../../types/api";
 
 const guestSchema = z.object({
@@ -51,7 +53,9 @@ class Reservation {
   date: ApiRequest.CreateReservationRequest["date"];
   settime: ApiRequest.CreateReservationRequest["settime"];
 
-  constructor(data: ApiRequest.CreateReservationRequest) {
+  constructor(
+    data: ApiRequest.CreateReservationRequest & { timestamp?: number }
+  ) {
     this.guest = {
       email: data.guest.email,
       firstName: data.guest.firstName,
@@ -62,12 +66,23 @@ class Reservation {
       smsOk: data.guest.smsOk,
     };
     this.showId = data.showId;
-    this.date = data.date;
-    this.settime = data.settime;
+
+    if (typeof data.guest.smsOk === "boolean") {
+      this.guest.smsOk = data.guest.smsOk ? "Yes" : "No";
+    }
+
+    if (data.timestamp) {
+      const { date, time } = parseTimestampString(data.timestamp.toString());
+      this.date = date;
+      this.settime = time;
+    } else {
+      this.date = data.date;
+      this.settime = data.settime;
+    }
   }
 
-  static validate(data: ApiRequest.CreateReservationRequest) {
-    return schema.safeParse(data);
+  validate() {
+    return schema.safeParse(this.toJSON());
   }
 
   toJSON() {

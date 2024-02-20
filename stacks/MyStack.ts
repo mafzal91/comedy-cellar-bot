@@ -26,7 +26,8 @@ export function API({ app, stack }: StackContext) {
     "GET /api/shows": "packages/functions/src/api/shows.listShows", // Get shows for a specific date yyyy-mm-dd
     "GET /api/shows/{timestamp}": "packages/functions/src/api/shows.getShow", // Get show details
     "GET /api/line-up": "packages/functions/src/api/lineUp.handler", // Get line-up for all shows on a specific date yyyy-mm-dd
-    "POST /api/reservation": "packages/functions/src/api/reservation.create", // Make a reservation for a show
+    "POST /api/reservation/{timestamp}":
+      "packages/functions/src/api/reservation.create", // Make a reservation for a show
   };
 
   const api = new Api(stack, "api", {

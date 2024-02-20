@@ -6,7 +6,7 @@ export const handleShowList = async ({ days }: { days: number }) => {
   const response = [];
   for (const date of dates) {
     const data = await fetchShows(date);
-    const shows = data?.showInfo?.shows ?? [];
+    const shows = data?.shows ?? [];
 
     if (!shows.length) {
       console.log(`No shows for ${date}`);

@@ -1,7 +1,7 @@
 import { ApiHandler } from "sst/node/api";
 import { usePathParam } from "sst/node/api";
-import { format } from "date-fns";
 
+import { parseTimestampString } from "../../../core/src/utils";
 import { handleShowDetails } from "../../../core/src/handleShowDetails";
 import { handleLineUp } from "../../../core/src/handleLineUp";
 import { handleShowList } from "../../../core/src/handleShowList";
@@ -46,10 +46,7 @@ export const getShow = ApiHandler(async (_evt) => {
     };
   }
 
-  const parsedTimestamp = +timestamp;
-  const jsTimestamp = +parsedTimestamp * 1000;
-
-  const date = format(new Date(jsTimestamp), "yyyy-MM-dd");
+  const { date, unixTimestamp } = parseTimestampString(timestamp);
 
   const [showRes, lineUpRes] = await Promise.all([
     handleShowDetails({ date }),
@@ -58,10 +55,21 @@ export const getShow = ApiHandler(async (_evt) => {
 
   const { shows } = showRes;
   const { lineUps } = lineUpRes;
-
   // Line Ups may not be available for all shows. Especially for speciality shows
-  const lineUp = lineUps.find((l) => l.timestamp === parsedTimestamp);
-  const show = shows.find((s) => s.timestamp === parsedTimestamp);
+  const lineUp = lineUps.find((l) => l.timestamp === unixTimestamp);
+  const show = shows.find((s) => s.timestamp === unixTimestamp);
+
+  if (!show) {
+    return {
+      statusCode: 404,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: "Show not found",
+      }),
+    };
+  }
 
   return {
     statusCode: 200,
