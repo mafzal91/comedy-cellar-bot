@@ -21,23 +21,10 @@ const validateTimestamp = (timestamp: string) => {
 
 const timestampRegex = /\b\d{10}\b/;
 
-const testBody = {
-  guest: {
-    email: "johndoe@gmail.com",
-    firstName: "John",
-    lastName: "Doe",
-    size: 1,
-    phone: "1234567890",
-    howHeard: "Other",
-    // smsOk: false,
-  },
-  showId: 20038917,
-};
-
 export const create = Sentry.AWSLambda.wrapHandler(
   ApiHandler(async (_evt) => {
     const timestamp = usePathParam("timestamp")!;
-    const json = testBody || useJsonBody();
+    const json = useJsonBody();
 
     // If the timetamp is not valid then we can return early
     if (validateTimestamp(timestamp) === false) {
