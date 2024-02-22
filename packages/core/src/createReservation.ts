@@ -5,16 +5,16 @@ export const createReservation = async (
   data: ApiRequest.CreateReservationRequest
 ): Promise<ApiResponse.CreateReservationResponse> => {
   try {
-    // const res = await requester.post("/reservations/api/addReservation", data);
-    // const responseData = res.data as ApiResponse.CreateReservationResponse;
-    // return responseData;
-    return response;
+    const res = await requester.post("/reservations/api/addReservation", data);
+    const responseData = res.data as ApiResponse.CreateReservationResponse;
+    return responseData;
   } catch (error) {
     console.log(error);
     throw error;
   }
 };
 
+// mock response data
 const response = {
   message: "Ok",
   data: {

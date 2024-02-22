@@ -1,4 +1,4 @@
-import { Api, Cron, StackContext } from "sst/constructs";
+import { Api, Cron, Config, StackContext } from "sst/constructs";
 import { LayerVersion } from "aws-cdk-lib/aws-lambda";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 
@@ -11,6 +11,8 @@ export function API({ app, stack }: StackContext) {
   //   job: "packages/functions/src/cron.handler",
   // });
   const stage = app.stage;
+  const FROM_EMAIL = new Config.Secret(stack, "FROM_EMAIL");
+  const FROM_EMAIL_PW = new Config.Secret(stack, "FROM_EMAIL_PW");
 
   const customDomain = {
     customDomain: {
@@ -51,6 +53,11 @@ export function API({ app, stack }: StackContext) {
 
   const api = new Api(stack, "api", {
     ...(stage === "prod" && customDomain),
+    defaults: {
+      function: {
+        bind: [FROM_EMAIL, FROM_EMAIL_PW],
+      },
+    },
     cors: {
       allowMethods: ["GET", "POST", "OPTIONS"],
     },
