@@ -1,11 +1,23 @@
 import { format } from "date-fns";
+import { utcToZonedTime } from "date-fns-tz";
 
-export const parseTimestampString = (timestamp: string) => {
+export const parseTimestampString = ({
+  timestamp,
+  timeZone = "Etc/GMT+5",
+}: {
+  timestamp: string;
+  timeZone?: string;
+}) => {
   const unixTimestamp = +timestamp;
   const jsTimestamp = unixTimestamp * 1000;
 
-  const date = format(new Date(jsTimestamp), "yyyy-MM-dd");
-  const time = format(new Date(jsTimestamp), "HH:mm:ss");
+  // Convert the JS timestamp to a Date object in the specified timezone
+  const zonedDate = utcToZonedTime(new Date(jsTimestamp), timeZone);
 
+  const date = format(zonedDate, "yyyy-MM-dd");
+  const time = format(zonedDate, "HH:mm:ss");
+  const timezone = format(zonedDate, "zzzz");
+
+  console.log({ timezone, date, time, jsTimestamp, unixTimestamp });
   return { date, time, jsTimestamp, unixTimestamp };
 };

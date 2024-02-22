@@ -50,15 +50,15 @@ export const getShow = Sentry.AWSLambda.wrapHandler(
       };
     }
 
-    const { date, unixTimestamp } = parseTimestampString(timestamp);
+    const { date, unixTimestamp } = parseTimestampString({ timestamp });
 
     const [showRes, lineUpRes] = await Promise.all([
       handleShowDetails({ date }),
       handleLineUp({ date }),
     ]);
-
     const { shows } = showRes;
     const { lineUps } = lineUpRes;
+
     // Line Ups may not be available for all shows. Especially for speciality shows
     const lineUp = lineUps.find((l) => l.timestamp === unixTimestamp);
     const show = shows.find((s) => s.timestamp === unixTimestamp);

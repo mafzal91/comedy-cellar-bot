@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { format } from "date-fns";
 import { parseTimestampString } from "../utils";
 import { ApiRequest } from "../../../types/api";
 
@@ -72,7 +71,9 @@ class Reservation {
     }
 
     if (data.timestamp) {
-      const { date, time } = parseTimestampString(data.timestamp.toString());
+      const { date, time } = parseTimestampString({
+        timestamp: data.timestamp.toString(),
+      });
       this.date = date;
       this.settime = time;
     } else {
