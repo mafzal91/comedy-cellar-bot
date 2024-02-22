@@ -53,6 +53,7 @@ export const create = Sentry.AWSLambda.wrapHandler(
     const { showId, date, settime } = reservationDetails;
 
     console.log({
+      timestamp,
       showId,
       settime,
       date: reservationDetails.date,
