@@ -1,0 +1,1 @@
+export const WARNING_OCCUPANCY_RATE = 0.8;
