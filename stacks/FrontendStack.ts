@@ -8,7 +8,7 @@ export function FrontendStack({ stack, app }: StackContext) {
 
   const site = new StaticSite(stack, "frontend", {
     path: "./frontend",
-    buildOutput: "build",
+    buildOutput: "dist",
     buildCommand: "npm run build",
     environment: {
       VITE_REGION: app.region,
