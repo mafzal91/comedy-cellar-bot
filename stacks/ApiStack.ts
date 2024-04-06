@@ -5,11 +5,7 @@ import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 const certArn =
   "arn:aws:acm:us-east-1:824714483059:certificate/9d410133-2ddc-4260-807e-8c7eeb279592";
 
-export function API({ app, stack }: StackContext) {
-  // new Cron(stack, "Cron", {
-  //   schedule: "cron(*/10 * * * ? *)",
-  //   job: "packages/functions/src/cron.handler",
-  // });
+export function ApiStack({ app, stack }: StackContext) {
   const stage = app.stage;
   const FROM_EMAIL = new Config.Secret(stack, "FROM_EMAIL");
   const FROM_EMAIL_PW = new Config.Secret(stack, "FROM_EMAIL_PW");
@@ -69,4 +65,8 @@ export function API({ app, stack }: StackContext) {
   stack.addOutputs({
     ApiEndpoint: api.url,
   });
+
+  return {
+    api,
+  };
 }

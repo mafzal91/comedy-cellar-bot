@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<link rel="icon" type="image/jpeg" href="/favicon-32x32.jpeg" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<!-- <meta name="color-scheme" content="light dark" /> -->
+	<title>Comedy Cellar Calendar</title>
+
+	<% if(!isDev){ %>
+		<!-- Google tag (gtag.js) -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-P7QT320QQB"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {dataLayer.push(arguments);}
+			gtag('js', new Date());
+
+			gtag('config', 'G-P7QT320QQB');
+		</script>
+		<% } %>
+</head>
+
+<body class="bg-gray-50">
+	<div id="app"></div>
+	<script type="module" src="/src/index.tsx"></script>
+</body>
+
+</html>
