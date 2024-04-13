@@ -3,7 +3,7 @@ import { utcToZonedTime } from "date-fns-tz";
 
 export const parseTimestampString = ({
   timestamp,
-  timeZone = "Etc/GMT+5",
+  timeZone = "America/New_York",
 }: {
   timestamp: string;
   timeZone?: string;
