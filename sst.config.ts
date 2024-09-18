@@ -1,15 +1,20 @@
-import { SSTConfig } from "sst";
-import { ApiStack } from "./stacks/ApiStack";
-import { FrontendStack } from "./stacks/FrontendStack";
-
-export default {
-  config(_input) {
+/// <reference path="./.sst/platform/config.d.ts" />
+import { readdirSync } from "fs";
+export default $config({
+  app(input) {
     return {
-      name: "comedy-cellar-bot",
-      region: "us-east-1",
+      name: "comedy-cellar-bot-2",
+      removal: input?.stage === "production" ? "retain" : "remove",
+      home: "aws",
+      providers: { cloudflare: true },
     };
   },
-  stacks(app) {
-    app.stack(ApiStack).stack(FrontendStack);
+  async run() {
+    const outputs = {};
+    for (const value of readdirSync("./infra/")) {
+      const result = await import("./infra/" + value);
+      if (result.outputs) Object.assign(outputs, result.outputs);
+    }
+    return outputs;
   },
-} satisfies SSTConfig;
+});

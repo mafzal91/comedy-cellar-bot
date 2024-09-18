@@ -1,20 +1,26 @@
-import { Config } from "sst/node/config";
 import nodemailer from "nodemailer";
 
-const { FROM_EMAIL, FROM_EMAIL_PW } = Config;
-
-export async function sendEmail(message: string) {
+export async function sendEmail(
+  message: string,
+  {
+    FromEmail,
+    FromEmailPw,
+  }: {
+    FromEmail: string;
+    FromEmailPw: string;
+  }
+) {
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
-      user: FROM_EMAIL,
-      pass: FROM_EMAIL_PW,
+      user: FromEmail,
+      pass: FromEmailPw,
     },
   });
 
   await transporter.sendMail({
-    from: FROM_EMAIL,
-    to: FROM_EMAIL,
+    from: FromEmail,
+    to: FromEmail,
     subject: "Comedy Cellar: new reservation!",
     text: `Message: ${message}`,
   });

@@ -1,12 +1,12 @@
 import { requester } from "./requester";
 import { ApiRequest, ApiResponse } from "../../types/api";
-import { Config } from "sst/node/config";
 
 export const createReservation = async (
   data: ApiRequest.CreateReservationRequest
 ): Promise<ApiResponse.CreateReservationResponse> => {
+  console.log(process.env.STAGE);
   try {
-    if (Config.STAGE === "prod") {
+    if (process.env.STAGE === "prod") {
       const res = await requester.post(
         "/reservations/api/addReservation",
         data
