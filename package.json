@@ -1,12 +1,13 @@
 {
-  "name": "comedy-cellar-bot-2",
+  "name": "comedy-cellar-bot",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "sst dev",
-    "deploy:prod": "sst deploy --stage=prod"
+    "deploy:prod": "sst deploy --stage=prod",
+    "remove:prod": "sst remove --stage=prod"
   },
   "keywords": [],
   "author": "",

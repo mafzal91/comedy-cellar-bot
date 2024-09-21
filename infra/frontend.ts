@@ -8,9 +8,12 @@ const prodDomain = {
     }),
   },
 };
-
+console.log($app.stage);
 new sst.aws.StaticSite("Frontend", {
   path: "packages/frontend",
+  dev: {
+    autostart: true,
+  },
   build: {
     command: "npm run build",
     output: "dist",
