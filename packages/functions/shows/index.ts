@@ -1,7 +1,7 @@
-import { parseTimestampString } from "../core/src/utils";
-import { handleShowDetails } from "../core/src/handleShowDetails";
-import { handleLineUp } from "../core/src/handleLineUp";
-import { handleShowList } from "../core/src/handleShowList";
+import { parseTimestampString } from "../../core/utils";
+import { handleShowDetails } from "../../core/handleShowDetails";
+import { handleLineUp } from "../../core/handleLineUp";
+import { handleShowList } from "../../core/handleShowList";
 
 export const listShows = async (_evt) => {
   const date = _evt?.queryStringParameters?.date; // yyyy-mm-dd

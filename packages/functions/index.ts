@@ -4,6 +4,6 @@ export const handler = async () => {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ message: "ok", timestamp: +new Date() }),
+    body: JSON.stringify({ message: "ok" }),
   };
 };

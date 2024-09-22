@@ -1,5 +1,5 @@
 import { requester } from "./requester";
-import { ApiRequest, ApiResponse } from "../../types/api";
+import { ApiRequest, ApiResponse } from "../types/api";
 
 export const createReservation = async (
   data: ApiRequest.CreateReservationRequest

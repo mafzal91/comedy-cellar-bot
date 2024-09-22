@@ -2,6 +2,9 @@ const emailSecrets = {
   fromEmail: new sst.Secret("FromEmail"),
   fromEmailPw: new sst.Secret("FromEmailPw"),
 };
+const dbCreds = {
+  dbUrl: new sst.Secret("DbUrl"),
+};
 const functionDir = `packages/functions`;
 
 const prodDomain = {
@@ -17,25 +20,37 @@ const api = new sst.aws.ApiGatewayV2("Api", {
   ...($app.stage === "prod" ? prodDomain : {}),
 });
 
+api.route("GET /", {
+  handler: `${functionDir}/index.handler`,
+});
+
+api.route("GET /api/health", {
+  handler: `${functionDir}/health.handler`,
+});
+
+// ---- SHOWS -----
+
 api.route("GET /api/shows/scan", {
-  handler: `${functionDir}/shows.scanShows`,
+  handler: `${functionDir}/shows/index.scanShows`,
+  link: [dbCreds.dbUrl],
 });
 
 api.route("GET /api/shows", {
-  handler: `${functionDir}/shows.listShows`,
+  handler: `${functionDir}/shows/index.listShows`,
+  link: [dbCreds.dbUrl],
 });
 
 api.route("GET /api/shows/{timestamp}", {
-  handler: `${functionDir}/shows.getShow`,
+  handler: `${functionDir}/shows/index.getShow`,
 });
+
+// ---- Line Ups -----
 
 api.route("GET /api/line-up", {
   handler: `${functionDir}/lineUp.handler`,
 });
 
-api.route("GET /api/health", {
-  handler: `${functionDir}/health.health`,
-});
+// ---- Reservations -----
 
 api.route("POST /api/reservation/{timestamp}", {
   link: Object.values(emailSecrets),
@@ -44,5 +59,11 @@ api.route("POST /api/reservation/{timestamp}", {
     STAGE: $app.stage,
   },
 });
+
+// ---- Comics -----
+
+// api.route("GET /api/comics/{comicId}", {
+//   handler: `${functionDir}/comic.get`,
+// });
 
 export default api;

@@ -1,9 +1,9 @@
 import { Resource } from "sst";
 import { isPast } from "date-fns";
-import { Reservation } from "../core/src/models/reservation";
-import { handleReservation } from "../core/src/handleReservation";
-import { handleShowDetails } from "../core/src/handleShowDetails";
-import { sendEmail } from "../core/src/email";
+import { Reservation } from "../core/models/reservation";
+import { handleReservation } from "../core/handleReservation";
+import { handleShowDetails } from "../core/handleShowDetails";
+import { sendEmail } from "../core/email";
 
 const createErrorResponse = (statusCode: number, message: any) => ({
   statusCode,

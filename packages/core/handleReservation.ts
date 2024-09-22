@@ -1,5 +1,5 @@
 import { createReservation } from "./createReservation";
-import { ApiRequest } from "../../types/api";
+import { ApiRequest } from "../types/api";
 import sanitizeHtml from "sanitize-html";
 
 export const handleReservation = async (
