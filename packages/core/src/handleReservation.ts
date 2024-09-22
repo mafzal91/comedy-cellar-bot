@@ -1,4 +1,3 @@
-import { sendEmail } from "./email";
 import { createReservation } from "./createReservation";
 import { ApiRequest } from "../../types/api";
 import sanitizeHtml from "sanitize-html";
@@ -18,8 +17,6 @@ export const handleReservation = async (
       message: sanitizeHtmlContent,
     },
   };
-
-  await sendEmail(JSON.stringify(data, null, 2));
 
   return response;
 };

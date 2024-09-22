@@ -4,9 +4,7 @@ import { LineUp } from "./models/lineUp";
 export const handleLineUp = async ({ date }: { date: string }) => {
   const lineUpsData = await fetchLineUp(date);
 
-  const lineUps = (lineUpsData ?? []).map((lineUp) => {
-    return new LineUp(lineUp);
-  });
+  const lineUps = (lineUpsData ?? []).map((lineUp) => new LineUp(lineUp));
 
   return {
     date,

@@ -2,7 +2,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "sst bind vite",
+		"dev": "vite",
 		"build": "vite build",
 		"preview": "vite preview"
 	},
