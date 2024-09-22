@@ -8,7 +8,7 @@ const prodDomain = {
     }),
   },
 };
-console.log($app.stage);
+
 new sst.aws.StaticSite("Frontend", {
   path: "packages/frontend",
   dev: {
