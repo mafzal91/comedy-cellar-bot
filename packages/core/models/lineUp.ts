@@ -1,4 +1,4 @@
-import { ApiResponse } from "../../../types/api";
+import { ApiResponse } from "../../types/api";
 
 const COMEDY_CELLAR_URL = "https://www.comedycellar.com";
 

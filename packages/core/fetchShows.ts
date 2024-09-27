@@ -1,5 +1,5 @@
 import { requester } from "./requester";
-import { ApiResponse } from "../../types/api";
+import { ApiResponse } from "../types/api";
 
 export const fetchShows = async (
   date: string

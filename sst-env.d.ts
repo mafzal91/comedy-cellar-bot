@@ -9,6 +9,10 @@ declare module "sst" {
       "type": "sst.aws.ApiGatewayV2"
       "url": string
     }
+    "DbUrl": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "FromEmail": {
       "type": "sst.sst.Secret"
       "value": string

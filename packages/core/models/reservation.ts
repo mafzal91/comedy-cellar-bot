@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { parseTimestampString } from "../utils";
-import { ApiRequest } from "../../../types/api";
+import { ApiRequest } from "../../types/api";
 
 const guestSchema = z.object({
   email: z.string().email(),

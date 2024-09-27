@@ -1,4 +1,4 @@
-import { handleShowList } from "../core/src/handleShowList";
+import { handleShowList } from "../core/handleShowList";
 
 export const handler = async (_evt) => {
   const days = parseInt(_evt?.queryStringParameters?.days || "1", 10);

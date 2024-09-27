@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import { CheerioAPI, Element } from "cheerio";
-import { ApiResponse } from "../../types/api";
+import { ApiResponse } from "../types/api";
 
 type ShowInfoList = ApiResponse.LineUp;
 

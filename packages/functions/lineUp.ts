@@ -1,4 +1,4 @@
-import { handleLineUp } from "../core/src/handleLineUp";
+import { handleLineUp } from "../core/handleLineUp";
 
 export const handler = async (_evt) => {
   const date = _evt?.queryStringParameters?.date; // yyyy-mm-dd
