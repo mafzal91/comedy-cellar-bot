@@ -62,8 +62,12 @@ api.route("POST /api/reservation/{timestamp}", {
 
 // ---- Comics -----
 
-// api.route("GET /api/comics/{comicId}", {
-//   handler: `${functionDir}/comic.get`,
-// });
+api.route("GET /api/comics", {
+  handler: `${functionDir}/comic.list`,
+});
+
+api.route("GET /api/comics/{externalId}", {
+  handler: `${functionDir}/comic.get`,
+});
 
 export default api;
