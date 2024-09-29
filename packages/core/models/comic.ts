@@ -7,7 +7,9 @@ export function isComicExternalId(externalId) {
   return externalId.match(new RegExp(COMIC_PREFIX));
 }
 
-export async function createComics(data: InsertComic[]) {
+export async function createComics(
+  data: (InsertComic & { website?: string; description?: string })[]
+) {
   return db.insert(comic).values(data).onConflictDoNothing({
     target: comic.name,
   });

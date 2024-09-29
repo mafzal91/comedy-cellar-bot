@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "paths": {
-      "@core/*": ["./packages/core/*"]
+      "@core/*": ["./packages/core/*"],
+      "@types/*": ["./packages/types/*"]
     }
   }
 }

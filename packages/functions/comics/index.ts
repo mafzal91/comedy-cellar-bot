@@ -7,6 +7,7 @@ import {
 
 export async function list() {
   const comics = await getComics();
+  console.log(comics);
   return generateResponse({
     statusCode: 200,
     body: { results: comics },

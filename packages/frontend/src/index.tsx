@@ -25,7 +25,7 @@ const queryClient = new QueryClient();
 const Home = lazy(() => import("./pages/Home"));
 const Reservations = lazy(() => import("./pages/Reservations"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const Comedians = lazy(() => import("./pages/Comedians"));
+const Comedians = lazy(() => import("./pages/Comics"));
 
 export function App() {
   return (
@@ -39,7 +39,7 @@ export function App() {
                 <Home path="/" />
                 <Reservations path="/reservations/:timestamp" />
                 <NotFound path="/404" />
-                <Comedians path="/comedians" />
+                <Comedians path="/comics" />
                 <Route default component={() => <Redirect to="/" />} />
               </Router>
             </div>

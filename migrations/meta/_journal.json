@@ -8,6 +8,13 @@
       "when": 1726985254429,
       "tag": "0000_nostalgic_the_fallen",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1727502526958,
+      "tag": "0001_hot_riptide",
+      "breakpoints": true
     }
   ]
 }
