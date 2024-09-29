@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "@core/database";
-import { ApiResponse } from "@types/api";
+import { ApiResponse } from "@customTypes/api";
 import { show, InsertShow, SelectShow } from "@core/sql/show.sql";
 import { SHOW_PREFIX } from "@core/common/constants";
 

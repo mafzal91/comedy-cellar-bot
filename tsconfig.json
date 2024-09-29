@@ -2,7 +2,7 @@
   "compilerOptions": {
     "paths": {
       "@core/*": ["./packages/core/*"],
-      "@types/*": ["./packages/types/*"]
+      "@customTypes/*": ["./packages/types/*"]
     }
   }
 }
