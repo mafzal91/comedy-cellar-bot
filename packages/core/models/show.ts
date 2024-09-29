@@ -1,4 +1,8 @@
-import { ApiResponse } from "../../types/api";
+import { eq, sql } from "drizzle-orm";
+import { db } from "@core/database";
+import { ApiResponse } from "@types/api";
+import { show, InsertShow, SelectShow } from "@core/sql/show.sql";
+import { SHOW_PREFIX } from "@core/common/constants";
 
 const COMEDY_CELLAR_RESERVATION_URL =
   "https://www.comedycellar.com/reservation/?showid=";
@@ -7,9 +11,10 @@ const roomDictionary: Record<number, string> = {
   1: "MacDougal St",
   2: "Village Underground",
   3: "Fat Black Pussycat",
+  5: "Unknown",
 };
 
-class Show {
+export class Show {
   id: number;
   time: string;
   description: string;
@@ -99,4 +104,35 @@ class Show {
   }
 }
 
-export { Show };
+export function isShowExternalId(externalId) {
+  return externalId.match(new RegExp(SHOW_PREFIX));
+}
+
+export function createShows(data: InsertShow[]) {
+  return db
+    .insert(show)
+    .values(data)
+    .onConflictDoUpdate({
+      target: show.id,
+      set: {
+        description: sql.raw(`EXCLUDED."${show.description.name}"`),
+        cover: sql.raw(`EXCLUDED."${show.cover.name}"`),
+        note: sql.raw(`EXCLUDED."${show.note.name}"`),
+        roomId: sql.raw(`EXCLUDED."${show.roomId.name}"`),
+      },
+    });
+}
+
+export function createShow(data: InsertShow) {
+  return createShows([data]);
+}
+
+export async function getShows() {
+  return db.select().from(show);
+}
+
+export async function getShowByExternalId(
+  externalId: SelectShow["externalId"]
+) {
+  return db.select().from(show).where(eq(show.externalId, externalId));
+}

@@ -17,7 +17,8 @@ export const comic = pgTable("comic", {
 });
 
 export type SelectComic = typeof comic.$inferSelect;
-export type InsertComic = typeof comic.$inferInsert;
+export type InsertComic = typeof comic.$inferInsert &
+  Partial<Pick<SelectComic, "website" | "description">>;
 
 export const isValidComic = (comic: any): comic is Comic => {
   return !!comic.name && !!comic.img;

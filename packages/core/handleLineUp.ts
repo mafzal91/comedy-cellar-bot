@@ -18,10 +18,11 @@ export const handleLineUp = async ({ date }: { date: string }) => {
       uniqueComicName.add(comic.name);
       return !duplicate;
     });
-
-    await createComics(uniqueComics);
+    if (uniqueComics.length) {
+      await createComics(uniqueComics);
+    }
   } catch (e) {
-    // Swallowing Error here bc this code is just for behidn the scenes caching
+    // Swallowing Error here bc this code is just for background caching
     console.error(e);
   }
 

@@ -19,4 +19,5 @@ export const usersRelations = relations(room, ({ many }) => ({
 }));
 
 export type SelectRoom = typeof room.$inferSelect;
-export type InsertRoom = typeof room.$inferInsert;
+export type InsertRoom = typeof room.$inferInsert &
+  Partial<Pick<SelectRoom, "id">>;
