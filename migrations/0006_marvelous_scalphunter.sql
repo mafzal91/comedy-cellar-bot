@@ -1,0 +1,1 @@
+ALTER TABLE "show" ALTER COLUMN "timestamp" DROP DEFAULT;

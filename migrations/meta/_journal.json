@@ -22,6 +22,34 @@
       "when": 1727579143580,
       "tag": "0002_clean_marauders",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1727589138639,
+      "tag": "0003_abandoned_cable",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1727589194908,
+      "tag": "0004_cheerful_red_skull",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1727589270215,
+      "tag": "0005_vengeful_alex_wilder",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1727589358177,
+      "tag": "0006_marvelous_scalphunter",
+      "breakpoints": true
     }
   ]
 }

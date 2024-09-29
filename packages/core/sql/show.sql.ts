@@ -20,6 +20,9 @@ export const show = pgTable("show", {
   roomId: integer("roomId")
     .references(() => room.id)
     .notNull(),
+  description: text("description"),
+  timestamp: integer("timestamp"),
+  cover: integer("cover"),
   note: text("note"),
   createdAt: timestamp("createdAt").defaultNow(),
 });
@@ -29,4 +32,5 @@ export const showRelations = relations(show, ({ one }) => ({
 }));
 
 export type SelectShow = typeof show.$inferSelect;
-export type InsertShow = typeof show.$inferInsert;
+export type InsertShow = typeof show.$inferInsert &
+  Partial<Omit<SelectShow, "externalId" | "roomId" | "createdAt">>;
