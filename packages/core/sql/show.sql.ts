@@ -10,6 +10,7 @@ import { createExternalId } from "../common/createExternalId";
 import { SHOW_PREFIX } from "../common/constants";
 import { relations } from "drizzle-orm";
 import { room } from "./room.sql";
+import { act } from "./act.sql";
 
 export const show = pgTable("show", {
   id: serial("id").notNull().primaryKey(),
@@ -27,8 +28,9 @@ export const show = pgTable("show", {
   createdAt: timestamp("createdAt").defaultNow(),
 });
 
-export const showRelations = relations(show, ({ one }) => ({
+export const showRelations = relations(show, ({ one, many }) => ({
   room: one(room, { fields: [show.roomId], references: [room.id] }),
+  acts: many(act),
 }));
 
 export type SelectShow = typeof show.$inferSelect;

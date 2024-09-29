@@ -1,12 +1,12 @@
 import { createComics } from "./models/comic";
 import { fetchLineUp } from "./fetchLineUp";
-import { LineUp } from "./models/lineUp";
+import { Lineup } from "./models/act";
 import { isValidComic } from "./sql/comic.sql";
 
 export const handleLineUp = async ({ date }: { date: string }) => {
   const lineUpsData = await fetchLineUp(date);
 
-  const lineUps = (lineUpsData ?? []).map((lineUp) => new LineUp(lineUp));
+  const lineUps = (lineUpsData ?? []).map((lineUp) => new Lineup(lineUp));
 
   try {
     const comics = lineUps
