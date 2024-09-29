@@ -15,6 +15,13 @@
       "when": 1727502526958,
       "tag": "0001_hot_riptide",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1727579143580,
+      "tag": "0002_clean_marauders",
+      "breakpoints": true
     }
   ]
 }
