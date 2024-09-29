@@ -32,3 +32,13 @@ export type Show = {
   roomName: string;
   reservationUrl: string;
 };
+
+export type Comic = {
+  id: number;
+  externalId: string;
+  name: string;
+  img: string;
+  website?: string;
+  description: string;
+  createdAt: string;
+};

@@ -1,1 +1,8 @@
-{}
+{
+  "compilerOptions": {
+    "paths": {
+      "@core/*": ["./packages/core/*"],
+      "@types/*": ["./packages/types/*"]
+    }
+  }
+}

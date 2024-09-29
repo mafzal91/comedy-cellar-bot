@@ -42,12 +42,14 @@ api.route("GET /api/shows", {
 
 api.route("GET /api/shows/{timestamp}", {
   handler: `${functionDir}/shows/index.getShow`,
+  link: [dbCreds.dbUrl],
 });
 
 // ---- Line Ups -----
 
 api.route("GET /api/line-up", {
   handler: `${functionDir}/lineUp.handler`,
+  link: [dbCreds.dbUrl],
 });
 
 // ---- Reservations -----
@@ -62,8 +64,14 @@ api.route("POST /api/reservation/{timestamp}", {
 
 // ---- Comics -----
 
-// api.route("GET /api/comics/{comicId}", {
-//   handler: `${functionDir}/comic.get`,
-// });
+api.route("GET /api/comics", {
+  handler: `${functionDir}/comics/index.list`,
+  link: [dbCreds.dbUrl],
+});
+
+api.route("GET /api/comics/{externalId}", {
+  handler: `${functionDir}/comics/index.get`,
+  link: [dbCreds.dbUrl],
+});
 
 export default api;

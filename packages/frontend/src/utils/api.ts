@@ -80,3 +80,17 @@ export const createReservation = async ({
   );
   return res;
 };
+
+export const fetchComics = async ({
+  name,
+  skip = 0,
+  limit = 10,
+}: {
+  name?: string;
+  skip?: number;
+  limit?: number;
+} = {}) => {
+  const res = await customFetch(`${VITE_API_URL}/api/comics`);
+
+  return res;
+};
