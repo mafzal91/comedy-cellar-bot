@@ -1,7 +1,12 @@
 import { InsertAct, act, SelectAct } from "@core/sql/act.sql";
+import { PgDialect } from "drizzle-orm/pg-core";
+
 import { ApiResponse } from "../../types/api";
 import { db } from "@core/database";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { show } from "@core/sql/show.sql";
+import { comic } from "@core/sql/comic.sql";
+const pgDialect = new PgDialect();
 
 const COMEDY_CELLAR_URL = "https://www.comedycellar.com";
 
@@ -62,3 +67,20 @@ export async function getLineupByExternalId(
 ) {
   return db.select().from(act).where(eq(act.externalId, externalId));
 }
+
+// WIP
+// export async function createActsFromRawData({
+//   timestamp,
+//   comicName,
+// }: {
+//   timestamp: number;
+//   comicName: string[];
+// }) {
+//   const query = sql`INSERT INTO ${act} (${act.comicId.name}, ${act.showId.name}) SELECT ${comic.id}, ${show.id} FROM ${show} JOIN ${comic} ON ${comic.name} IN ${comicName} WHERE ${show.timestamp} = ${timestamp}`;
+//   console.log(pgDialect.sqlToQuery(query));
+
+//   return db.insert()
+
+//   // return null;
+//   return db.execute(query);
+// }

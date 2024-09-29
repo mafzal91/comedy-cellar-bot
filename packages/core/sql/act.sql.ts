@@ -23,12 +23,12 @@ export const act = pgTable(
       .notNull()
       .unique(),
     showId: integer("showId")
-      .references(() => show.id)
+      .references(() => show.id, { onDelete: "cascade" })
       .notNull(),
     comicId: integer("comicId")
-      .references(() => comic.id)
+      .references(() => comic.id, { onDelete: "cascade" })
       .notNull(),
-    enabled: boolean("enabled"),
+    enabled: boolean("enabled").default(true),
     createdAt: timestamp("createdAt").defaultNow(),
   },
   (table) => ({
