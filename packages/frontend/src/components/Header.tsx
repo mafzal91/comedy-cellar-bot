@@ -14,9 +14,9 @@ export function Header() {
               alt=""
             />
           </a>
-          <a href="/comics" className="-m-1.5 p-1.5">
+          {/* <a href="/comics" className="-m-1.5 p-1.5">
             Comics
-          </a>
+          </a> */}
         </div>
       </nav>
     </header>

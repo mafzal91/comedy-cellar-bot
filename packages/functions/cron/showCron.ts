@@ -1,14 +1,10 @@
-import { Resource } from "sst";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { getLastShow } from "@core/models/show";
 import { sendEmail } from "@core/email";
 import { parseTimestampString } from "@core/utils";
 import { getFutureDatesByDay } from "@core/getFutureDatesByDay";
 import { handleShowDetails } from "@core/handleShowDetails";
-import { formatInTimeZone } from "date-fns-tz";
-
-const FromEmail = Resource.FromEmail.value;
-const FromEmailPw = Resource.FromEmailPw.value;
+import { sleep } from "@core/common/sleep";
 
 export async function handler() {
   const [lastKnownShow] = await getLastShow();
@@ -31,27 +27,22 @@ export async function handler() {
     const data = await handleShowDetails({ date: nextDayToFetch });
 
     console.log(dateForLogging, "Cron Data", data);
-    await sendEmail(
-      {
-        subject: "New Show Cron",
-        message: JSON.stringify(
-          {
-            executionTime: dateForLogging,
-            ...data,
-          },
-          null,
-          2
-        ),
-      },
-      {
-        FromEmail,
-        FromEmailPw,
-      }
-    );
+    await sendEmail({
+      subject: "New Show Cron",
+      message: JSON.stringify(
+        {
+          executionTime: dateForLogging,
+          ...data,
+        },
+        null,
+        2
+      ),
+    });
     if (!data.shows.length) {
       moreShows = false;
     } else {
       days += 1;
+      await sleep(5000);
     }
   }
 
