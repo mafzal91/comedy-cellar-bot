@@ -94,3 +94,13 @@ export const fetchComics = async ({
 
   return res;
 };
+
+export const fetchComicById = async ({
+  externalId,
+}: {
+  externalId: string;
+}) => {
+  const res = await customFetch(`${VITE_API_URL}/api/comics/${externalId}`);
+
+  return res;
+};
