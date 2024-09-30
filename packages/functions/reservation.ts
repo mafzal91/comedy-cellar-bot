@@ -3,7 +3,7 @@ import { isPast } from "date-fns";
 import { Reservation } from "../core/models/reservation";
 import { handleReservation } from "../core/handleReservation";
 import { handleShowDetails } from "../core/handleShowDetails";
-import { sendEmail } from "../core/email";
+import { sendEmail } from "@core/email";
 
 const createErrorResponse = (statusCode: number, message: any) => ({
   statusCode,
@@ -23,11 +23,6 @@ const timestampRegex = /\b\d{10}\b/;
 export const create = async (_evt) => {
   const FromEmail = Resource.FromEmail.value;
   const FromEmailPw = Resource.FromEmailPw.value;
-  console.log({
-    FromEmail,
-    FromEmailPw,
-  });
-
   const timestamp = _evt?.pathParameters?.timestamp;
 
   const json = JSON.parse(_evt.body);
@@ -84,10 +79,17 @@ export const create = async (_evt) => {
     }
 
     const createdReservation = await handleReservation(reservationDetails);
-    await sendEmail(JSON.stringify(reservationDetails, null, 2), {
-      FromEmail,
-      FromEmailPw,
-    });
+
+    await sendEmail(
+      {
+        subject: "Comedy Cellar: new reservation!",
+        message: JSON.stringify(reservationDetails, null, 2),
+      },
+      {
+        FromEmail,
+        FromEmailPw,
+      }
+    ).catch((e) => console.error(e)); //swallow error
 
     return {
       statusCode: 200,

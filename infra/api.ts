@@ -1,10 +1,5 @@
-const emailSecrets = {
-  fromEmail: new sst.Secret("FromEmail"),
-  fromEmailPw: new sst.Secret("FromEmailPw"),
-};
-const dbCreds = {
-  dbUrl: new sst.Secret("DbUrl"),
-};
+import { dbCreds, emailSecrets } from "./secrets";
+
 const functionDir = `packages/functions`;
 
 const prodDomain = {
@@ -22,6 +17,11 @@ const api = new sst.aws.ApiGatewayV2("Api", {
 
 api.route("GET /", {
   handler: `${functionDir}/index.handler`,
+});
+
+api.route("GET /sync-shows", {
+  handler: `${functionDir}/cron/showCron.handler`,
+  link: [dbCreds.dbUrl, ...Object.values(emailSecrets)],
 });
 
 api.route("GET /api/health", {

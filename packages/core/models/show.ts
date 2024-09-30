@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@core/database";
 import { ApiResponse } from "@customTypes/api";
 import { show, InsertShow, SelectShow } from "@core/sql/show.sql";
@@ -139,4 +139,8 @@ export async function getShowByExternalId(
 
 export async function getShowByTimestamp(timestamp: SelectShow["timestamp"]) {
   return db.select().from(show).where(eq(show.timestamp, timestamp));
+}
+
+export async function getLastShow(): Promise<SelectShow[]> {
+  return db.select().from(show).orderBy(desc(show.timestamp)).limit(1);
 }

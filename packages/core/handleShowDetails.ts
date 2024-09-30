@@ -23,10 +23,12 @@ export const handleShowDetails = async ({ date }: { date: string }) => {
       name: show.roomName,
     }));
 
-    await Promise.allSettled([
-      createRooms(mappedRooms),
-      createShows(mappedShows),
-    ]);
+    if (mappedShows.length) {
+      await Promise.allSettled([
+        createRooms(mappedRooms),
+        createShows(mappedShows),
+      ]);
+    }
   } catch (e) {
     // Swallowing Errors here bc this code is just for background caching
     console.error(e);
