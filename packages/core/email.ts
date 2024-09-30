@@ -1,7 +1,13 @@
 import nodemailer from "nodemailer";
 
 export async function sendEmail(
-  message: string,
+  {
+    message,
+    subject,
+  }: {
+    message: string;
+    subject: string;
+  },
   {
     FromEmail,
     FromEmailPw,
@@ -21,7 +27,7 @@ export async function sendEmail(
   await transporter.sendMail({
     from: FromEmail,
     to: FromEmail,
-    subject: "Comedy Cellar: new reservation!",
+    subject,
     text: `Message: ${message}`,
   });
 

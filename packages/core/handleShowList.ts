@@ -1,8 +1,14 @@
 import { fetchShows } from "./fetchShows";
 import { getFutureDatesByDay } from "./getFutureDatesByDay";
 
-export const handleShowList = async ({ days }: { days: number }) => {
-  const dates = getFutureDatesByDay(days);
+export const handleShowList = async ({
+  days,
+  fromTimestamp,
+}: {
+  days: number;
+  fromTimestamp?: number;
+}) => {
+  const dates = getFutureDatesByDay(days, fromTimestamp);
   const response = [];
   for (const date of dates) {
     const data = await fetchShows(date);
