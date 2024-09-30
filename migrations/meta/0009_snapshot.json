@@ -1,0 +1,408 @@
+{
+  "id": "703b4bc4-cf9b-421d-aa96-ba5528883d21",
+  "prevId": "77529be6-5668-4173-bece-5fe5995b1e95",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.act": {
+      "name": "act",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "externalId": {
+          "name": "externalId",
+          "type": "varchar(128)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "showId": {
+          "name": "showId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "comicId": {
+          "name": "comicId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "enabled": {
+          "name": "enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "uniqueComicShow": {
+          "name": "uniqueComicShow",
+          "columns": [
+            {
+              "expression": "comicId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "showId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "act_showId_show_id_fk": {
+          "name": "act_showId_show_id_fk",
+          "tableFrom": "act",
+          "tableTo": "show",
+          "columnsFrom": [
+            "showId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "act_comicId_comic_id_fk": {
+          "name": "act_comicId_comic_id_fk",
+          "tableFrom": "act",
+          "tableTo": "comic",
+          "columnsFrom": [
+            "comicId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "act_externalId_unique": {
+          "name": "act_externalId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "externalId"
+          ]
+        }
+      }
+    },
+    "public.comic": {
+      "name": "comic",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "externalId": {
+          "name": "externalId",
+          "type": "varchar(128)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "img": {
+          "name": "img",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "website": {
+          "name": "website",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "enabled": {
+          "name": "enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "nameUniqueIndex": {
+          "name": "nameUniqueIndex",
+          "columns": [
+            {
+              "expression": "lower(\"name\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "comic_externalId_unique": {
+          "name": "comic_externalId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "externalId"
+          ]
+        },
+        "comic_name_unique": {
+          "name": "comic_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      }
+    },
+    "public.room": {
+      "name": "room",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "externalId": {
+          "name": "externalId",
+          "type": "varchar(128)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "room_externalId_unique": {
+          "name": "room_externalId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "externalId"
+          ]
+        },
+        "room_name_unique": {
+          "name": "room_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      }
+    },
+    "public.show": {
+      "name": "show",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "externalId": {
+          "name": "externalId",
+          "type": "varchar(128)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "roomId": {
+          "name": "roomId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cover": {
+          "name": "cover",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "show_roomId_room_id_fk": {
+          "name": "show_roomId_room_id_fk",
+          "tableFrom": "show",
+          "tableTo": "room",
+          "columnsFrom": [
+            "roomId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "show_externalId_unique": {
+          "name": "show_externalId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "externalId"
+          ]
+        }
+      }
+    },
+    "public.user": {
+      "name": "user",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "externalId": {
+          "name": "externalId",
+          "type": "varchar(128)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "emailUniqueIndex": {
+          "name": "emailUniqueIndex",
+          "columns": [
+            {
+              "expression": "lower(\"email\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_externalId_unique": {
+          "name": "user_externalId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "externalId"
+          ]
+        },
+        "user_email_unique": {
+          "name": "user_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      }
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

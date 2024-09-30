@@ -136,3 +136,7 @@ export async function getShowByExternalId(
 ) {
   return db.select().from(show).where(eq(show.externalId, externalId));
 }
+
+export async function getShowByTimestamp(timestamp: SelectShow["timestamp"]) {
+  return db.select().from(show).where(eq(show.timestamp, timestamp));
+}

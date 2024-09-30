@@ -50,6 +50,27 @@
       "when": 1727589358177,
       "tag": "0006_marvelous_scalphunter",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1727630335389,
+      "tag": "0007_noisy_mephisto",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1727644378168,
+      "tag": "0008_same_slapstick",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1727651765213,
+      "tag": "0009_puzzling_serpent_society",
+      "breakpoints": true
     }
   ]
 }
