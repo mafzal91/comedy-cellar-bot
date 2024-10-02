@@ -5,6 +5,7 @@ import {
   timestamp,
   pgTable,
   integer,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { createExternalId } from "../common/createExternalId";
 import { SHOW_PREFIX } from "../common/constants";
@@ -18,13 +19,24 @@ export const show = pgTable("show", {
     .$defaultFn(() => createExternalId(SHOW_PREFIX))
     .notNull()
     .unique(),
+  time: varchar("time", { length: 8 }),
+  description: text("description"),
+  forwardUrl: text("forwardUrl"),
+  soldout: boolean("soldout"),
+  max: integer("max"),
+  special: boolean("special"),
   roomId: integer("roomId")
     .references(() => room.id)
     .notNull(),
-  description: text("description"),
-  timestamp: integer("timestamp"),
   cover: integer("cover"),
   note: text("note"),
+  mint: boolean("mint"),
+  weekday: integer("weekday"),
+  totalGuests: integer("totalGuests"),
+  venueMin: integer("venueMin"),
+  venueMax: integer("venueMax"),
+  available: integer("available"),
+  timestamp: integer("timestamp"),
   createdAt: timestamp("createdAt").defaultNow(),
 });
 

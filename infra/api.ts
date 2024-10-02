@@ -40,6 +40,11 @@ api.route("GET /api/shows", {
   link: [dbCreds.dbUrl],
 });
 
+api.route("GET /api/shows/new", {
+  handler: `${functionDir}/shows/index.listShowsLocal`,
+  link: [dbCreds.dbUrl],
+});
+
 api.route("GET /api/shows/{timestamp}", {
   handler: `${functionDir}/shows/index.getShow`,
   link: [dbCreds.dbUrl],

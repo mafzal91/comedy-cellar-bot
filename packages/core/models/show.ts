@@ -1,8 +1,22 @@
-import { desc, eq, sql } from "drizzle-orm";
+import {
+  and,
+  between,
+  count,
+  desc,
+  eq,
+  getTableColumns,
+  gte,
+  lte,
+  SQL,
+  sql,
+} from "drizzle-orm";
 import { db } from "@core/database";
 import { ApiResponse } from "@customTypes/api";
 import { show, InsertShow, SelectShow } from "@core/sql/show.sql";
 import { SHOW_PREFIX } from "@core/common/constants";
+import { act } from "@core/sql/act.sql";
+import { comic } from "@core/sql/comic.sql";
+import { room } from "@core/sql/room.sql";
 
 const COMEDY_CELLAR_RESERVATION_URL =
   "https://www.comedycellar.com/reservation/?showid=";
@@ -104,6 +118,47 @@ export class Show {
   }
 }
 
+function getShowWhereClause({
+  comicId,
+  roomId,
+  date,
+}: {
+  comicId?: string;
+  roomId?: string;
+  date?: {
+    start: number;
+    end: number;
+  };
+}): SQL[] {
+  const where: SQL[] = [];
+
+  if (comicId) {
+    where.push(eq(comic.externalId, comicId));
+  }
+
+  if (roomId) {
+    where.push(eq(room.externalId, roomId));
+  }
+
+  if (date) {
+    const start = date.start ? Math.floor(date.start / 1000) : undefined;
+    const end = date.end ? Math.floor(date.end / 1000) : undefined;
+    console.log({
+      start,
+      end,
+    });
+    if (date.start && date.end) {
+      where.push(between(show.timestamp, start, end));
+    } else if (date.start) {
+      where.push(gte(show.timestamp, start));
+    } else if (date.end) {
+      where.push(lte(show.timestamp, end));
+    }
+  }
+
+  return where;
+}
+
 export function isShowExternalId(externalId) {
   return externalId.match(new RegExp(SHOW_PREFIX));
 }
@@ -127,8 +182,62 @@ export function createShow(data: InsertShow) {
   return createShows([data]);
 }
 
-export async function getShows() {
-  return db.select().from(show);
+export async function getShows({
+  comicId,
+  roomId,
+  date,
+  offset,
+  limit,
+}: {
+  comicId?: string;
+  roomId?: string;
+  date?: {
+    start: number;
+    end: number;
+  };
+  offset: number;
+  limit: number;
+}) {
+  const where = getShowWhereClause({ comicId, roomId, date });
+
+  const query = db
+    .select({ ...getTableColumns(show) })
+    .from(show)
+    .innerJoin(act, eq(act.showId, show.id))
+    .innerJoin(comic, eq(comic.id, act.comicId))
+    .innerJoin(room, eq(room.id, show.roomId))
+    .where(and(...where))
+    .limit(limit)
+    .offset(offset);
+  console.log(query.toSQL());
+  return query;
+}
+
+export async function getShowsCount({
+  comicId,
+  roomId,
+  date,
+}: {
+  comicId?: string;
+  roomId?: string;
+  date?: {
+    start: number;
+    end: number;
+  };
+}) {
+  const where = getShowWhereClause({ comicId, roomId, date });
+
+  const query = db
+    .select({ count: count() })
+    .from(show)
+    .innerJoin(act, eq(act.showId, show.id))
+    .innerJoin(comic, eq(comic.id, act.comicId))
+    .innerJoin(room, eq(room.id, show.roomId))
+    .where(and(...where));
+
+  const results = await query;
+
+  return results?.[0] ? results[0].count : 0;
 }
 
 export async function getShowByExternalId(

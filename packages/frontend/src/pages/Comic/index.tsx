@@ -20,12 +20,12 @@ function getRandomInt(max) {
 
 export default function Comic() {
   const { params } = useRoute();
-
+  const comicId = params.id;
   const { data, isFetching } = useQuery<ComicType>(
     ["comics", params.id],
     async () => {
       const comic = await fetchComicById({
-        externalId: params.id,
+        externalId: comicId,
       });
 
       return comic;
@@ -41,7 +41,7 @@ export default function Comic() {
 
   return (
     <div className="min-h-full flex flex-1 rounded-lg ring-1 ring-gray-200">
-      <div className="flex-1">
+      <div className="flex-1 pb-8">
         <div>
           <img
             alt=""
@@ -115,9 +115,9 @@ export default function Comic() {
           </dl>
         </div>
 
-        <UpcomingShows comics={[]} />
+        <UpcomingShows comicId={comicId} />
 
-        <AlongsideComics comics={[]} />
+        {/* <AlongsideComics comicId={comicId} /> */}
       </div>
     </div>
   );

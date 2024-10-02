@@ -1,9 +1,9 @@
 import { Img } from "../../components/Image";
 import { Comic as ComicType } from "../../types";
-
-export function AlongsideComics({ comics }: { comics: ComicType[] }) {
+const comics = [];
+export function AlongsideComics({ comicId }: { comicId: string }) {
   return (
-    <div className="mx-auto mt-8 max-w-5xl px-4 pb-12 sm:px-6 lg:px-8">
+    <div className="mx-auto mt-4 max-w-5xl p-4 sm:px-6 lg:px-8">
       <h2 className="text-sm font-medium text-gray-500">See alongside:</h2>
       <div className="mt-1 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {comics.length ? (

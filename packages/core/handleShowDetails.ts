@@ -10,14 +10,7 @@ export const handleShowDetails = async ({ date }: { date: string }) => {
   });
 
   try {
-    const mappedShows = shows.map((show) => ({
-      roomId: show.roomId,
-      note: show.note,
-      id: show.id,
-      description: show.description,
-      cover: show.cover,
-      timestamp: show.timestamp,
-    }));
+    const mappedShows = showsData?.shows;
     const mappedRooms = shows.map((show) => ({
       id: show.roomId,
       name: show.roomName,
