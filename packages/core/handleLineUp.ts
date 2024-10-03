@@ -23,8 +23,9 @@ export const handleLineUp = async ({ date }: { date: string }) => {
       await createComics(uniqueComics);
     }
 
-    for (const lineup of [lineUps[0]]) {
+    for (const lineup of lineUps) {
       const { timestamp, acts } = lineup;
+
       const actNames = acts.filter((act) => act.name).map((act) => act.name);
       const [show, comics] = await Promise.all([
         getShowByTimestamp(timestamp),

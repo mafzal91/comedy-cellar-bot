@@ -17,6 +17,7 @@ import { SHOW_PREFIX } from "@core/common/constants";
 import { act } from "@core/sql/act.sql";
 import { comic } from "@core/sql/comic.sql";
 import { room } from "@core/sql/room.sql";
+import { mapOrderToDrizzle } from "@core/common/mapOrderToDrizzle";
 
 const COMEDY_CELLAR_RESERVATION_URL =
   "https://www.comedycellar.com/reservation/?showid=";
@@ -143,10 +144,6 @@ function getShowWhereClause({
   if (date) {
     const start = date.start ? Math.floor(date.start / 1000) : undefined;
     const end = date.end ? Math.floor(date.end / 1000) : undefined;
-    console.log({
-      start,
-      end,
-    });
     if (date.start && date.end) {
       where.push(between(show.timestamp, start, end));
     } else if (date.start) {
@@ -188,6 +185,7 @@ export async function getShows({
   date,
   offset,
   limit,
+  order,
 }: {
   comicId?: string;
   roomId?: string;
@@ -197,8 +195,10 @@ export async function getShows({
   };
   offset: number;
   limit: number;
+  order?: Record<string, 1 | -1>;
 }) {
   const where = getShowWhereClause({ comicId, roomId, date });
+  const orderBy = mapOrderToDrizzle(order, show);
 
   const query = db
     .select({ ...getTableColumns(show) })
@@ -207,9 +207,10 @@ export async function getShows({
     .innerJoin(comic, eq(comic.id, act.comicId))
     .innerJoin(room, eq(room.id, show.roomId))
     .where(and(...where))
+    .orderBy(...orderBy)
     .limit(limit)
     .offset(offset);
-  console.log(query.toSQL());
+
   return query;
 }
 
@@ -250,6 +251,6 @@ export async function getShowByTimestamp(timestamp: SelectShow["timestamp"]) {
   return db.select().from(show).where(eq(show.timestamp, timestamp));
 }
 
-export async function getLastShow(): Promise<SelectShow[]> {
+export async function getLastShow(): Promise<SelectShow[] | []> {
   return db.select().from(show).orderBy(desc(show.timestamp)).limit(1);
 }

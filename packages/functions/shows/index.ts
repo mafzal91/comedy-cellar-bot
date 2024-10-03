@@ -10,6 +10,8 @@ import { isComicExternalId } from "@core/models/comic";
 import { UnixDateRange } from "@core/common/schema";
 import { generateResponse } from "@core/common/generateResponse";
 import { getShows, getShowsCount } from "@core/models/show";
+import { show } from "@core/sql/show.sql";
+import { mapSortString } from "@core/common/mapSortString";
 
 // Deprecated. Will use listShowsLocal and remove this when syncing shows is polished
 export const listShows = async (_evt) => {
@@ -102,6 +104,12 @@ export const scanShows = async (_evt) => {
 // Unlike listShows, This function will fetch from the db as I phase out fetching directly from the comedy cellar. THis will allow for richer searches
 export const listShowsLocal = async (_evt) => {
   const queryStringParameters = qs.parse(_evt.rawQueryString);
+
+  const sortFieldSchema = z.enum([
+    show.timestamp.name,
+    `-${show.timestamp.name}`,
+  ]);
+
   const queryValidationSchema = z
     .object({
       comicId: z
@@ -119,6 +127,7 @@ export const listShowsLocal = async (_evt) => {
         .optional(),
       offset: z.coerce.number().min(0).default(0),
       limit: z.coerce.number().min(1).max(100).default(20),
+      sort: sortFieldSchema.optional().transform(mapSortString),
     })
     .default({
       offset: 0,
@@ -135,7 +144,7 @@ export const listShowsLocal = async (_evt) => {
     });
   }
 
-  const { comicId, date, roomId, offset, limit } = query.data;
+  const { comicId, date, roomId, offset, limit, sort } = query.data;
 
   const filters: {
     comicId?: string;
@@ -148,11 +157,11 @@ export const listShowsLocal = async (_evt) => {
   if (date) {
     filters.date = { start: date.start, end: date.end };
   }
-  console.log(filters);
-  console.log(parseTimestampString({ timestamp: date.start / 1000 + "" }));
+
   const [shows, count] = await Promise.all([
     getShows({
       ...filters,
+      order: sort,
       offset,
       limit,
     }),
