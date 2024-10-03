@@ -9,7 +9,7 @@ import {
 import { QueryClient, QueryClientProvider } from "react-query";
 import * as Sentry from "@sentry/browser";
 
-import { Header } from "./components/Header";
+import { Header, Header1 } from "./components/Header";
 import { Redirect } from "./components/Redirect";
 
 import "./style.css";
@@ -25,21 +25,23 @@ const queryClient = new QueryClient();
 const Home = lazy(() => import("./pages/Home"));
 const Reservations = lazy(() => import("./pages/Reservations"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const Comedians = lazy(() => import("./pages/Comics"));
+const Comics = lazy(() => import("./pages/Comics"));
+const Comic = lazy(() => import("./pages/Comic"));
 
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LocationProvider>
         <ErrorBoundary>
-          <Header />
+          <Header1 />
           <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="px-4 py-5 sm:p-6">
               <Router>
                 <Home path="/" />
                 <Reservations path="/reservations/:timestamp" />
                 <NotFound path="/404" />
-                <Comedians path="/comics" />
+                <Comics path="/comics" />
+                <Comic path="/comics/:id" />
                 <Route default component={() => <Redirect to="/" />} />
               </Router>
             </div>

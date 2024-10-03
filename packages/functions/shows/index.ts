@@ -2,10 +2,19 @@ import { parseTimestampString } from "../../core/utils";
 import { handleShowDetails } from "../../core/handleShowDetails";
 import { handleLineUp } from "../../core/handleLineUp";
 import { handleShowList } from "../../core/handleShowList";
+import * as z from "zod";
+import qs from "qs";
+import { x } from "../../../.sst/platform/src/components";
+import { isRoomExternalId } from "@core/models/room";
+import { isComicExternalId } from "@core/models/comic";
+import { UnixDateRange } from "@core/common/schema";
+import { generateResponse } from "@core/common/generateResponse";
+import { getShows, getShowsCount } from "@core/models/show";
 
+// Deprecated. Will use listShowsLocal and remove this when syncing shows is polished
 export const listShows = async (_evt) => {
   const date = _evt?.queryStringParameters?.date; // yyyy-mm-dd
-
+  const comicId = _evt?.queryStringParameters?.date;
   if (!date) {
     return {
       statusCode: 400,
@@ -88,4 +97,75 @@ export const scanShows = async (_evt) => {
     },
     body: JSON.stringify(response),
   };
+};
+
+// Unlike listShows, This function will fetch from the db as I phase out fetching directly from the comedy cellar. THis will allow for richer searches
+export const listShowsLocal = async (_evt) => {
+  const queryStringParameters = qs.parse(_evt.rawQueryString);
+  const queryValidationSchema = z
+    .object({
+      comicId: z
+        .string()
+        .refine(isComicExternalId, {
+          message: "Invalid Id: Comic Ids start with comic_",
+        })
+        .optional(),
+      date: UnixDateRange.optional(),
+      roomId: z
+        .string()
+        .refine(isRoomExternalId, {
+          message: "Invalid Id: Room Ids start with room_",
+        })
+        .optional(),
+      offset: z.coerce.number().min(0).default(0),
+      limit: z.coerce.number().min(1).max(100).default(20),
+    })
+    .default({
+      offset: 0,
+      limit: 20,
+    });
+
+  const query = queryValidationSchema.safeParse(queryStringParameters);
+
+  if (!query.success) {
+    const error = query.error.format();
+    return generateResponse({
+      statusCode: 400,
+      body: error,
+    });
+  }
+
+  const { comicId, date, roomId, offset, limit } = query.data;
+
+  const filters: {
+    comicId?: string;
+    date?: { start: number; end: number };
+    roomId?: string;
+  } = {};
+
+  if (comicId) filters.comicId = comicId;
+  if (roomId) filters.roomId = roomId;
+  if (date) {
+    filters.date = { start: date.start, end: date.end };
+  }
+  console.log(filters);
+  console.log(parseTimestampString({ timestamp: date.start / 1000 + "" }));
+  const [shows, count] = await Promise.all([
+    getShows({
+      ...filters,
+      offset,
+      limit,
+    }),
+    getShowsCount(filters),
+  ]);
+
+  return generateResponse({
+    statusCode: 200,
+    body: {
+      results: shows,
+      offset,
+      limit,
+      total: count,
+    },
+  });
 };

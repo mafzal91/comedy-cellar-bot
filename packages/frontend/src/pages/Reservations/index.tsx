@@ -9,10 +9,10 @@ import { Button } from "../../components/Button";
 import { Disclaimer } from "../../components/Disclaimer";
 import { Spinner } from "../../components/Spinner";
 import { Input } from "../../components/Input";
+import { PageLoader } from "../../components/PageLoader";
 
 import { Section, Field, FieldWrapper } from "./Helpers";
 import { ShowDetails } from "./ShowDetails";
-import { PageLoader } from "./PageLoader";
 import { PageError } from "./PageError";
 import { FormError } from "./FormError";
 import { NetworkError } from "./NetworkError";

@@ -1,3 +1,6 @@
+import { ListApiRes, ShowDb } from "../types";
+import qs from "qs";
+
 const { VITE_API_URL } = import.meta.env;
 
 const withFetchErrorHandling = (fetchFunction) => {
@@ -91,6 +94,32 @@ export const fetchComics = async ({
   limit?: number;
 } = {}) => {
   const res = await customFetch(`${VITE_API_URL}/api/comics`);
+
+  return res;
+};
+
+export const fetchComicById = async ({
+  externalId,
+}: {
+  externalId: string;
+}) => {
+  const res = await customFetch(`${VITE_API_URL}/api/comics/${externalId}`);
+
+  return res;
+};
+
+export const fetchShowsNew = async (filters: {
+  comicId?: string;
+  roomId?: string;
+  date?: {
+    start?: number;
+    end?: number;
+  };
+  offset: number;
+  limit: number;
+}): Promise<ListApiRes<ShowDb>> => {
+  const queryString = qs.stringify(filters);
+  const res = await customFetch(`${VITE_API_URL}/api/shows/new?${queryString}`);
 
   return res;
 };

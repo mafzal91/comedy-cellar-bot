@@ -5,6 +5,7 @@ import { parseTimestampString } from "@core/utils";
 import { getFutureDatesByDay } from "@core/getFutureDatesByDay";
 import { handleShowDetails } from "@core/handleShowDetails";
 import { sleep } from "@core/common/sleep";
+import { handleLineUp } from "@core/handleLineUp";
 
 export async function handler() {
   const [lastKnownShow] = await getLastShow();
@@ -25,7 +26,6 @@ export async function handler() {
     const futureDays = getFutureDatesByDay(days, dateOfLastShow.jsTimestamp);
     const nextDayToFetch = futureDays[futureDays.length - 1];
     const data = await handleShowDetails({ date: nextDayToFetch });
-
     console.log(dateForLogging, "Cron Data", data);
     await sendEmail({
       subject: "New Show Cron",
@@ -41,6 +41,7 @@ export async function handler() {
     if (!data.shows.length) {
       moreShows = false;
     } else {
+      await handleLineUp({ date: nextDayToFetch });
       days += 1;
       await sleep(5000);
     }
