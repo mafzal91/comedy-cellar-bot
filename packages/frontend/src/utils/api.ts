@@ -118,7 +118,7 @@ export const fetchShowsNew = async (filters: {
   offset: number;
   limit: number;
 }): Promise<ListApiRes<ShowDb>> => {
-  const queryString = qs.stringify(filters);
+  const queryString = qs.stringify({ ...filters, sort: "timestamp" });
   const res = await customFetch(`${VITE_API_URL}/api/shows/new?${queryString}`);
 
   return res;

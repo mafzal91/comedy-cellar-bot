@@ -27,6 +27,7 @@ export async function handler() {
     const nextDayToFetch = futureDays[futureDays.length - 1];
     const data = await handleShowDetails({ date: nextDayToFetch });
     console.log(dateForLogging, "Cron Data", data);
+
     await sendEmail({
       subject: "New Show Cron",
       message: JSON.stringify(
@@ -37,7 +38,7 @@ export async function handler() {
         null,
         2
       ),
-    });
+    }).catch((e) => console.error(e));
     if (!data.shows.length) {
       moreShows = false;
     } else {
