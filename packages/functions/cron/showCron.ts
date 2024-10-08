@@ -7,7 +7,13 @@ import { handleShowDetails } from "@core/handleShowDetails";
 import { sleep } from "@core/common/sleep";
 import { handleLineUp } from "@core/handleLineUp";
 
+const IS_ACTIVE = process.env.IS_ACTIVE === "1";
+const IS_CRON = process.env.IS_CRON === "1";
+
 export async function handler() {
+  if (!IS_ACTIVE && IS_CRON) {
+    return;
+  }
   const [lastKnownShow] = await getLastShow();
   const dateOfLastShow = parseTimestampString({
     timestamp: `${lastKnownShow.timestamp}`,
@@ -16,29 +22,37 @@ export async function handler() {
   let moreShows = true;
   let days = 1;
 
-  while (moreShows) {
-    const dateForLogging = formatInTimeZone(
-      new Date(),
-      "America/New_York",
-      "MM/dd/yyyy hh:mm:ss a"
-    );
+  const now = new Date();
+  const dateForLogging = formatInTimeZone(
+    now,
+    "America/New_York",
+    "MM/dd/yyyy hh:mm:ss a"
+  );
+  const currentHour = parseInt(
+    formatInTimeZone(now, "America/New_York", "k"),
+    10
+  );
 
+  while (moreShows) {
     const futureDays = getFutureDatesByDay(days, dateOfLastShow.jsTimestamp);
     const nextDayToFetch = futureDays[futureDays.length - 1];
     const data = await handleShowDetails({ date: nextDayToFetch });
     console.log(dateForLogging, "Cron Data", data);
 
-    await sendEmail({
-      subject: "New Show Cron",
-      message: JSON.stringify(
-        {
-          executionTime: dateForLogging,
-          ...data,
-        },
-        null,
-        2
-      ),
-    }).catch((e) => console.error(e));
+    if (currentHour % 6 === 0) {
+      await sendEmail({
+        subject: "New Show Cron",
+        message: JSON.stringify(
+          {
+            executionTime: dateForLogging,
+            currentHour,
+            ...data,
+          },
+          null,
+          2
+        ),
+      }).catch((e) => console.error(e));
+    }
     if (!data.shows.length) {
       moreShows = false;
     } else {
