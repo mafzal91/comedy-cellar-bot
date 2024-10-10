@@ -1,46 +1,62 @@
-import { useState } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 import { useQuery } from "react-query";
 import { Calendar } from "../../components/Calendar";
 import { Event } from "../../components/Event";
 import { EventLoader } from "../../components/EventLoader";
-import { TODAY } from "../../utils/date";
+import { getToday } from "../../utils/date";
 import { fetchShows, fetchLineUp } from "../../utils/api";
 import { Show, LineUp } from "../../types";
+import { useLocation } from "preact-iso";
 
 export default function Home() {
-  // TODO: make selected date the timestamp and not the formated string YYYY-MM-DD
-  const [selectedDate, setSelectedDate] = useState(TODAY);
+  const { query, route } = useLocation();
+
+  useEffect(() => {
+    if (!query.date) {
+      const today = getToday();
+      route(`?date=${today}`, true);
+    }
+  }, [query.date]);
+
+  if (!query.date) {
+    return null;
+  }
 
   const showData = useQuery<Show[]>(
-    ["shows", selectedDate],
+    ["shows", query.date],
     async () => {
-      const showData = await fetchShows({ date: selectedDate });
-
+      const showData = await fetchShows({ date: query.date });
       return showData.shows;
     },
     {
-      enabled: !!selectedDate,
+      enabled: !!query.date,
       refetchOnWindowFocus: false,
       retry: false,
     }
   );
 
+  // Fetch lineups based on the selected date
   const lineUpData = useQuery<LineUp[]>(
-    ["lineUps", selectedDate],
+    ["lineUps", query.date],
     async () => {
-      const lineUpsData = await fetchLineUp({ date: selectedDate });
+      const lineUpsData = await fetchLineUp({ date: query.date });
       return lineUpsData.lineUps;
     },
     {
-      enabled: !!selectedDate,
+      enabled: !!query.date,
       refetchOnWindowFocus: false,
       retry: false,
     }
   );
 
   const findLineUp = (timestamp: number) => {
-    return lineUpData.data.find((lineUp) => lineUp.timestamp === timestamp);
+    return lineUpData.data?.find((lineUp) => lineUp.timestamp === timestamp);
   };
+
+  const handleDateChange = (date: string) => {
+    route(`?date=${date}`);
+  };
+
   return (
     <>
       <h2 className="text-base font-semibold leading-6 text-gray-900">
@@ -48,7 +64,7 @@ export default function Home() {
       </h2>
       <div className="lg:grid lg:grid-cols-12 lg:gap-x-16">
         <div className="mt-10 text-center lg:col-start-1 lg:col-end-5 lg:row-start-1 lg:mt-9">
-          <Calendar value={selectedDate} onChange={setSelectedDate} />
+          <Calendar value={query.date} onChange={handleDateChange} />
         </div>
 
         <div className="mt-4 overflow-hidden rounded-lg bg-white shadow ring-1 ring-gray-200 lg:col-span-7 xl:col-span-8 ">
@@ -57,7 +73,7 @@ export default function Home() {
               <Loader />
             ) : (
               <ol className="divide-y divide-gray-100 text-sm leading-6">
-                {showData.data.length ? (
+                {showData.data && showData.data.length ? (
                   showData.data.map((show) => (
                     <li
                       key={show.id}

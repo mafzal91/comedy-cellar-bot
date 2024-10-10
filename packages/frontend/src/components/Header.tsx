@@ -1,3 +1,5 @@
+import { getToday } from "../utils/date";
+
 export function Header() {
   return (
     <header className="bg-primary">
@@ -23,7 +25,7 @@ export function Header() {
   );
 }
 const navigation = [
-  { name: "Home", href: "/" },
+  { name: "Home", href: `/?date=${getToday()}` },
   { name: "Comics", href: "/comics" },
   // { name: "Rooms", href: "/rooms" },
 ];

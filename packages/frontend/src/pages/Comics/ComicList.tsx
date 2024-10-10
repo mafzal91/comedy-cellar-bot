@@ -1,4 +1,4 @@
-import { GlobeAltIcon, UserCircleIcon } from "@heroicons/react/20/solid";
+import { GlobeAltIcon } from "@heroicons/react/20/solid";
 import { Comic } from "../../types";
 import { Img } from "../../components/Image";
 
@@ -40,15 +40,46 @@ function ComicItem({ comic }: { comic: Comic }) {
   );
 }
 
-export function ComicList({ comics }: { comics: Comic[] }) {
+function ComicItemSkeleton() {
+  return (
+    <li className="animate-pulse flex flex-col grow rounded-lg ring-1 ring-gray-200 shadow transition-shadow duration-300 hover:shadow-md">
+      <div className="flex-1 flex flex-col">
+        <div className="aspect-[3/2] w-full rounded-lg bg-gray-300" />
+        <div className="flex flex-col flex-1 justify-between p-4 space-y-4">
+          <div className="h-6 bg-gray-300 rounded w-3/4" />
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-300 rounded w-full" />
+            <div className="h-4 bg-gray-300 rounded w-5/6" />
+            <div className="h-4 bg-gray-300 rounded w-4/6" />
+          </div>
+          <ul role="list" className="mt-6 flex gap-x-6">
+            <li>
+              <div className="h-5 w-5 bg-gray-300 rounded-full" />
+            </li>
+          </ul>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+export function ComicList({
+  comics,
+  isLoading,
+}: {
+  comics: Comic[];
+  isLoading: boolean;
+}) {
   return (
     <ul
       role="list"
       className="mx-auto mt-20 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3"
     >
-      {comics.map((comic) => (
-        <ComicItem comic={comic} />
-      ))}
+      {isLoading
+        ? Array.from({ length: 9 }).map((_, index) => (
+            <ComicItemSkeleton key={index} />
+          ))
+        : comics.map((comic) => <ComicItem key={comic.name} comic={comic} />)}
     </ul>
   );
 }
