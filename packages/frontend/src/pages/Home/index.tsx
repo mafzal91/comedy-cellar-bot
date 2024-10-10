@@ -1,31 +1,31 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 import { useQuery } from "react-query";
 import { Calendar } from "../../components/Calendar";
 import { Event } from "../../components/Event";
 import { EventLoader } from "../../components/EventLoader";
-import { TODAY } from "../../utils/date";
+import { getToday } from "../../utils/date";
 import { fetchShows, fetchLineUp } from "../../utils/api";
 import { Show, LineUp } from "../../types";
-import { useLocation, useRoute } from "preact-iso";
+import { useLocation } from "preact-iso";
 
 export default function Home() {
-  const { query } = useRoute();
-  console.log(query);
-  // TODO: make selected date the timestamp and not the formated string YYYY-MM-DD
+  const { query, route } = useLocation();
 
   useEffect(() => {
-    if (!query?.date) {
-      history.replaceState(null, "", `?date=${TODAY}`);
+    if (!query.date) {
+      const today = getToday();
+      route(`?date=${today}`, true);
     }
-  }, [query]);
+  }, [query.date]);
 
-  // const [selectedDate, setSelectedDate] = useState(query.date);
+  if (!query.date) {
+    return null;
+  }
 
   const showData = useQuery<Show[]>(
     ["shows", query.date],
     async () => {
       const showData = await fetchShows({ date: query.date });
-
       return showData.shows;
     },
     {
@@ -35,6 +35,7 @@ export default function Home() {
     }
   );
 
+  // Fetch lineups based on the selected date
   const lineUpData = useQuery<LineUp[]>(
     ["lineUps", query.date],
     async () => {
@@ -48,14 +49,14 @@ export default function Home() {
     }
   );
 
-  const handleDateChange = (date) => {
-    console.log(date);
-    history.replaceState(null, "", `?date=${date}`);
+  const findLineUp = (timestamp: number) => {
+    return lineUpData.data?.find((lineUp) => lineUp.timestamp === timestamp);
   };
 
-  const findLineUp = (timestamp: number) => {
-    return lineUpData.data.find((lineUp) => lineUp.timestamp === timestamp);
+  const handleDateChange = (date: string) => {
+    route(`?date=${date}`);
   };
+
   return (
     <>
       <h2 className="text-base font-semibold leading-6 text-gray-900">
@@ -72,7 +73,7 @@ export default function Home() {
               <Loader />
             ) : (
               <ol className="divide-y divide-gray-100 text-sm leading-6">
-                {showData.data.length ? (
+                {showData.data && showData.data.length ? (
                   showData.data.map((show) => (
                     <li
                       key={show.id}

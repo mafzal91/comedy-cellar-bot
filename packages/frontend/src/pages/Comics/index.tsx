@@ -23,9 +23,9 @@ export default function Comics() {
     }
   );
 
-  if (isFetching) {
-    return <PageLoader />;
-  }
+  // if (isFetching) {
+  //   return <PageLoader />;
+  // }
 
-  return <ComicList comics={data} />;
+  return <ComicList comics={data} isLoading={isFetching} />;
 }

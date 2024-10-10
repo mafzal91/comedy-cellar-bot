@@ -6,7 +6,7 @@ import {
   endOfMonth as getEndOfMonth,
 } from "date-fns";
 
-export const TODAY = format(new Date(), "yyyy-MM-dd");
+export const TODAY = () => format(new Date(), "yyyy-MM-dd");
 
 const toDayOfWeek = (date: string): string => {
   const [year, month, day] = splitDate(date);
