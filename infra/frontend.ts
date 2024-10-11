@@ -1,4 +1,5 @@
 import api from "./api";
+import userPool, { userPoolClient } from "./cognito";
 
 const prodDomain = {
   domain: {
@@ -8,7 +9,7 @@ const prodDomain = {
     }),
   },
 };
-
+console.log(userPoolClient.id);
 new sst.aws.StaticSite("Frontend", {
   path: "packages/frontend",
   build: {
@@ -18,6 +19,8 @@ new sst.aws.StaticSite("Frontend", {
   environment: {
     VITE_REGION: aws.getRegionOutput().name,
     VITE_API_URL: api.url,
+    VITE_USER_POOL_ID: userPool.id,
+    VITE_USER_POOL_CLIENT_ID: userPoolClient.id,
   },
   ...($app.stage === "prod" ? prodDomain : {}),
 });

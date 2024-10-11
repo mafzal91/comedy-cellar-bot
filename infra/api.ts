@@ -1,5 +1,5 @@
 import { dbCreds, emailSecrets } from "./secrets";
-
+import userPool, { userPoolClient } from "./cognito";
 const functionDir = `packages/functions`;
 
 const prodDomain = {
@@ -15,6 +15,16 @@ const api = new sst.aws.ApiGatewayV2("Api", {
   ...($app.stage === "prod" ? prodDomain : {}),
 });
 
+const authorizer = api.addAuthorizer({
+  name: "myCognitoAuthorizer",
+  jwt: {
+    issuer: $interpolate`https://cognito-idp.${
+      aws.getRegionOutput().name
+    }.amazonaws.com/${userPool.id}`,
+    audiences: [userPoolClient.id],
+  },
+});
+
 api.route("GET /", {
   handler: `${functionDir}/index.handler`,
 });
@@ -24,9 +34,19 @@ api.route("GET /sync-shows", {
   link: [dbCreds.dbUrl, ...Object.values(emailSecrets)],
 });
 
-api.route("GET /api/health", {
-  handler: `${functionDir}/health.handler`,
-});
+api.route(
+  "GET /api/health",
+  {
+    handler: `${functionDir}/health.handler`,
+  },
+  {
+    auth: {
+      jwt: {
+        authorizer: authorizer.id,
+      },
+    },
+  }
+);
 
 // ---- SHOWS -----
 

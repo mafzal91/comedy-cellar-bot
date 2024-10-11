@@ -25,5 +25,14 @@ declare module "sst" {
       "type": "sst.aws.StaticSite"
       "url": string
     }
+    "MyUserPool": {
+      "id": string
+      "type": "sst.aws.CognitoUserPool"
+    }
+    "Web": {
+      "id": string
+      "secret": string
+      "type": "sst.aws.CognitoUserPoolClient"
+    }
   }
 }

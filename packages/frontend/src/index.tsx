@@ -28,6 +28,7 @@ const Reservations = lazy(() => import("./pages/Reservations"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Comics = lazy(() => import("./pages/Comics"));
 const Comic = lazy(() => import("./pages/Comic"));
+const Auth = lazy(() => import("./pages/Auth"));
 
 export function App() {
   return (
@@ -48,6 +49,7 @@ export function App() {
                 <NotFound path="/404" />
                 <Comics path="/comics" />
                 <Comic path="/comics/:id" />
+                <Auth path="/auth" />
                 <Route
                   default
                   component={() => <Redirect to={`/?date=${getToday}`} />}

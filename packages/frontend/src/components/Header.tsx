@@ -4,6 +4,7 @@ import { Link } from "../components/Link";
 const navigation = [
   { name: "Home", href: `/?date=${getToday()}` },
   { name: "Comics", href: "/comics" },
+  { name: "Auth", href: "/auth" },
   // { name: "Rooms", href: "/rooms" },
 ];
 export function Header() {
