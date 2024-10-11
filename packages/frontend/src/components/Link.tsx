@@ -9,8 +9,7 @@ export const Link: FunctionalComponent<LinkProps> = ({
   children,
   ...props
 }) => {
-  const baseClasses =
-    "font-small text-blue-600 dark:text-blue-500 hover:underline";
+  const baseClasses = "font-small text-blue-600 hover:underline";
 
   const linkClasses = clsx(baseClasses, className);
 

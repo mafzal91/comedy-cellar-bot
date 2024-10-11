@@ -9,14 +9,15 @@ import {
 import { QueryClient, QueryClientProvider } from "react-query";
 import * as Sentry from "@sentry/browser";
 
-import { Header, Header1 } from "./components/Header";
+import { Header } from "./components/Header";
 import { Redirect } from "./components/Redirect";
+import { getToday } from "./utils/date";
 
 import "./style.css";
 
 Sentry.init({
   dsn: "https://523bcd0e95c565ef1f4c580690e75a9b@o4506630100090880.ingest.sentry.io/4506630117916672",
-  integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
+  integrations: [Sentry.browserTracingIntegration()],
   enabled: import.meta.env.PROD,
 });
 
@@ -30,10 +31,15 @@ const Comic = lazy(() => import("./pages/Comic"));
 
 export function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <LocationProvider>
-        <ErrorBoundary>
-          <Header1 />
+    <LocationProvider>
+      <QueryClientProvider client={queryClient}>
+        <ErrorBoundary
+          onError={(error) => {
+            Sentry.captureException(error);
+            return <div>An error occurred</div>;
+          }}
+        >
+          <Header />
           <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="px-4 py-5 sm:p-6">
               <Router>
@@ -42,13 +48,16 @@ export function App() {
                 <NotFound path="/404" />
                 <Comics path="/comics" />
                 <Comic path="/comics/:id" />
-                <Route default component={() => <Redirect to="/" />} />
+                <Route
+                  default
+                  component={() => <Redirect to={`/?date=${getToday}`} />}
+                />
               </Router>
             </div>
           </main>
         </ErrorBoundary>
-      </LocationProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </LocationProvider>
   );
 }
 
