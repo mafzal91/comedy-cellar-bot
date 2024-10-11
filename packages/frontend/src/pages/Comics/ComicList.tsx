@@ -73,7 +73,7 @@ export function ComicList({
   return (
     <ul
       role="list"
-      className="mx-auto mt-20 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3"
+      className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3"
     >
       {isLoading
         ? Array.from({ length: 9 }).map((_, index) => (

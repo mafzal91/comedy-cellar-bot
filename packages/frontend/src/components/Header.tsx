@@ -20,14 +20,13 @@ export function Header() {
             />
           </a>
         </div>
-        <nav className="flex md:gap-x-11 md:text-sm font-semibold md:leading-6 md:text-black">
+        <nav className="flex gap-x-4 md:gap-x-8 md:text-sm font-semibold md:leading-6 md:text-black">
           {navigation.map((item, itemIdx) => (
             <Link key={itemIdx} href={item.href} className="text-slate-950">
               {item.name}
             </Link>
           ))}
         </nav>
-        <div className="flex flex-1 items-center justify-end gap-x-8"></div>
       </div>
     </header>
   );
