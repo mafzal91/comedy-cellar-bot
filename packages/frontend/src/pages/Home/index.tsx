@@ -12,7 +12,8 @@ export default function Home() {
   const { query, route } = useLocation();
 
   useEffect(() => {
-    if (!query.date) {
+    // I shouldn't have to check pathname here bc the home component should unmount when the path changes but its not and IDK why
+    if (window.location.pathname === "/" && !query.date) {
       const today = getToday();
       route(`?date=${today}`, true);
     }
