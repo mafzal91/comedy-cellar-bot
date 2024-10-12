@@ -1,5 +1,4 @@
 import { dbCreds, emailSecrets } from "./secrets";
-import userPool, { userPoolClient } from "./cognito";
 const functionDir = `packages/functions`;
 
 const prodDomain = {
@@ -16,12 +15,10 @@ const api = new sst.aws.ApiGatewayV2("Api", {
 });
 
 const authorizer = api.addAuthorizer({
-  name: "myCognitoAuthorizer",
+  name: "myClerkAuthorizer",
   jwt: {
-    issuer: $interpolate`https://cognito-idp.${
-      aws.getRegionOutput().name
-    }.amazonaws.com/${userPool.id}`,
-    audiences: [userPoolClient.id],
+    issuer: "https://fair-sunfish-35.clerk.accounts.dev",
+    audiences: ["ClerkJwtAuthorizer"],
   },
 });
 

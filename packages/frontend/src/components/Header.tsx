@@ -1,13 +1,30 @@
 import { getToday } from "../utils/date";
+import { clerk } from "../utils/clerk";
 import { Link } from "../components/Link";
+import { useEffect, useState } from "preact/hooks";
 
 const navigation = [
   { name: "Home", href: `/?date=${getToday()}` },
   { name: "Comics", href: "/comics" },
-  { name: "Auth", href: "/auth" },
-  // { name: "Rooms", href: "/rooms" },
+  // { name: "Sign up", href: "/sign-up" },
 ];
+
+const signOutLink = [{ name: "Sign out", href: "/sign-out" }];
+const signInLink = [{ name: "Sign up", href: "/sign-up" }];
+
 export function Header() {
+  const [navLinks, setNavLinks] = useState(navigation);
+  useEffect(() => {
+    clerk.load().then(() => {
+      if (clerk.user) {
+        console.log(clerk.user);
+        setNavLinks([...navigation, ...signOutLink]);
+      } else {
+        setNavLinks([...navigation, ...signInLink]);
+      }
+    });
+  }, []);
+
   return (
     <header className="flex h-16 border-b border-gray-900/10 bg-primary">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -22,7 +39,7 @@ export function Header() {
           </a>
         </div>
         <nav className="flex gap-x-4 md:gap-x-8 md:text-sm font-semibold md:leading-6 md:text-black">
-          {navigation.map((item, itemIdx) => (
+          {navLinks.map((item, itemIdx) => (
             <Link key={itemIdx} href={item.href} className="text-slate-950">
               {item.name}
             </Link>
