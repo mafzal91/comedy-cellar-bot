@@ -6,24 +6,26 @@ import { useEffect, useState } from "preact/hooks";
 const navigation = [
   { name: "Home", href: `/?date=${getToday()}` },
   { name: "Comics", href: "/comics" },
-  // { name: "Sign up", href: "/sign-up" },
 ];
 
-const signOutLink = [{ name: "Sign out", href: "/sign-out" }];
-const signInLink = [{ name: "Sign up", href: "/sign-up" }];
+const signOutLink = [
+  { name: "Profile", href: "/profile" },
+  { name: "Sign out", href: "/sign-out" },
+];
+const signInLink = [{ name: "Sign In", href: "/sign-in" }];
 
 export function Header() {
   const [navLinks, setNavLinks] = useState(navigation);
-  useEffect(() => {
-    clerk.load().then(() => {
-      if (clerk.user) {
-        console.log(clerk.user);
-        setNavLinks([...navigation, ...signOutLink]);
-      } else {
-        setNavLinks([...navigation, ...signInLink]);
-      }
-    });
-  }, []);
+
+  // useEffect(() => {
+  //   clerk.load().then(() => {
+  //     if (clerk.user) {
+  //       setNavLinks([...navigation, ...signOutLink]);
+  //     } else {
+  //       setNavLinks([...navigation, ...signInLink]);
+  //     }
+  //   });
+  // }, []);
 
   return (
     <header className="flex h-16 border-b border-gray-900/10 bg-primary">
@@ -38,7 +40,7 @@ export function Header() {
             />
           </a>
         </div>
-        <nav className="flex gap-x-4 md:gap-x-8 md:text-sm font-semibold md:leading-6 md:text-black">
+        <nav className="flex text-xs gap-x-2 md:gap-x-8 md:text-sm font-semibold md:leading-6 md:text-black">
           {navLinks.map((item, itemIdx) => (
             <Link key={itemIdx} href={item.href} className="text-slate-950">
               {item.name}

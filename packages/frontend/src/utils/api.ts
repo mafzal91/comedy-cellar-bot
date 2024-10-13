@@ -1,10 +1,33 @@
 import { ListApiRes, ShowDb } from "../types";
+import { clerk } from "./clerk";
 import qs from "qs";
 
 const { VITE_API_URL } = import.meta.env;
 
 const withFetchErrorHandling = (fetchFunction) => {
   return async (...args) => {
+    await clerk.load();
+
+    if (clerk.user) {
+      const token = await clerk.session.getToken();
+
+      if (args && args.length) {
+        if (args?.[1]) {
+          args[1].headers = {
+            ...(args?.[1]?.headers ?? {}),
+            Authorization: `Bearer ${token}`,
+          };
+        } else {
+          args.push({
+            headers: {
+              ...(args?.[1]?.headers ?? {}),
+              Authorization: `Bearer ${token}`,
+            },
+          });
+        }
+      }
+    }
+
     try {
       const response = await fetchFunction(...args);
       const data = await response.json();
@@ -120,6 +143,12 @@ export const fetchShowsNew = async (filters: {
 }): Promise<ListApiRes<ShowDb>> => {
   const queryString = qs.stringify({ ...filters, sort: "timestamp" });
   const res = await customFetch(`${VITE_API_URL}/api/shows/new?${queryString}`);
+
+  return res;
+};
+
+export const getHealth = async (): Promise<any> => {
+  const res = await customFetch(`${VITE_API_URL}/api/health`);
 
   return res;
 };

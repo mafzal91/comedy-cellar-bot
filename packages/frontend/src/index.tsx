@@ -32,6 +32,7 @@ const Comic = lazy(() => import("./pages/Comic"));
 const SignUp = lazy(() => import("./pages/Auth/SignUp"));
 const SignIn = lazy(() => import("./pages/Auth/SignIn"));
 const SignOut = lazy(() => import("./pages/Auth/SignOut"));
+const Profile = lazy(() => import("./pages/Profile"));
 
 const onRouteChange = (url: string) => {
   console.log("root", url);
@@ -56,12 +57,15 @@ export function App() {
                 <NotFound path="/404" />
                 <Comics path="/comics" />
                 <Comic path="/comics/:id" />
+                <Profile path="/profile" />
                 <SignUp path="/sign-up" />
                 <SignIn path="/sign-in" />
                 <SignOut path="/sign-out" />
                 <Route
                   default
-                  component={() => <Redirect to={`/?date=${getToday()}`} />}
+                  component={() => (
+                    <Redirect to={`/?date=${getToday()}`} replace />
+                  )}
                 />
               </Router>
             </div>

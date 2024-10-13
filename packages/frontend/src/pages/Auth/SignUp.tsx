@@ -5,9 +5,17 @@ import PageWrapper from "./PageWrapper";
 export default function SignUp() {
   const signUpRef = useRef();
   useEffect(() => {
-    clerk.load().then(() => {
-      clerk.mountSignUp(signUpRef.current);
-    });
+    clerk
+      .load({
+        appearance: {
+          elements: {
+            cardBox: "bg-black",
+          },
+        },
+      })
+      .then(() => {
+        clerk.mountSignUp(signUpRef.current);
+      });
   }, []);
 
   return (

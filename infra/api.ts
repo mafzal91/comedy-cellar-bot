@@ -31,19 +31,9 @@ api.route("GET /sync-shows", {
   link: [dbCreds.dbUrl, ...Object.values(emailSecrets)],
 });
 
-api.route(
-  "GET /api/health",
-  {
-    handler: `${functionDir}/health.handler`,
-  },
-  {
-    auth: {
-      jwt: {
-        authorizer: authorizer.id,
-      },
-    },
-  }
-);
+api.route("GET /api/health", {
+  handler: `${functionDir}/health.handler`,
+});
 
 // ---- SHOWS -----
 

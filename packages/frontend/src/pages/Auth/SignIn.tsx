@@ -3,16 +3,16 @@ import { clerk } from "../../utils/clerk";
 import PageWrapper from "./PageWrapper";
 
 export default function SignIn() {
-  const signUpRef = useRef();
+  const signInRef = useRef();
   useEffect(() => {
     clerk.load().then(() => {
-      clerk.mountSignUp(signUpRef.current);
+      clerk.mountSignIn(signInRef.current);
     });
   }, []);
 
   return (
     <PageWrapper>
-      <div ref={signUpRef} />
+      <div ref={signInRef} />
     </PageWrapper>
   );
 }
