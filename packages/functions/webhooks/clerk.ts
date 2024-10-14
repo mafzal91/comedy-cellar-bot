@@ -27,9 +27,7 @@ async function sessionCreated(evt: WebhookEvent) {
     const { data } = evt as { data: SessionJSON };
     const { user_id: authId } = data;
 
-    console.log("clerk user", { authId });
     const user = await getUserByAuthId(authId);
-    console.log("db user", { user });
     if (user.length) return;
 
     const clerkClient = createClerkClient({
@@ -48,6 +46,7 @@ async function sessionCreated(evt: WebhookEvent) {
     });
   } catch (e) {
     console.error(e);
+    throw e;
   }
 }
 
@@ -72,19 +71,25 @@ async function userCreated(evt: WebhookEvent) {
     const { email_address: email } = emailAddresses.find(
       (emailAddress) => emailAddress.id === primaryEmailAddressId
     );
-    console.log({
-      authId,
-      email,
-    });
     await createUser({
       authId,
       email,
     });
   } catch (e) {
     console.error(e);
+    throw e;
   }
 }
 
+/**
+ * Handles the 'user deleted' webhook event by extracting user information
+ * and deleting the user in the system.
+ *
+ * @async
+ * @function userDeleted
+ * @param {WebhookEvent} evt - The webhook event containing user data.
+ * @returns {Promise<void>} Resolves when the user deletion process completes.
+ */
 async function userDeleted(evt: WebhookEvent) {
   const { data } = evt as { data: UserJSON };
   const { id: authId } = data;

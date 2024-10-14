@@ -1,14 +1,19 @@
-import { useQuery } from "react-query";
-import { getHealth } from "../../utils/api";
 import { PageLoader } from "../../components/PageLoader";
+import { clerk } from "../../utils/clerk";
+import PageWrapper from "../Auth/PageWrapper";
+import { useEffect, useRef } from "preact/hooks";
 
 export default function Profile() {
-  const { data, isFetching } = useQuery(["health"], async () => {
-    const health = await getHealth();
-    return health;
-  });
-  if (isFetching) {
-    return <PageLoader />;
-  }
-  return <pre>{JSON.stringify(data, null, 2)}</pre>;
+  const profileRef = useRef();
+  useEffect(() => {
+    clerk.load().then(() => {
+      clerk.mountUserProfile(profileRef.current);
+    });
+  }, []);
+
+  return (
+    <PageWrapper>
+      <div ref={profileRef} />
+    </PageWrapper>
+  );
 }
