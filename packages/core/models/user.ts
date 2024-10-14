@@ -1,33 +1,45 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@core/database";
 import { user, InsertUser, SelectUser } from "@core/sql/user.sql";
 import { USER_PREFIX } from "@core/common/constants";
+
+const SST_STAGE = process.env.SST_STAGE;
+
+function applyWhere(conditions) {
+  return and(...conditions, eq(user.stage, SST_STAGE));
+}
 
 export function isRoomExternalId(externalId) {
   return externalId.match(new RegExp(USER_PREFIX));
 }
 
-export function createUser(data: InsertUser) {
+export function createUser(data: Omit<InsertUser, "stage">) {
   return db
     .insert(user)
-    .values(data)
+    .values({ ...data, stage: SST_STAGE })
     .onConflictDoNothing({ target: user.authId });
 }
 
 export function deleteUserByAuthId(authId: SelectUser["authId"]) {
-  return db.delete(user).where(eq(user.authId, authId));
+  return db.delete(user).where(applyWhere(eq(user.authId, authId)));
 }
 
 export async function getUser() {
-  return db.select().from(user);
+  return db.select().from(user).where(applyWhere([]));
 }
 
 export async function getUserByExternalId(
   externalId: SelectUser["externalId"]
 ) {
-  return db.select().from(user).where(eq(user.externalId, externalId));
+  return db
+    .select()
+    .from(user)
+    .where(applyWhere(eq(user.externalId, externalId)));
 }
 
 export async function getUserByAuthId(authId: SelectUser["authId"]) {
-  return db.select().from(user).where(eq(user.authId, authId));
+  return db
+    .select()
+    .from(user)
+    .where(applyWhere(eq(user.authId, authId)));
 }

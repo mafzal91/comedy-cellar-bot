@@ -9,6 +9,10 @@ declare module "sst" {
       "type": "sst.aws.ApiGatewayV2"
       "url": string
     }
+    "ClerkPublishableKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "ClerkSecretKey": {
       "type": "sst.sst.Secret"
       "value": string

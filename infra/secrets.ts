@@ -8,4 +8,5 @@ export const dbCreds = {
 export const clerkCreds = {
   clerkSigningSecret: new sst.Secret("ClerkSigningSecret"),
   clerkSecretKey: new sst.Secret("ClerkSecretKey"),
+  clertPublishableKey: new sst.Secret("ClerkPublishableKey"),
 };
