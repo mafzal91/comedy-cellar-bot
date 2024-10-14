@@ -1,5 +1,4 @@
 import { dbCreds, emailSecrets } from "./secrets";
-
 const functionDir = `packages/functions`;
 
 const prodDomain = {
@@ -13,6 +12,14 @@ const prodDomain = {
 
 const api = new sst.aws.ApiGatewayV2("Api", {
   ...($app.stage === "prod" ? prodDomain : {}),
+});
+
+const authorizer = api.addAuthorizer({
+  name: "myClerkAuthorizer",
+  jwt: {
+    issuer: "https://fair-sunfish-35.clerk.accounts.dev",
+    audiences: ["ClerkJwtAuthorizer"],
+  },
 });
 
 api.route("GET /", {

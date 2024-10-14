@@ -8,7 +8,6 @@ const prodDomain = {
     }),
   },
 };
-
 new sst.aws.StaticSite("Frontend", {
   path: "packages/frontend",
   build: {
@@ -18,6 +17,10 @@ new sst.aws.StaticSite("Frontend", {
   environment: {
     VITE_REGION: aws.getRegionOutput().name,
     VITE_API_URL: api.url,
+    VITE_CLERK_PUBLISHABLE_KEY:
+      "pk_test_ZmFpci1zdW5maXNoLTM1LmNsZXJrLmFjY291bnRzLmRldiQ",
+    CLERK_SIGN_IN_URL: "/sign-in",
+    CLERK_SIGN_UP_URL: "/sign-up",
   },
   ...($app.stage === "prod" ? prodDomain : {}),
 });

@@ -7,6 +7,7 @@ import {
   Route,
 } from "preact-iso";
 import { QueryClient, QueryClientProvider } from "react-query";
+
 import * as Sentry from "@sentry/browser";
 
 import { Header } from "./components/Header";
@@ -28,6 +29,14 @@ const Reservations = lazy(() => import("./pages/Reservations"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Comics = lazy(() => import("./pages/Comics"));
 const Comic = lazy(() => import("./pages/Comic"));
+const SignUp = lazy(() => import("./pages/Auth/SignUp"));
+const SignIn = lazy(() => import("./pages/Auth/SignIn"));
+const SignOut = lazy(() => import("./pages/Auth/SignOut"));
+const Profile = lazy(() => import("./pages/Profile"));
+
+const onRouteChange = (url: string) => {
+  console.log("root", url);
+};
 
 export function App() {
   return (
@@ -42,15 +51,21 @@ export function App() {
           <Header />
           <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="px-4 py-5 sm:p-6">
-              <Router>
+              <Router onRouteChange={onRouteChange}>
                 <Home path="/" />
                 <Reservations path="/reservations/:timestamp" />
                 <NotFound path="/404" />
                 <Comics path="/comics" />
                 <Comic path="/comics/:id" />
+                <Profile path="/profile" />
+                <SignUp path="/sign-up" />
+                <SignIn path="/sign-in" />
+                <SignOut path="/sign-out" />
                 <Route
                   default
-                  component={() => <Redirect to={`/?date=${getToday}`} />}
+                  component={() => (
+                    <Redirect to={`/?date=${getToday()}`} replace />
+                  )}
                 />
               </Router>
             </div>
