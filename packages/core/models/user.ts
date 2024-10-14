@@ -5,7 +5,7 @@ import { USER_PREFIX } from "@core/common/constants";
 
 const SST_STAGE = process.env.SST_STAGE;
 
-function applyWhere(conditions) {
+function applyWhere(...conditions) {
   return and(...conditions, eq(user.stage, SST_STAGE));
 }
 

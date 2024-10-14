@@ -1,3 +1,4 @@
+import config from "./config";
 import { dbCreds, emailSecrets, clerkCreds } from "./secrets";
 const functionDir = `packages/functions`;
 
@@ -17,7 +18,7 @@ const api = new sst.aws.ApiGatewayV2("Api", {
 const authorizer = api.addAuthorizer({
   name: "myClerkAuthorizer",
   jwt: {
-    issuer: "https://fair-sunfish-35.clerk.accounts.dev",
+    issuer: config.clerkFrontendApi,
     audiences: ["ClerkJwtAuthorizer"],
   },
 });

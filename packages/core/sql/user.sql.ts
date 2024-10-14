@@ -25,7 +25,8 @@ export const user = pgTable(
   },
   (table) => ({
     emailUniqueIndex: uniqueIndex("emailUniqueIndex").on(
-      sql`lower(${table.email})`
+      sql`lower(${table.email})`,
+      table.stage
     ),
   })
 );
