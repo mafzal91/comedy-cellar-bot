@@ -1,3 +1,4 @@
+import { clerkCreds } from "./secrets";
 import api from "./api";
 
 const prodDomain = {
@@ -17,8 +18,7 @@ new sst.aws.StaticSite("Frontend", {
   environment: {
     VITE_REGION: aws.getRegionOutput().name,
     VITE_API_URL: api.url,
-    VITE_CLERK_PUBLISHABLE_KEY:
-      "pk_test_ZmFpci1zdW5maXNoLTM1LmNsZXJrLmFjY291bnRzLmRldiQ",
+    VITE_CLERK_PUBLISHABLE_KEY: clerkCreds.clertPublishableKey.value,
     CLERK_SIGN_IN_URL: "/sign-in",
     CLERK_SIGN_UP_URL: "/sign-up",
   },
