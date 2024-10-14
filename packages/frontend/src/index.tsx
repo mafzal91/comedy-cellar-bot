@@ -8,7 +8,7 @@ import {
 } from "preact-iso";
 import { QueryClient, QueryClientProvider } from "react-query";
 
-import * as Sentry from "@sentry/browser";
+// import * as Sentry from "@sentry/browser";
 
 import { Header } from "./components/Header";
 import { Redirect } from "./components/Redirect";
@@ -16,11 +16,11 @@ import { getToday } from "./utils/date";
 
 import "./style.css";
 
-Sentry.init({
-  dsn: "https://523bcd0e95c565ef1f4c580690e75a9b@o4506630100090880.ingest.sentry.io/4506630117916672",
-  integrations: [Sentry.browserTracingIntegration()],
-  enabled: import.meta.env.PROD,
-});
+// Sentry.init({
+//   dsn: "https://523bcd0e95c565ef1f4c580690e75a9b@o4506630100090880.ingest.sentry.io/4506630117916672",
+//   integrations: [Sentry.browserTracingIntegration()],
+//   enabled: import.meta.env.PROD,
+// });
 
 const queryClient = new QueryClient();
 
@@ -44,7 +44,7 @@ export function App() {
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary
           onError={(error) => {
-            Sentry.captureException(error);
+            // Sentry.captureException(error);
             return <div>An error occurred</div>;
           }}
         >
