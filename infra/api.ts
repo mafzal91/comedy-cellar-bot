@@ -86,4 +86,11 @@ api.route("GET /api/comics/{externalId}", {
   link: [dbCreds.dbUrl],
 });
 
+// ---- Webhook -----
+
+api.route("POST /webhook/clerk", {
+  handler: `${functionDir}/webhooks/clerk.handler`,
+  link: [dbCreds.dbUrl],
+});
+
 export default api;
