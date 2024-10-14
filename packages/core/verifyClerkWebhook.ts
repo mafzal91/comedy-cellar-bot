@@ -1,5 +1,6 @@
 import { Webhook } from "svix";
 import { WebhookEvent } from "@clerk/backend";
+import { Resource } from "sst";
 
 export function verifyClerkWebhook({
   headers,
@@ -9,7 +10,7 @@ export function verifyClerkWebhook({
   body: string;
 }): WebhookEvent {
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the endpoint
-  const WEBHOOK_SECRET = "whsec_w4TiWSbCg4xXfQaXrF6SLAWFgW7rD2aU";
+  const WEBHOOK_SECRET = Resource.ClerkSigningSecret.value;
 
   if (!WEBHOOK_SECRET) {
     throw new Error(

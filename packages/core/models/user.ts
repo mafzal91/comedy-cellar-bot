@@ -11,7 +11,11 @@ export function createUser(data: InsertUser) {
   return db
     .insert(user)
     .values(data)
-    .onConflictDoNothing({ target: [user.authId, user.email] });
+    .onConflictDoNothing({ target: user.authId });
+}
+
+export function deleteUserByAuthId(authId: SelectUser["authId"]) {
+  return db.delete(user).where(eq(user.authId, authId));
 }
 
 export async function getUser() {
@@ -22,4 +26,8 @@ export async function getUserByExternalId(
   externalId: SelectUser["externalId"]
 ) {
   return db.select().from(user).where(eq(user.externalId, externalId));
+}
+
+export async function getUserByAuthId(authId: SelectUser["authId"]) {
+  return db.select().from(user).where(eq(user.authId, authId));
 }
