@@ -17,15 +17,15 @@ const signInLink = [{ name: "Sign In", href: "/sign-in" }];
 export function Header() {
   const [navLinks, setNavLinks] = useState(navigation);
 
-  // useEffect(() => {
-  //   clerk.load().then(() => {
-  //     if (clerk.user) {
-  //       setNavLinks([...navigation, ...signOutLink]);
-  //     } else {
-  //       setNavLinks([...navigation, ...signInLink]);
-  //     }
-  //   });
-  // }, []);
+  useEffect(() => {
+    clerk.load().then(() => {
+      if (clerk.user) {
+        setNavLinks([...navigation, ...signOutLink]);
+      } else {
+        setNavLinks([...navigation, ...signInLink]);
+      }
+    });
+  }, []);
 
   return (
     <header className="flex h-16 border-b border-gray-900/10 bg-primary">

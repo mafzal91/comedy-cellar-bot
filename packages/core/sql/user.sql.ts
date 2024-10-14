@@ -18,6 +18,7 @@ export const user = pgTable(
       .$defaultFn(() => createExternalId(USER_PREFIX))
       .notNull()
       .unique(),
+    authId: text("authId").notNull().unique(),
     email: text("email").notNull().unique(),
     createdAt: timestamp("createdAt").defaultNow(),
   },

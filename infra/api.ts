@@ -1,4 +1,4 @@
-import { dbCreds, emailSecrets } from "./secrets";
+import { dbCreds, emailSecrets, clerkCreds } from "./secrets";
 const functionDir = `packages/functions`;
 
 const prodDomain = {
@@ -84,6 +84,13 @@ api.route("GET /api/comics", {
 api.route("GET /api/comics/{externalId}", {
   handler: `${functionDir}/comics/index.get`,
   link: [dbCreds.dbUrl],
+});
+
+// ---- Webhook -----
+
+api.route("POST /webhook/clerk", {
+  handler: `${functionDir}/webhooks/clerk.handler`,
+  link: [dbCreds.dbUrl, ...Object.values(clerkCreds)],
 });
 
 export default api;
