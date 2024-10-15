@@ -16,6 +16,7 @@ import { getToday } from "./utils/date";
 
 import "./style.css";
 import { BuyMeCoffeeButton } from "./components/BuyMeCoffee";
+import { Link } from "./components/Link";
 
 // Sentry.init({
 //   dsn: "https://523bcd0e95c565ef1f4c580690e75a9b@o4506630100090880.ingest.sentry.io/4506630117916672",
@@ -34,6 +35,7 @@ const SignUp = lazy(() => import("./pages/Auth/SignUp"));
 const SignIn = lazy(() => import("./pages/Auth/SignIn"));
 const SignOut = lazy(() => import("./pages/Auth/SignOut"));
 const Profile = lazy(() => import("./pages/Profile"));
+const Terms = lazy(() => import("./pages/Terms"));
 
 const onRouteChange = (url: string) => {
   console.log("root", url);
@@ -58,6 +60,7 @@ export function App() {
                 <NotFound path="/404" />
                 <Comics path="/comics" />
                 <Comic path="/comics/:id" />
+                <Terms path="/terms-privacy" />
                 <Profile path="/profile" />
                 <SignUp path="/sign-up" />
                 <SignIn path="/sign-in" />
@@ -71,7 +74,11 @@ export function App() {
               </Router>
             </div>
           </main>
-          <footer className="flex justify-end py-4 px-4 sm:px-6 lg:px-8">
+          <footer className="flex items-center justify-end py-4 px-4 sm:px-6 lg:px-8 gap-2">
+            <Link href="/terms-privacy" className="text-slate-950">
+              Terms & Privacy
+            </Link>
+
             <BuyMeCoffeeButton />
           </footer>
         </ErrorBoundary>
