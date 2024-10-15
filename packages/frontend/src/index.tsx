@@ -15,6 +15,7 @@ import { Redirect } from "./components/Redirect";
 import { getToday } from "./utils/date";
 
 import "./style.css";
+import { BuyMeCoffeeButton } from "./components/BuyMeCoffee";
 
 // Sentry.init({
 //   dsn: "https://523bcd0e95c565ef1f4c580690e75a9b@o4506630100090880.ingest.sentry.io/4506630117916672",
@@ -50,7 +51,7 @@ export function App() {
         >
           <Header />
           <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="px-4 py-5 sm:p-6">
+            <div className="px-4 py-4 sm:p-6">
               <Router onRouteChange={onRouteChange}>
                 <Home path="/" />
                 <Reservations path="/reservations/:timestamp" />
@@ -70,6 +71,9 @@ export function App() {
               </Router>
             </div>
           </main>
+          <footer className="flex justify-end py-4 px-4 sm:px-6 lg:px-8">
+            <BuyMeCoffeeButton />
+          </footer>
         </ErrorBoundary>
       </QueryClientProvider>
     </LocationProvider>
