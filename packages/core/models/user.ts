@@ -2,8 +2,9 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@core/database";
 import { user, InsertUser, SelectUser } from "@core/sql/user.sql";
 import { USER_PREFIX } from "@core/common/constants";
+import { Resource } from "sst";
 
-const SST_STAGE = process.env.SST_STAGE;
+const SST_STAGE = Resource.App.stage;
 
 function applyWhere(...conditions) {
   return and(...conditions, eq(user.stage, SST_STAGE));

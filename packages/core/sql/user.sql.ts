@@ -19,7 +19,7 @@ export const user = pgTable(
       .notNull()
       .unique(),
     authId: text("authId").notNull().unique(),
-    email: text("email").notNull().unique(),
+    email: text("email").notNull(),
     stage: text("stage").notNull(),
     createdAt: timestamp("createdAt").defaultNow(),
   },

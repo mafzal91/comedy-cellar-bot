@@ -45,7 +45,7 @@ async function sessionCreated(evt: WebhookEvent) {
       email,
     });
   } catch (e) {
-    console.error(e);
+    console.log(e);
     throw e;
   }
 }
@@ -76,7 +76,7 @@ async function userCreated(evt: WebhookEvent) {
       email,
     });
   } catch (e) {
-    console.error(e);
+    console.log(e);
     throw e;
   }
 }
