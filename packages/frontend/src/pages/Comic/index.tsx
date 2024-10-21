@@ -1,12 +1,15 @@
 import { useRoute } from "preact-iso";
-import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import { useQuery } from "react-query";
+import { BellIcon as BellIconSolid } from "@heroicons/react/24/solid";
+import { BellIcon } from "@heroicons/react/24/outline";
 import { Comic as ComicType } from "../../types";
 import { fetchComicById } from "../../utils/api";
 import { PageLoader } from "../../components/PageLoader";
 import { AlongsideComics } from "./AlongsideComics";
 import { Img } from "../../components/Image";
 import { UpcomingShows } from "./UpcomingShows";
+import { useAuth } from "../../hooks/useAuth";
+import { Button } from "../../components/Button";
 
 const coverImg = [
   "/cellar.webp",
@@ -19,6 +22,7 @@ function getRandomInt(max) {
 }
 
 export default function Comic() {
+  const user = useAuth();
   const { params } = useRoute();
   const comicId = params.id;
   const { data, isFetching } = useQuery<ComicType>(
@@ -64,26 +68,35 @@ export default function Comic() {
                   </h1>
                 </div>
                 <div className="mt-6 flex flex-col justify-stretch space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0">
+                  <Button type="button" className="inline-flex gap-x-1.5">
+                    {user ? (
+                      <>
+                        <BellIconSolid
+                          aria-hidden="true"
+                          className="-ml-0.5 h-5 w-5 text-gray-400"
+                        />
+                        Notified
+                      </>
+                    ) : (
+                      <>
+                        <BellIcon
+                          aria-hidden="true"
+                          className="-ml-0.5 h-5 w-5 text-gray-400"
+                        />
+                        Notified
+                      </>
+                    )}
+                  </Button>
                   {/* <button
-                      type="button"
-                      className="inline-flex justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                    >
-                      <EnvelopeIcon
-                        aria-hidden="true"
-                        className="-ml-0.5 h-5 w-5 text-gray-400"
-                      />
-                      Message
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                    >
-                      <PhoneIcon
-                        aria-hidden="true"
-                        className="-ml-0.5 h-5 w-5 text-gray-400"
-                      />
-                      Call
-                    </button> */}
+                    type="button"
+                    className="inline-flex justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  >
+                    <PhoneIcon
+                      aria-hidden="true"
+                      className="-ml-0.5 h-5 w-5 text-gray-400"
+                    />
+                    Call
+                  </button> */}
                 </div>
               </div>
             </div>

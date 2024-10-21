@@ -74,12 +74,13 @@ export function App() {
               </Router>
             </div>
           </main>
-          <footer className="flex items-center justify-end py-4 px-4 sm:px-6 lg:px-8 gap-2">
-            <Link href="/terms-privacy" className="text-slate-950">
-              Terms & Privacy
-            </Link>
-
-            <BuyMeCoffeeButton />
+          <footer className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between py-4 px-4 sm:px-6 lg:px-8 gap-2">
+              <BuyMeCoffeeButton />
+              <Link href="/terms-privacy" className="text-xs text-slate-950">
+                Terms & Privacy
+              </Link>
+            </div>
           </footer>
         </ErrorBoundary>
       </QueryClientProvider>
