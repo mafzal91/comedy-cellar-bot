@@ -68,7 +68,7 @@ api.route("GET /api/line-up", {
 // ---- Reservations -----
 
 api.route("POST /api/reservation/{timestamp}", {
-  link: Object.values(emailSecrets),
+  link: [dbCreds.dbUrl, ...Object.values(emailSecrets)],
   handler: `${functionDir}/reservation.create`,
   environment: {
     STAGE: $app.stage,
