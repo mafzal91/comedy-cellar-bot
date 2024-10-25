@@ -26,7 +26,7 @@ export const fetchLineUp = async (
       new URLSearchParams(data),
       config
     );
-    console.log(res.data);
+
     const responseData = res.data;
     const parsedPayload = parseLineUp({ html: responseData.show.html });
     return parsedPayload;
