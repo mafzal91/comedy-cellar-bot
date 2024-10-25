@@ -1,10 +1,9 @@
-import { parseTimestampString } from "../../core/utils";
-import { handleShowDetails } from "../../core/handleShowDetails";
-import { handleLineUp } from "../../core/handleLineUp";
-import { handleShowList } from "../../core/handleShowList";
 import * as z from "zod";
 import qs from "qs";
-import { x } from "../../../.sst/platform/src/components";
+import { parseTimestampString } from "@core/utils";
+import { handleShowDetails } from "@core/handleShowDetails";
+import { handleLineUp } from "@core/handleLineUp";
+import { handleShowList } from "@core/handleShowList";
 import { isRoomExternalId } from "@core/models/room";
 import { isComicExternalId } from "@core/models/comic";
 import { UnixDateRange } from "@core/common/schema";

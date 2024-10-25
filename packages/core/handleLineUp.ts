@@ -41,7 +41,7 @@ export const handleLineUp = async ({ date }: { date: string }) => {
     }
   } catch (e) {
     // Swallowing Error here bc this code is just for background caching
-    console.error(e);
+    console.error("fetching lineup", e);
   }
 
   return {
