@@ -17,6 +17,7 @@ import { getToday } from "./utils/date";
 import "./style.css";
 import { BuyMeCoffeeButton } from "./components/BuyMeCoffee";
 import { Link } from "./components/Link";
+import clsx from "clsx";
 
 // Sentry.init({
 //   dsn: "https://523bcd0e95c565ef1f4c580690e75a9b@o4506630100090880.ingest.sentry.io/4506630117916672",
@@ -74,12 +75,27 @@ export function App() {
               </Router>
             </div>
           </main>
-          <footer className="flex items-center justify-end py-4 px-4 sm:px-6 lg:px-8 gap-2">
-            <Link href="/terms-privacy" className="text-slate-950">
-              Terms & Privacy
-            </Link>
+          <footer
+            className={clsx(
+              ...[
+                "flex items-center justify-center",
+                "py-4 px-4 sm:px-6 lg:px-8 gap-2",
 
-            <BuyMeCoffeeButton />
+                // Desktop positioning
+                "lg:fixed lg:bottom-0 lg:left-0 lg:right-0 lg:justify-start",
+                "lg:mx-auto lg:max-w-7xl",
+              ]
+            )}
+          >
+            <div className="flex items-center justify-between py-4 px-4 sm:px-6 lg:px-8 gap-2">
+              <Link
+                href="/terms-privacy"
+                className="p-2.5 rounded-lg text-xs bg-primary text-slate-950 text-center"
+              >
+                Terms & Privacy
+              </Link>
+              <BuyMeCoffeeButton />
+            </div>
           </footer>
         </ErrorBoundary>
       </QueryClientProvider>

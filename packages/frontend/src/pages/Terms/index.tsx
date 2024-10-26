@@ -243,13 +243,13 @@ export default function Terms() {
 
       <section id="author-message">
         <h2 className="text-2xl font-semibold mb-4">
-          Message from the developer:
+          Message from the Developer:
         </h2>
         <ul className="list-disc list-inside">
-          <li>I built this website to scratch my own itch.</li>
+          <li>I built this website to fulfill my own needs.</li>
           <li>
-            You do not have to use this website to reserve ticket. I provide
-            links so that you can reserve directly through{" "}
+            You don't have to use this website to reserve tickets. I provide
+            links so you can reserve directly through{" "}
             <a
               href="https://comedycellar.com"
               target="_blank"
@@ -260,7 +260,7 @@ export default function Terms() {
             .
           </li>
           <li>
-            Authenication and user management is provided by{" "}
+            Authentication and user management are handled by{" "}
             <a
               href="https://clerk.com"
               target="_blank"
@@ -268,11 +268,11 @@ export default function Terms() {
             >
               Clerk
             </a>
-            . I don't want to collect or manage anyone's data. But for
-            personalized features, I need to know who is who. You are free to
-            delete your account at anytime for any reason. When you delete your
-            account any data like your personalized settings are also deleted
-            and cannot be recovered.
+            . I don't collect or manage any personal data. However, to offer
+            personalized features, I need to identify users. You can delete your
+            account at any time for any reason. When you delete your account,
+            all associated data, including personalized settings, will also be
+            deleted and cannot be recovered.
           </li>
         </ul>
       </section>

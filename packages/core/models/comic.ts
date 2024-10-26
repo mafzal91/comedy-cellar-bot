@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@core/database";
 import { comic, InsertComic, SelectComic } from "@core/sql/comic.sql";
 import { COMIC_PREFIX } from "@core/common/constants";
@@ -14,7 +14,10 @@ export async function createComics(data: InsertComic[]) {
 }
 
 export async function getComics() {
-  return db.select().from(comic);
+  return db
+    .select()
+    .from(comic)
+    .orderBy(sql`lower(${comic.name}) ASC`);
 }
 
 export async function getComicByExternalId(

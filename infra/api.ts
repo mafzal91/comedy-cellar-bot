@@ -84,6 +84,13 @@ api.route("GET /api/comics", {
 
 api.route("GET /api/comics/{externalId}", {
   handler: `${functionDir}/comics/index.get`,
+  link: [dbCreds.dbUrl, ...Object.values(clerkCreds)],
+});
+
+// ---- Notification -----
+
+api.route("GET /api/settings", {
+  handler: `${functionDir}/settings/index.list`,
   link: [dbCreds.dbUrl],
 });
 
