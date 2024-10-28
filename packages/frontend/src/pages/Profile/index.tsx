@@ -1,7 +1,10 @@
-import { PageLoader } from "../../components/PageLoader";
-import { clerk } from "../../utils/clerk";
-import PageWrapper from "../Auth/PageWrapper";
+import { useQuery } from "react-query";
 import { useEffect, useRef } from "preact/hooks";
+import { clerk } from "../../utils/clerk";
+
+import { Spinner } from "../../components/Spinner";
+import PageWrapper from "../Auth/PageWrapper";
+import { fetchSettings } from "../../utils/api";
 
 export default function Profile() {
   const profileRef = useRef();
@@ -13,7 +16,9 @@ export default function Profile() {
 
   return (
     <PageWrapper>
-      <div ref={profileRef} />
+      <div className="flex flex-col">
+        <div ref={profileRef} />
+      </div>
     </PageWrapper>
   );
 }

@@ -23,6 +23,12 @@ const authorizer = api.addAuthorizer({
   },
 });
 
+const authConfig = {
+  jwt: {
+    authorizer: authorizer.id,
+  },
+};
+
 api.route("GET /", {
   handler: `${functionDir}/index.handler`,
 });
@@ -89,10 +95,27 @@ api.route("GET /api/comics/{externalId}", {
 
 // ---- Notification -----
 
-api.route("GET /api/settings", {
-  handler: `${functionDir}/settings/index.list`,
-  link: [dbCreds.dbUrl],
-});
+api.route(
+  "GET /api/settings",
+  {
+    handler: `${functionDir}/settings/index.list`,
+    link: [dbCreds.dbUrl],
+  },
+  {
+    auth: authConfig,
+  }
+);
+
+api.route(
+  "POST /api/settings",
+  {
+    handler: `${functionDir}/settings/index.update`,
+    link: [dbCreds.dbUrl],
+  },
+  {
+    auth: authConfig,
+  }
+);
 
 // ---- Webhook -----
 

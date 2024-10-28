@@ -1,5 +1,4 @@
 import {
-  text,
   serial,
   varchar,
   timestamp,
@@ -21,7 +20,7 @@ export const showNotification = pgTable("show_notification", {
   userId: integer("userId")
     .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
-  enabled: boolean("enabled"),
+  enabled: boolean("enabled").notNull().default(false),
   createdAt: timestamp("createdAt").defaultNow(),
 });
 
@@ -31,4 +30,4 @@ export const usersRelations = relations(showNotification, ({ one }) => ({
 
 export type SelectShowNotification = typeof showNotification.$inferSelect;
 export type InsertShowNotification = typeof showNotification.$inferInsert &
-  Partial<Pick<SelectShowNotification, "id">>;
+  Partial<Pick<SelectShowNotification, "enabled">>;

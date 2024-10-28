@@ -113,6 +113,13 @@
       "when": 1728960226429,
       "tag": "0015_early_darkhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1730070126036,
+      "tag": "0016_previous_supreme_intelligence",
+      "breakpoints": true
     }
   ]
 }
