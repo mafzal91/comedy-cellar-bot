@@ -39,20 +39,19 @@ export async function handler() {
     const data = await handleShowDetails({ date: nextDayToFetch });
     console.log(dateForLogging, "Cron Data", data);
 
-    if (currentHour % 6 === 0) {
-      await sendEmail({
-        subject: "New Show Cron",
-        message: JSON.stringify(
-          {
-            executionTime: dateForLogging,
-            currentHour,
-            ...data,
-          },
-          null,
-          2
-        ),
-      }).catch((e) => console.error(e));
-    }
+    await sendEmail({
+      subject: "New Show Cron",
+      message: JSON.stringify(
+        {
+          executionTime: dateForLogging,
+          currentHour,
+          ...data,
+        },
+        null,
+        2
+      ),
+    }).catch((e) => console.error(e));
+
     if (!data.shows.length) {
       moreShows = false;
     } else {

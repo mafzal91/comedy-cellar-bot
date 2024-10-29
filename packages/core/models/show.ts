@@ -171,6 +171,8 @@ export function createShows(data: InsertShow[]) {
         cover: sql.raw(`EXCLUDED."${show.cover.name}"`),
         note: sql.raw(`EXCLUDED."${show.note.name}"`),
         roomId: sql.raw(`EXCLUDED."${show.roomId.name}"`),
+        max: sql.raw(`EXCLUDED."${show.max.name}"`),
+        totalGuests: sql.raw(`EXCLUDED."${show.totalGuests.name}"`),
       },
     });
 }

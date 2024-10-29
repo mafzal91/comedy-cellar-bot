@@ -28,7 +28,7 @@ api.route("GET /", {
 });
 
 api.route("GET /sync-shows", {
-  handler: `${functionDir}/cron/showCron.handler`,
+  handler: `${functionDir}/cron/syncCron.handler`,
   link: [dbCreds.dbUrl, ...Object.values(emailSecrets)],
 });
 
