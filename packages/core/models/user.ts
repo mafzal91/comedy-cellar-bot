@@ -38,7 +38,9 @@ export async function getUserByExternalId(
     .where(applyWhere(eq(user.externalId, externalId)));
 }
 
-export async function getUserByAuthId(authId: SelectUser["authId"]) {
+export async function getUserByAuthId(
+  authId: SelectUser["authId"]
+): Promise<SelectUser[]> {
   return db
     .select()
     .from(user)

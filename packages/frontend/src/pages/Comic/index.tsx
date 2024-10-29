@@ -1,7 +1,5 @@
 import { useRoute } from "preact-iso";
 import { useQuery } from "react-query";
-import { BellIcon as BellIconSolid } from "@heroicons/react/24/solid";
-import { BellIcon } from "@heroicons/react/24/outline";
 import { Comic as ComicType } from "../../types";
 import { fetchComicById } from "../../utils/api";
 import { PageLoader } from "../../components/PageLoader";
@@ -9,23 +7,16 @@ import { AlongsideComics } from "./AlongsideComics";
 import { Img } from "../../components/Image";
 import { UpcomingShows } from "./UpcomingShows";
 import { useAuth } from "../../hooks/useAuth";
-import { Button } from "../../components/Button";
-
-const coverImg = [
-  "/cellar.webp",
-  "/ComedyCellar_MacDougalstNYC.jpg",
-  "/TheStairs_empty.jpg",
-];
-
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
-}
+import ComicBannerImage from "./ComicBannerImage";
+import ComicNotification from "./ComicNotification";
+import { Link } from "../../components/Link";
+import { GlobeAltIcon } from "@heroicons/react/20/solid";
 
 export default function Comic() {
   const user = useAuth();
   const { params } = useRoute();
   const comicId = params.id;
-  const { data, isFetching } = useQuery<ComicType>(
+  const comic = useQuery<ComicType>(
     ["comics", params.id],
     async () => {
       const comic = await fetchComicById({
@@ -39,7 +30,7 @@ export default function Comic() {
     }
   );
 
-  if (isFetching) {
+  if (comic.isFetching) {
     return <PageLoader />;
   }
 
@@ -47,62 +38,46 @@ export default function Comic() {
     <div className="min-h-full flex flex-1 rounded-lg ring-1 ring-gray-200">
       <div className="flex-1 pb-8">
         <div>
-          <img
-            alt=""
-            src={coverImg[getRandomInt(3)]}
+          <ComicBannerImage
             className="h-32 w-full object-cover rounded-t-lg lg:h-48"
+            alt=""
           />
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <div className="-mt-12 sm:-mt-16 sm:flex sm:items-end sm:space-x-5">
               <div className="flex">
                 <Img
                   alt=""
-                  src={data.img}
+                  src={comic.data.img}
                   className="h-24 w-24 rounded-full ring-4 ring-white sm:h-32 sm:w-32"
                 />
               </div>
               <div className="mt-6 sm:flex sm:min-w-0 sm:flex-1 sm:items-center sm:justify-end sm:space-x-6 sm:pb-1">
                 <div className="mt-6 min-w-0 flex-1 sm:hidden 2xl:block">
                   <h1 className="truncate text-2xl font-bold text-gray-900">
-                    {data.name}
+                    {comic.data.name}
                   </h1>
                 </div>
                 <div className="mt-6 flex flex-col justify-stretch space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0">
-                  <Button type="button" className="inline-flex gap-x-1.5">
-                    {user ? (
-                      <>
-                        <BellIconSolid
-                          aria-hidden="true"
-                          className="-ml-0.5 h-5 w-5 text-gray-400"
-                        />
-                        Notified
-                      </>
-                    ) : (
-                      <>
-                        <BellIcon
-                          aria-hidden="true"
-                          className="-ml-0.5 h-5 w-5 text-gray-400"
-                        />
-                        Notified
-                      </>
-                    )}
-                  </Button>
-                  {/* <button
-                    type="button"
-                    className="inline-flex justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                  >
-                    <PhoneIcon
-                      aria-hidden="true"
-                      className="-ml-0.5 h-5 w-5 text-gray-400"
-                    />
-                    Call
-                  </button> */}
+                  {/* {user && <ComicNotification />} */}
+                  {comic.data.website && (
+                    <Link
+                      href={comic.data.website}
+                      target={"_blank"}
+                      className="inline-flex justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold hover:no-underline text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                    >
+                      <GlobeAltIcon
+                        aria-hidden="true"
+                        className="-ml-0.5 h-5 w-5 text-gray-400"
+                      />
+                      Website
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
             <div className="mt-6 hidden min-w-0 flex-1 sm:block 2xl:hidden">
               <h1 className="truncate text-2xl font-bold text-gray-900">
-                {data.name}
+                {comic.data.name}
               </h1>
             </div>
           </div>
@@ -122,7 +97,7 @@ export default function Comic() {
             <div className="sm:col-span-2">
               <dt className="text-sm font-medium text-gray-500">About</dt>
               <dd className="mt-1 max-w-prose space-y-5 text-sm text-gray-900">
-                {data.description}
+                {comic.data.description}
               </dd>
             </div>
           </dl>

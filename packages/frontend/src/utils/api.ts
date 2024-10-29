@@ -147,6 +147,37 @@ export const fetchShowsNew = async (filters: {
   return res;
 };
 
+export const fetchSettings = async (): Promise<any> => {
+  const res = await customFetch(`${VITE_API_URL}/api/settings`);
+
+  return res;
+};
+
+type SettingPostBody = {
+  comicNotifications?: {
+    comicId: string;
+    enabled: boolean;
+  }[];
+  showNotification?: {
+    enabled: boolean;
+  };
+};
+export const updateSettings = async ({
+  comicNotifications,
+}: SettingPostBody): Promise<ListApiRes<ShowDb>> => {
+  const res = await customFetch(`${VITE_API_URL}/api/settings`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      comicNotifications,
+    }),
+  });
+
+  return res;
+};
+
 export const getHealth = async (): Promise<any> => {
   const res = await customFetch(`${VITE_API_URL}/api/health`);
 

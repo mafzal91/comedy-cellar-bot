@@ -23,5 +23,5 @@ new sst.aws.Cron("SyncCron", {
       IS_CRON: "1",
     },
   },
-  schedule: "rate(1 hour)",
+  schedule: "cron(0 0/1 * * ? *)",
 });
