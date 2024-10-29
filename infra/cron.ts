@@ -19,8 +19,8 @@ new sst.aws.Cron("SyncCron", {
     handler: "packages/functions/cron/syncCron.handler",
     link: [dbCreds.dbUrl, ...Object.values(emailSecrets)],
     environment: {
-      // IS_ACTIVE: $app.stage === "prod" ? "1" : "0",
-      // IS_CRON: "1",
+      IS_ACTIVE: $app.stage === "prod" ? "1" : "0",
+      IS_CRON: "1",
     },
   },
   schedule: "rate(1 hour)",
