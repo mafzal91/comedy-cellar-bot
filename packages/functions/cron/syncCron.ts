@@ -41,7 +41,7 @@ export async function handler() {
   const differenceInSeconds = endDate - startOfTodayUnixTimestamp;
   const differenceInDays = Math.round(differenceInSeconds / 86400);
   const dates = getFutureDatesByDay(differenceInDays, startDate * 1000);
-  const dateChunks = chunkArray(dates, 10);
+  const dateChunks = chunkArray(dates, 1);
 
   try {
     for (const dateChunk of dateChunks) {
@@ -53,9 +53,11 @@ export async function handler() {
       await sleep(5000);
     }
   } catch (e) {
+    const errorMessage = `There was an error in the syncCron: ${e.message}\n\nStack Trace:\n${e.stack}`;
+
     await sendEmail({
-      subject: "New Show Cron",
-      message: "There was an error in the syncCron",
+      subject: "Sync Show Cron",
+      message: errorMessage,
     }).catch((e) => console.error(e));
   }
 
