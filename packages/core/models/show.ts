@@ -5,8 +5,10 @@ import {
   desc,
   eq,
   getTableColumns,
+  gt,
   gte,
   lte,
+  min,
   SQL,
   sql,
 } from "drizzle-orm";
@@ -255,4 +257,13 @@ export async function getShowByTimestamp(timestamp: SelectShow["timestamp"]) {
 
 export async function getLastShow(): Promise<SelectShow[] | []> {
   return db.select().from(show).orderBy(desc(show.timestamp)).limit(1);
+}
+
+export async function getUpcomingShow(): Promise<SelectShow[] | []> {
+  return db
+    .select()
+    .from(show)
+    .where(gt(show.timestamp, sql`CAST(EXTRACT(EPOCH FROM NOW()) AS INTEGER)`))
+    .orderBy(show.timestamp)
+    .limit(1);
 }

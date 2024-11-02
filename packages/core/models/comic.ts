@@ -1,7 +1,10 @@
-import { asc, eq, inArray, sql } from "drizzle-orm";
+import { asc, between, eq, getTableColumns, inArray, sql } from "drizzle-orm";
 import { db } from "@core/database";
 import { comic, InsertComic, SelectComic } from "@core/sql/comic.sql";
 import { COMIC_PREFIX } from "@core/common/constants";
+import { getLastShow, getUpcomingShow } from "./show";
+import { show } from "@core/sql/show.sql";
+import { act } from "@core/sql/act.sql";
 
 export function isComicExternalId(externalId) {
   return externalId.match(new RegExp(COMIC_PREFIX));
@@ -14,8 +17,42 @@ export async function createComics(data: InsertComic[]) {
 }
 
 export async function getComics() {
+  const [[lastShow], [nextShow]] = await Promise.all([
+    getLastShow(),
+    getUpcomingShow(),
+  ]);
+
+  const lastShowTimestamp = lastShow.timestamp;
+  const nextShowTimestamp = nextShow.timestamp;
+
+  console.log({
+    nextShowTimestamp,
+    lastShowTimestamp,
+  });
+
+  const query = db
+    .select({
+      ...getTableColumns(comic),
+      showCount: sql`COUNT(${show.id})`,
+    })
+    .from(comic)
+    .leftJoin(act, eq(comic.id, act.comicId))
+    .leftJoin(show, (s) =>
+      s
+        .on(eq(act.showId, show.id))
+        .on(between(show.timestamp, nextShowTimestamp, lastShowTimestamp))
+    )
+
+    .groupBy(comic.id, comic.name)
+    .orderBy(comic.id);
+  const res = await query;
+  console.log(res.length);
+  return res;
   return db
-    .select()
+    .select({
+      ...getTableColumns(comic),
+      // showCount: sql`COUNT(${show.id})`,
+    })
     .from(comic)
     .orderBy(sql`lower(${comic.name}) ASC`);
 }
