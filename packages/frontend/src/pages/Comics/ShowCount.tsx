@@ -1,6 +1,4 @@
 import { FireIcon } from "@heroicons/react/20/solid";
-import { FireIcon as EmptyFire } from "@heroicons/react/24/outline";
-import { SlashIcon } from "@heroicons/react/24/outline";
 
 export function ActivityIcon() {
   return <FireIcon className="h-5 w-5 fill-yellow-400 stroke-orange-300" />;

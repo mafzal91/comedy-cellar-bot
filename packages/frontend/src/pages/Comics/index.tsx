@@ -19,7 +19,7 @@ export default function Comics() {
   );
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col gap-y-8">
       <div className="flex flex-col p-4 rounded-lg ring-1 ring-gray-200 shadow hover:shadow-md">
         <h6 className="text-md font-bold">Upcoming shows</h6>
         <Legend />
