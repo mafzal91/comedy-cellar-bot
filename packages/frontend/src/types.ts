@@ -48,6 +48,7 @@ export type Comic = {
   website?: string;
   description: string;
   createdAt: string;
+  showCount?: number;
 };
 
 export type ShowDb = {

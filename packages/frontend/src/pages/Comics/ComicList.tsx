@@ -1,6 +1,7 @@
-import { GlobeAltIcon } from "@heroicons/react/20/solid";
+import { LinkIcon } from "@heroicons/react/24/outline";
 import { Comic } from "../../types";
 import { Img } from "../../components/Image";
+import { ShowCount } from "./ShowCount";
 
 function ComicItem({ comic }: { comic: Comic }) {
   return (
@@ -16,9 +17,12 @@ function ComicItem({ comic }: { comic: Comic }) {
           className="aspect-[3/2] w-full rounded-lg object-cover"
         />
         <div className="flex-col grow-1 justify-between p-4">
-          <h3 className="text-lg font-semibold leading-8 tracking-tight text-gray-900">
-            {comic.name}
-          </h3>
+          <div className="flex items-center space-x-2">
+            <h3 className="text-lg font-semibold leading-8 tracking-tight text-gray-900">
+              {comic.name}
+            </h3>
+            <ShowCount showCount={comic.showCount ?? 0} />
+          </div>
           <p className="text-base leading-7 text-gray-600 line-clamp-4">
             {comic.description}
           </p>
@@ -30,7 +34,7 @@ function ComicItem({ comic }: { comic: Comic }) {
                 className="text-gray-400 hover:text-gray-500"
               >
                 <span className="sr-only">Website</span>
-                <GlobeAltIcon aria-hidden="true" className="h-5 w-5 " />
+                <LinkIcon aria-hidden="true" className="h-5 w-5" />
               </a>
             </li>
           </ul>
