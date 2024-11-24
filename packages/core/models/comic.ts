@@ -1,18 +1,30 @@
+import { InsertComic, SelectComic, comic } from "@core/sql/comic.sql";
 import {
-  asc,
-  between,
-  desc,
+  SQL,
+  and,
+  count,
   eq,
   getTableColumns,
   inArray,
   sql,
 } from "drizzle-orm";
-import { db } from "@core/database";
-import { comic, InsertComic, SelectComic } from "@core/sql/comic.sql";
-import { COMIC_PREFIX } from "@core/common/constants";
 import { getLastShow, getUpcomingShow } from "./show";
-import { show } from "@core/sql/show.sql";
+
+import { COMIC_PREFIX } from "@core/common/constants";
 import { act } from "@core/sql/act.sql";
+import { db } from "@core/database";
+import { mapOrderToDrizzle } from "@core/common/mapOrderToDrizzle";
+import { show } from "@core/sql/show.sql";
+
+function getComicWhereClause({ name }: { name?: string }): SQL[] {
+  const where: SQL[] = [];
+
+  if (name) {
+    where.push(eq(comic.name, name));
+  }
+
+  return where;
+}
 
 export function isComicExternalId(externalId) {
   return externalId.match(new RegExp(COMIC_PREFIX));
@@ -24,9 +36,19 @@ export async function createComics(data: InsertComic[]) {
   });
 }
 
-export async function getComics(): Promise<
-  (SelectComic & { showCount: number })[]
-> {
+export async function getComics({
+  name,
+  offset,
+  limit,
+  order,
+}: {
+  name?: string;
+  offset?: number;
+  limit?: number;
+  order?: Record<string, 1 | -1>;
+}): Promise<(SelectComic & { showCount: number })[]> {
+  const orderBy = mapOrderToDrizzle(order, comic);
+  const where = getComicWhereClause({ name });
   const [[lastShow], [nextShow]] = await Promise.all([
     getLastShow(),
     getUpcomingShow(),
@@ -47,11 +69,22 @@ export async function getComics(): Promise<
       (s) =>
         sql`${act.showId} = ${show.id} AND ${show.timestamp} BETWEEN ${nextShowTimestamp} AND ${lastShowTimestamp}`
     )
+    .where(and(...where))
     .groupBy(comic.id, comic.name)
-    .orderBy(comic.id);
+    .orderBy(...orderBy)
+    .limit(limit)
+    .offset(offset);
 
   const res = await query;
   return res;
+}
+
+export async function getComicsCount({ name }: { name?: string }) {
+  const query = db.select({ count: count() }).from(comic);
+
+  const results = await query;
+
+  return results?.[0] ? results[0].count : 0;
 }
 
 export async function getComicByExternalId(

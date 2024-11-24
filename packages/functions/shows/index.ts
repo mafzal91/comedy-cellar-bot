@@ -1,16 +1,18 @@
 import * as z from "zod";
-import qs from "qs";
-import { parseTimestampString } from "@core/utils";
-import { handleShowDetails } from "@core/handleShowDetails";
-import { handleLineUp } from "@core/handleLineUp";
-import { handleShowList } from "@core/handleShowList";
-import { isRoomExternalId } from "@core/models/room";
-import { isComicExternalId } from "@core/models/comic";
+
+import { getShows, getShowsCount } from "@core/models/show";
+
 import { UnixDateRange } from "@core/common/schema";
 import { generateResponse } from "@core/common/generateResponse";
-import { getShows, getShowsCount } from "@core/models/show";
-import { show } from "@core/sql/show.sql";
+import { handleLineUp } from "@core/handleLineUp";
+import { handleShowDetails } from "@core/handleShowDetails";
+import { handleShowList } from "@core/handleShowList";
+import { isComicExternalId } from "@core/models/comic";
+import { isRoomExternalId } from "@core/models/room";
 import { mapSortString } from "@core/common/mapSortString";
+import { parseTimestampString } from "@core/utils";
+import qs from "qs";
+import { show } from "@core/sql/show.sql";
 
 // Deprecated. Will use listShowsLocal and remove this when syncing shows is polished
 export const listShows = async (_evt) => {
@@ -105,6 +107,7 @@ export const listShowsLocal = async (_evt) => {
   const queryStringParameters = qs.parse(_evt.rawQueryString);
 
   const sortFieldSchema = z.enum([
+    "",
     show.timestamp.name,
     `-${show.timestamp.name}`,
   ]);
@@ -126,11 +129,12 @@ export const listShowsLocal = async (_evt) => {
         .optional(),
       offset: z.coerce.number().min(0).default(0),
       limit: z.coerce.number().min(1).max(100).default(20),
-      sort: sortFieldSchema.optional().transform(mapSortString),
+      sort: sortFieldSchema.optional().transform(mapSortString).default(""),
     })
     .default({
       offset: 0,
       limit: 20,
+      sort: "",
     });
 
   const query = queryValidationSchema.safeParse(queryStringParameters);
