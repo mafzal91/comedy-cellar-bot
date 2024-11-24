@@ -1,20 +1,20 @@
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+
 import { Comic } from "../../types";
 import { ComicList } from "./ComicList";
 import { Legend } from "./ShowCount";
 import { fetchComics } from "../../utils/api";
-import { useQuery } from "@tanstack/react-query";
 
 export default function Comics() {
   const { data, isFetching } = useQuery<Comic[]>({
     queryKey: ["comics"],
     queryFn: async () => {
       const comics = await fetchComics();
-
       return comics.results;
     },
-    refetchOnWindowFocus: false,
-    initialData: [],
   });
+
+  const allComics = data?.pages.flat() ?? [];
 
   return (
     <div className="flex flex-col gap-y-8">
@@ -22,7 +22,9 @@ export default function Comics() {
         <h6 className="text-md font-bold">Upcoming shows</h6>
         <Legend />
       </div>
-      <ComicList comics={data} isLoading={isFetching} />
+
+      <ComicList comics={allComics} isLoading={isFetching} />
+      <div ref={ref} className="h-10" />
     </div>
   );
 }

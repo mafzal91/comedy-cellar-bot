@@ -108,16 +108,21 @@ export const createReservation = async ({
   return res;
 };
 
-export const fetchComics = async ({
-  name,
-  skip = 0,
-  limit = 10,
-}: {
-  name?: string;
-  skip?: number;
-  limit?: number;
-} = {}) => {
-  const res = await customFetch(`${VITE_API_URL}/api/comics`);
+export const fetchComics = async (
+  {
+    name,
+    offset = 0,
+    limit = 20,
+    sort,
+  }: {
+    name?: string;
+    offset?: number;
+    limit?: number;
+    sort?: string;
+  } = { sort: "-name" }
+) => {
+  const queryString = qs.stringify({ name, offset, limit, sort });
+  const res = await customFetch(`${VITE_API_URL}/api/comics?${queryString}`);
 
   return res;
 };

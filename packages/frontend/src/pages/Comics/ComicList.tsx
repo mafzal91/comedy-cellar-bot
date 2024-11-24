@@ -1,6 +1,6 @@
-import { LinkIcon } from "@heroicons/react/24/outline";
 import { Comic } from "../../types";
 import { Img } from "../../components/Image";
+import { LinkIcon } from "@heroicons/react/24/outline";
 import { ShowCount } from "./ShowCount";
 
 function ComicItem({ comic }: { comic: Comic }) {
@@ -77,7 +77,7 @@ export function ComicList({
   return (
     <ul
       role="list"
-      className="grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3"
+      className="grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-4"
     >
       {isLoading
         ? Array.from({ length: 9 }).map((_, index) => (

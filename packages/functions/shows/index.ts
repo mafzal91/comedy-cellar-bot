@@ -109,6 +109,7 @@ export const listShowsLocal = async (_evt) => {
   const queryStringParameters = qs.parse(_evt.rawQueryString);
 
   const sortFieldSchema = z.enum([
+    "",
     show.timestamp.name,
     `-${show.timestamp.name}`,
   ]);
@@ -130,11 +131,12 @@ export const listShowsLocal = async (_evt) => {
         .optional(),
       offset: z.coerce.number().min(0).default(0),
       limit: z.coerce.number().min(1).max(100).default(20),
-      sort: sortFieldSchema.optional().transform(mapSortString),
+      sort: sortFieldSchema.optional().transform(mapSortString).default(""),
     })
     .default({
       offset: 0,
       limit: 20,
+      sort: "",
     });
 
   const query = queryValidationSchema.safeParse(queryStringParameters);
