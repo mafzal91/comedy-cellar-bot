@@ -1,22 +1,44 @@
 import { addDays, endOfDay, getUnixTime, startOfDay } from "date-fns";
 
-import { getLastShow } from "@core/models/show";
-import { sendEmail } from "@core/email";
-import { parseTimestampString } from "@core/utils";
 import { getFutureDatesByDay } from "@core/getFutureDatesByDay";
-import { handleShowDetails } from "@core/handleShowDetails";
-import { sleep } from "@core/common/sleep";
+import { getLastShow } from "@core/models/show";
 import { handleLineUp } from "@core/handleLineUp";
+import { handleShowDetails } from "@core/handleShowDetails";
+import { parseTimestampString } from "@core/utils";
+import { sendEmail } from "@core/email";
+import { sleep } from "@core/common/sleep";
 
 const IS_ACTIVE = process.env.IS_ACTIVE === "1";
 const IS_CRON = process.env.IS_CRON === "1";
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 5000; // 5 seconds
 
-function chunkArray<T>(array: T[], size: number): T[][] {
-  const result: T[][] = [];
-  for (let i = 0; i < array.length; i += size) {
-    result.push(array.slice(i, i + size));
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  operationName: string,
+  maxRetries = MAX_RETRIES,
+  delay = RETRY_DELAY
+): Promise<T> {
+  let lastError: Error;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      console.error(
+        `Attempt ${attempt}/${maxRetries} failed for ${operationName}:`,
+        error.message
+      );
+
+      if (attempt < maxRetries) {
+        await sleep(delay * attempt); // Exponential backoff
+        continue;
+      }
+    }
   }
-  return result;
+
+  throw lastError!;
 }
 
 export async function handler() {
@@ -41,16 +63,29 @@ export async function handler() {
   const differenceInSeconds = endDate - startOfTodayUnixTimestamp;
   const differenceInDays = Math.round(differenceInSeconds / 86400);
   const dates = getFutureDatesByDay(differenceInDays, startDate * 1000);
-  const dateChunks = chunkArray(dates, 1);
 
   try {
-    for (const dateChunk of dateChunks) {
-      for (const date of dateChunk) {
-        console.log("fetching", date);
-        await handleShowDetails({ date });
-        await handleLineUp({ date });
+    for (const date of [dates[0]]) {
+      console.log("fetching", date);
+
+      const results = await Promise.allSettled([
+        withRetry(() => {
+          return handleShowDetails({ date });
+        }, `handleShowDetails for date ${date}`),
+        withRetry(() => {
+          return handleLineUp({ date });
+        }, `handleLineUp for date ${date}`),
+      ]);
+
+      // Check if any operations failed
+      const failures = results.filter((result) => result.status === "rejected");
+
+      if (failures.length > 0) {
+        const errors = failures.map((f) => (f as PromiseRejectedResult).reason);
+        throw new Error(`Operations failed:\n${errors.join("\n")}`);
       }
-      await sleep(5000);
+
+      await sleep(7500);
     }
   } catch (e) {
     const errorMessage = `There was an error in the syncCron: ${e.message}\n\nStack Trace:\n${e.stack}`;
