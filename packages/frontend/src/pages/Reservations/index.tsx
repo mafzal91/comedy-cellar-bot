@@ -175,13 +175,13 @@ export default function Reservation() {
                     />
                   </Field>
 
-                  <Field label="size" labelText="Party Size (max 4)">
+                  <Field label="size" labelText="Party Size (max 10)">
                     <Input
                       required
                       type="number"
                       name="size"
                       id="size"
-                      max={4}
+                      max={10}
                       min={1}
                     />
                   </Field>

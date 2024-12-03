@@ -6,7 +6,7 @@ const guestSchema = z.object({
   email: z.string().email(),
   firstName: z.string(),
   lastName: z.string(),
-  size: z.number().min(1).max(4),
+  size: z.number().min(1).max(10),
   phone: z.string().length(10),
   howHeard: z.enum([
     "Other",
