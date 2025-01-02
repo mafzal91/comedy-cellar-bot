@@ -1,13 +1,14 @@
-import { useState, useMemo } from "preact/hooks";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
-import { CalendarButton } from "./CalendarButton";
 import {
-  getDatesInMonth,
-  getPreviousMonthsDates,
-  getNextMonthsDates,
   dayOfWeekToNumber,
+  getDatesInMonth,
+  getNextMonthsDates,
+  getPreviousMonthsDates,
   getToday,
 } from "../utils/date";
+import { useMemo, useState } from "preact/hooks";
+
+import { CalendarButton } from "./CalendarButton";
 
 type Day = {
   date: string;
@@ -46,6 +47,15 @@ export function Calendar({ value, onChange }) {
     return parseInt(
       new Date(today).toLocaleDateString("en-US", {
         month: "numeric",
+      })
+    );
+  });
+
+  const [selectedYear, setSelectedYear] = useState(() => {
+    const today = value;
+    return parseInt(
+      new Date(today).toLocaleDateString("en-US", {
+        year: "numeric",
       })
     );
   });
@@ -93,10 +103,23 @@ export function Calendar({ value, onChange }) {
   }
 
   const handlePreviousMonth = () => {
-    setSelectedMonth((prev) => prev - 1);
+    setSelectedMonth((prev) => {
+      if (prev === 1) {
+        setSelectedYear((year) => year - 1);
+        return 12;
+      }
+      return prev - 1;
+    });
   };
+
   const handleNextMonth = () => {
-    setSelectedMonth((prev) => prev + 1);
+    setSelectedMonth((prev) => {
+      if (prev === 12) {
+        setSelectedYear((year) => year + 1);
+        return 1;
+      }
+      return prev + 1;
+    });
   };
 
   const handleClick = (date) => {
@@ -114,7 +137,9 @@ export function Calendar({ value, onChange }) {
           <span className="sr-only">Previous month</span>
           <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
         </button>
-        <div className="flex-auto text-sm font-semibold">{monthString}</div>
+        <div className="flex-auto text-sm font-semibold">
+          {monthString} {selectedYear}
+        </div>
         <button
           type="button"
           onClick={handleNextMonth}

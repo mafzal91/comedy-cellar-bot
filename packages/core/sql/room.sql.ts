@@ -1,6 +1,14 @@
-import { text, serial, varchar, timestamp, pgTable } from "drizzle-orm/pg-core";
-import { createExternalId } from "../common/createExternalId";
+import {
+  integer,
+  pgTable,
+  serial,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
+
 import { ROOM_PREFIX } from "../common/constants";
+import { createExternalId } from "../common/createExternalId";
 import { relations } from "drizzle-orm";
 import { show } from "./show.sql";
 
@@ -11,6 +19,7 @@ export const room = pgTable("room", {
     .notNull()
     .unique(),
   name: text("name").notNull().unique(),
+  maxReservationSize: integer("maxReservationSize").notNull().default(4),
   createdAt: timestamp("createdAt").defaultNow(),
 });
 

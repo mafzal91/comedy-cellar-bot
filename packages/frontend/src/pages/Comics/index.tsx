@@ -1,22 +1,20 @@
-import { useQuery } from "react-query";
 import { Comic } from "../../types";
-import { fetchComics } from "../../utils/api";
 import { ComicList } from "./ComicList";
 import { Legend } from "./ShowCount";
+import { fetchComics } from "../../utils/api";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Comics() {
-  const { data, isFetching } = useQuery<Comic[]>(
-    ["comics"],
-    async () => {
+  const { data, isFetching } = useQuery<Comic[]>({
+    queryKey: ["comics"],
+    queryFn: async () => {
       const comics = await fetchComics();
 
       return comics.results;
     },
-    {
-      initialData: [],
-      refetchOnWindowFocus: false,
-    }
-  );
+    refetchOnWindowFocus: false,
+    initialData: [],
+  });
 
   return (
     <div className="flex flex-col gap-y-8">

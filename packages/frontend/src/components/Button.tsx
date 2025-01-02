@@ -1,4 +1,5 @@
 import { FunctionalComponent, JSX } from "preact";
+
 import clsx from "clsx";
 
 interface CustomButtonProps {
@@ -6,13 +7,18 @@ interface CustomButtonProps {
 }
 
 // Use Preact's JSXInternal.HTMLAttributes for button element attributes
-type ButtonProps = CustomButtonProps & JSX.HTMLAttributes<HTMLButtonElement>;
+type ButtonProps = CustomButtonProps &
+  JSX.HTMLAttributes<HTMLButtonElement> & {
+    type?: "button" | "submit" | "reset";
+    disabled?: boolean;
+  };
 
 export const Button: FunctionalComponent<ButtonProps> = ({
   size = "md",
   className,
   children,
   disabled,
+  type,
   ...props
 }) => {
   const baseClasses =
@@ -34,7 +40,7 @@ export const Button: FunctionalComponent<ButtonProps> = ({
   );
 
   return (
-    <button type="button" className={buttonClasses} {...props}>
+    <button type={type} className={buttonClasses} {...props}>
       {children}
     </button>
   );

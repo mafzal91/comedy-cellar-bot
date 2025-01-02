@@ -1,12 +1,12 @@
-import { z } from "zod";
-import { parseTimestampString } from "../utils";
 import { ApiRequest } from "../../types/api";
+import { parseTimestampString } from "../utils";
+import { z } from "zod";
 
 const guestSchema = z.object({
   email: z.string().email(),
   firstName: z.string(),
   lastName: z.string(),
-  size: z.number().min(1).max(10),
+  size: z.number().min(1),
   phone: z.string().length(10),
   howHeard: z.enum([
     "Other",

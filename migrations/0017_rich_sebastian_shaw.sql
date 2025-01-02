@@ -1,0 +1,1 @@
+ALTER TABLE "room" ADD COLUMN "maxReservationSize" integer DEFAULT 4 NOT NULL;

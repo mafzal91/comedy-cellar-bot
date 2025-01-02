@@ -1,23 +1,22 @@
+import { Field, FieldWrapper, Section } from "./Helpers";
+import { LineUp, Room, Show } from "../../types";
+import { createReservation, fetchShowByTimestamp } from "../../utils/api";
 import { useEffect, useState } from "preact/hooks";
-import { useQuery, useMutation } from "react-query";
-import { isPast } from "date-fns";
 import { useLocation, useRoute } from "preact-iso";
-import { fetchShowByTimestamp, createReservation } from "../../utils/api";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { Link } from "../../components/Link";
 import { Button } from "../../components/Button";
 import { Disclaimer } from "../../components/Disclaimer";
-import { Spinner } from "../../components/Spinner";
-import { Input } from "../../components/Input";
-import { PageLoader } from "../../components/PageLoader";
-
-import { Section, Field, FieldWrapper } from "./Helpers";
-import { ShowDetails } from "./ShowDetails";
-import { PageError } from "./PageError";
 import { FormError } from "./FormError";
-import { NetworkError } from "./NetworkError";
 import { FormSuccess } from "./FormSuccess";
-import { LineUp, Show } from "../../types";
+import { Input } from "../../components/Input";
+import { Link } from "../../components/Link";
+import { NetworkError } from "./NetworkError";
+import { PageError } from "./PageError";
+import { PageLoader } from "../../components/PageLoader";
+import { ShowDetails } from "./ShowDetails";
+import { Spinner } from "../../components/Spinner";
+import { isPast } from "date-fns";
 
 const howHeardOptions = [
   "Other",
@@ -65,16 +64,23 @@ export default function Reservation() {
     location.route("/404");
   }
 
-  const showData = useQuery<{ show?: Show; lineUp?: LineUp; error?: string }>(
-    ["timestamp", timestamp],
-    async () => {
+  const showData = useQuery<{
+    show?: Show;
+    lineUp?: LineUp;
+    room?: Room;
+    error?: string;
+  }>({
+    queryKey: ["timestamp", timestamp],
+    queryFn: async () => {
       const showData = await fetchShowByTimestamp({ timestamp });
 
       return showData;
-    }
-  );
+    },
+  });
 
-  const reservationMutation = useMutation(createReservation);
+  const reservationMutation = useMutation({
+    mutationFn: createReservation,
+  });
 
   const handleSubmit = (event: Event) => {
     event.preventDefault();
@@ -131,6 +137,8 @@ export default function Reservation() {
     }
   }, [reservationMutation.error]);
 
+  const maxReservationSize = showData?.data?.room?.maxReservationSize ?? 4;
+
   return (
     <div className="overflow-hidden rounded-lg bg-white shadow">
       <div className="px-4 py-5 sm:p-6">
@@ -175,13 +183,16 @@ export default function Reservation() {
                     />
                   </Field>
 
-                  <Field label="size" labelText="Party Size (max 10)">
+                  <Field
+                    label="size"
+                    labelText={`Party Size (max ${maxReservationSize})`}
+                  >
                     <Input
                       required
                       type="number"
                       name="size"
                       id="size"
-                      max={10}
+                      max={maxReservationSize}
                       min={1}
                     />
                   </Field>
@@ -300,7 +311,7 @@ export default function Reservation() {
                   message={reservationMutation.data.content.message}
                 />
               </div>
-              <Link href={"/"}>Return home</Link>
+              <Link href="/">Return home</Link>
             </>
           ) : (
             <div className="mt-6 flex items-center justify-between gap-x-6">
@@ -308,10 +319,11 @@ export default function Reservation() {
                 type="submit"
                 className="bg-primary"
                 disabled={
-                  showData.data.show.soldout || reservationMutation.isLoading
+                  showData.data.show.soldout ||
+                  reservationMutation.status === "pending"
                 }
               >
-                {reservationMutation.isLoading ? (
+                {reservationMutation.status === "pending" ? (
                   <Spinner size={5} />
                 ) : (
                   "Submit"

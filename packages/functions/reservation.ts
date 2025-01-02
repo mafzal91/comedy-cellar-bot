@@ -1,7 +1,8 @@
-import { isPast } from "date-fns";
 import { Reservation } from "../core/models/reservation";
+import { getRoomById } from "@core/models/room";
 import { handleReservation } from "../core/handleReservation";
 import { handleShowDetails } from "../core/handleShowDetails";
+import { isPast } from "date-fns";
 import { sendEmail } from "@core/email";
 
 const createErrorResponse = (statusCode: number, message: any) => ({
@@ -62,6 +63,18 @@ export const create = async (_evt) => {
       date: reservationDetails.date,
     });
     const show = showsForDate?.shows.find((s) => s.id === showId);
+    const room = await getRoomById(show.roomId);
+
+    if (room.maxReservationSize < reservationDetails.guest.size) {
+      return createErrorResponse(400, {
+        fieldErrors: [
+          {
+            field: "guest.size",
+            message: `Party size is too large must be less than or equal to ${room.maxReservationSize}`,
+          },
+        ],
+      });
+    }
 
     if (!show) {
       return createErrorResponse(400, "Cannot find Show");

@@ -1,3 +1,5 @@
+export type Expand<T> = {} & { [P in keyof T]: T[P] };
+
 export type LineUp = {
   reservationUrl: string;
   timestamp: number;
@@ -70,5 +72,13 @@ export type ShowDb = {
   venueMax: number;
   available: number;
   timestamp: number;
+  createdAt: string;
+};
+
+export type Room = {
+  id: number;
+  externalId: string;
+  name: string;
+  maxReservationSize: number;
   createdAt: string;
 };

@@ -1,12 +1,13 @@
-import { useEffect } from "preact/hooks";
-import { useQuery } from "react-query";
+import { LineUp, Show } from "../../types";
+import { fetchLineUp, fetchShows } from "../../utils/api";
+
 import { Calendar } from "../../components/Calendar";
 import { Event } from "../../components/Event";
 import { EventLoader } from "../../components/EventLoader";
 import { getToday } from "../../utils/date";
-import { fetchShows, fetchLineUp } from "../../utils/api";
-import { Show, LineUp } from "../../types";
+import { useEffect } from "preact/hooks";
 import { useLocation } from "preact-iso";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
   const { query, route } = useLocation();
@@ -23,32 +24,28 @@ export default function Home() {
     return null;
   }
 
-  const showData = useQuery<Show[]>(
-    ["shows", query.date],
-    async () => {
+  const showData = useQuery<Show[]>({
+    queryKey: ["shows", query.date],
+    queryFn: async () => {
       const showData = await fetchShows({ date: query.date });
       return showData.shows;
     },
-    {
-      enabled: !!query.date,
-      refetchOnWindowFocus: false,
-      retry: false,
-    }
-  );
+    enabled: !!query.date,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
   // Fetch lineups based on the selected date
-  const lineUpData = useQuery<LineUp[]>(
-    ["lineUps", query.date],
-    async () => {
+  const lineUpData = useQuery<LineUp[]>({
+    queryKey: ["lineUps", query.date],
+    queryFn: async () => {
       const lineUpsData = await fetchLineUp({ date: query.date });
       return lineUpsData.lineUps;
     },
-    {
-      enabled: !!query.date,
-      refetchOnWindowFocus: false,
-      retry: false,
-    }
-  );
+    enabled: !!query.date,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
   const findLineUp = (timestamp: number) => {
     return lineUpData.data?.find((lineUp) => lineUp.timestamp === timestamp);

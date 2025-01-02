@@ -1,34 +1,32 @@
-import { useRoute } from "preact-iso";
-import { useQuery } from "react-query";
-import { Comic as ComicType } from "../../types";
-import { fetchComicById } from "../../utils/api";
-import { PageLoader } from "../../components/PageLoader";
 import { AlongsideComics } from "./AlongsideComics";
-import { Img } from "../../components/Image";
-import { UpcomingShows } from "./UpcomingShows";
-import { useAuth } from "../../hooks/useAuth";
 import ComicBannerImage from "./ComicBannerImage";
 import ComicNotification from "./ComicNotification";
-import { Link } from "../../components/Link";
+import { Comic as ComicType } from "../../types";
 import { GlobeAltIcon } from "@heroicons/react/20/solid";
+import { Img } from "../../components/Image";
+import { Link } from "../../components/Link";
+import { PageLoader } from "../../components/PageLoader";
+import { UpcomingShows } from "./UpcomingShows";
+import { fetchComicById } from "../../utils/api";
+import { useAuth } from "../../hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { useRoute } from "preact-iso";
 
 export default function Comic() {
   const user = useAuth();
   const { params } = useRoute();
   const comicId = params.id;
-  const comic = useQuery<ComicType>(
-    ["comics", params.id],
-    async () => {
+  const comic = useQuery<ComicType>({
+    queryKey: ["comics", params.id],
+    queryFn: async () => {
       const comic = await fetchComicById({
         externalId: comicId,
       });
 
       return comic;
     },
-    {
-      refetchOnWindowFocus: false,
-    }
-  );
+    refetchOnWindowFocus: false,
+  });
 
   if (comic.isFetching) {
     return <PageLoader />;
