@@ -1,4 +1,5 @@
 import { ListApiRes, ShowDb } from "../types";
+
 import { clerk } from "./clerk";
 import qs from "qs";
 
@@ -33,7 +34,7 @@ const withFetchErrorHandling = (fetchFunction) => {
       const data = await response.json();
       if (!response.ok) {
         if (response.status >= 500) {
-          throw new Error(data.message);
+          throw new Error(data.error?.message ?? "Internal Server Error");
         }
         if (response.status >= 400) {
           throw data;

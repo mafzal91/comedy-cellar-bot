@@ -355,7 +355,10 @@ const FormStatus = ({ formErrors, mutation }) => {
   }
 
   if (mutation.isError) {
-    return <NetworkError message={mutation.error.toString()} />;
+    const errorMessage =
+      mutation.error.error ?? mutation.error.message ?? "Unknown error";
+
+    return <NetworkError message={errorMessage} />;
   }
   return null;
 };

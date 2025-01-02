@@ -1,3 +1,5 @@
+import { ReservationError, ValidationError } from "../core/errors";
+
 import { Reservation } from "../core/models/reservation";
 import { getRoomById } from "@core/models/room";
 import { handleReservation } from "../core/handleReservation";
@@ -25,7 +27,7 @@ export const create = async (_evt) => {
 
   const json = JSON.parse(_evt.body);
 
-  // If the timetamp is not valid then we can return early
+  // If the timestamp is not valid then we can return early
   if (validateTimestamp(timestamp) === false) {
     return createErrorResponse(400, "Invalid show timestamp");
   }
@@ -63,29 +65,25 @@ export const create = async (_evt) => {
       date: reservationDetails.date,
     });
     const show = showsForDate?.shows.find((s) => s.id === showId);
-    const room = await getRoomById(show.roomId);
-
-    if (room.maxReservationSize < reservationDetails.guest.size) {
-      return createErrorResponse(400, {
-        fieldErrors: [
-          {
-            field: "guest.size",
-            message: `Party size is too large must be less than or equal to ${room.maxReservationSize}`,
-          },
-        ],
-      });
-    }
 
     if (!show) {
-      return createErrorResponse(400, "Cannot find Show");
+      throw new ReservationError("Cannot find Show");
     }
 
     if (show.soldout) {
-      return createErrorResponse(400, "Show is sold out");
+      throw new ReservationError("Show is sold out");
     }
 
     if (settime !== show.time) {
-      return createErrorResponse(400, "Invalid show time");
+      throw new ReservationError("Invalid show time");
+    }
+
+    const room = await getRoomById(show.roomId);
+
+    if (room.maxReservationSize < reservationDetails.guest.size) {
+      throw new ReservationError(
+        `Party size is too large must be less than or equal to ${room.maxReservationSize}`
+      );
     }
 
     const createdReservation = await handleReservation(reservationDetails);
@@ -101,7 +99,12 @@ export const create = async (_evt) => {
       body: JSON.stringify(createdReservation),
     };
   } catch (error) {
-    console.error({ error });
-    return createErrorResponse(500, "Internal Server Error");
+    if (error instanceof ValidationError || error instanceof ReservationError) {
+      console.error("Reservation Lambda error:", error);
+      return createErrorResponse(400, error.message);
+    } else {
+      console.error("Unexpected error in create reservation:", error);
+      return createErrorResponse(500, "Internal Server Error");
+    }
   }
 };
