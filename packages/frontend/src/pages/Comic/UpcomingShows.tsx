@@ -1,8 +1,9 @@
-import { useQuery } from "react-query";
-import { Comic as ComicType, ShowDb, ListApiRes } from "../../types";
-import { fetchShowsNew } from "../../utils/api";
+import { Comic as ComicType, ListApiRes, ShowDb } from "../../types";
+
 import { Spinner } from "../../components/Spinner";
+import { fetchShowsNew } from "../../utils/api";
 import { useMemo } from "preact/hooks";
+import { useQuery } from "@tanstack/react-query";
 
 type ResultObject = {
   date: string;
@@ -49,18 +50,16 @@ export function UpcomingShows({ comicId }: { comicId: string }) {
     }),
     [comicId]
   );
-  const { data, isFetching } = useQuery<ListApiRes<ShowDb>>(
-    ["comicShows", filter],
-    async () => {
+  const { data, isFetching } = useQuery<ListApiRes<ShowDb>>({
+    queryKey: ["comicShows", filter],
+    queryFn: async () => {
       const comic = await fetchShowsNew(filter);
 
       return comic;
     },
-    {
-      refetchOnWindowFocus: false,
-      retry: false,
-    }
-  );
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
   const shows = useMemo(() => {
     if (!data?.results) {

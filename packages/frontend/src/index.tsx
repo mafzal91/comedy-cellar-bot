@@ -1,23 +1,23 @@
-import { render } from "preact";
+import "./style.css";
+
 import {
-  LocationProvider,
   ErrorBoundary,
-  lazy,
-  Router,
+  LocationProvider,
   Route,
+  Router,
+  lazy,
 } from "preact-iso";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import { BuyMeCoffeeButton } from "./components/BuyMeCoffee";
+import { Header } from "./components/Header";
+import { Link } from "./components/Link";
+import { Redirect } from "./components/Redirect";
+import clsx from "clsx";
+import { getToday } from "./utils/date";
+import { render } from "preact";
 
 // import * as Sentry from "@sentry/browser";
-
-import { Header } from "./components/Header";
-import { Redirect } from "./components/Redirect";
-import { getToday } from "./utils/date";
-
-import "./style.css";
-import { BuyMeCoffeeButton } from "./components/BuyMeCoffee";
-import { Link } from "./components/Link";
-import clsx from "clsx";
 
 // Sentry.init({
 //   dsn: "https://523bcd0e95c565ef1f4c580690e75a9b@o4506630100090880.ingest.sentry.io/4506630117916672",
@@ -84,6 +84,7 @@ export function App() {
                 // Desktop positioning
                 "lg:fixed lg:bottom-0 lg:left-0 lg:right-0 lg:justify-start",
                 "lg:mx-auto lg:max-w-7xl",
+                "hidden",
               ]
             )}
           >

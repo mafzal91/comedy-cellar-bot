@@ -120,6 +120,13 @@
       "when": 1730070126036,
       "tag": "0016_previous_supreme_intelligence",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1735781898515,
+      "tag": "0017_rich_sebastian_shaw",
+      "breakpoints": true
     }
   ]
 }

@@ -1,16 +1,18 @@
 import * as z from "zod";
-import qs from "qs";
-import { parseTimestampString } from "@core/utils";
-import { handleShowDetails } from "@core/handleShowDetails";
-import { handleLineUp } from "@core/handleLineUp";
-import { handleShowList } from "@core/handleShowList";
-import { isRoomExternalId } from "@core/models/room";
-import { isComicExternalId } from "@core/models/comic";
+
+import { getRoomById, isRoomExternalId } from "@core/models/room";
+import { getShows, getShowsCount } from "@core/models/show";
+
 import { UnixDateRange } from "@core/common/schema";
 import { generateResponse } from "@core/common/generateResponse";
-import { getShows, getShowsCount } from "@core/models/show";
-import { show } from "@core/sql/show.sql";
+import { handleLineUp } from "@core/handleLineUp";
+import { handleShowDetails } from "@core/handleShowDetails";
+import { handleShowList } from "@core/handleShowList";
+import { isComicExternalId } from "@core/models/comic";
 import { mapSortString } from "@core/common/mapSortString";
+import { parseTimestampString } from "@core/utils";
+import qs from "qs";
+import { show } from "@core/sql/show.sql";
 
 // Deprecated. Will use listShowsLocal and remove this when syncing shows is polished
 export const listShows = async (_evt) => {
@@ -78,12 +80,14 @@ export const getShow = async (_evt) => {
     };
   }
 
+  const room = await getRoomById(show.roomId);
+
   return {
     statusCode: 200,
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ show, lineUp }),
+    body: JSON.stringify({ show, lineUp, room }),
   };
 };
 

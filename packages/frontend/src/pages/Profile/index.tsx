@@ -1,10 +1,10 @@
-import { useQuery } from "react-query";
 import { useEffect, useRef } from "preact/hooks";
-import { clerk } from "../../utils/clerk";
 
-import { Spinner } from "../../components/Spinner";
 import PageWrapper from "../Auth/PageWrapper";
+import { Spinner } from "../../components/Spinner";
+import { clerk } from "../../utils/clerk";
 import { fetchSettings } from "../../utils/api";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Profile() {
   const profileRef = useRef();

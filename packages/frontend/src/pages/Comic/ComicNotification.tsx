@@ -1,18 +1,19 @@
-import { useRoute } from "preact-iso";
-import { useQuery, useMutation, useQueryClient } from "react-query";
-import { BellIcon as BellIconSolid } from "@heroicons/react/24/solid";
-import { BellIcon } from "@heroicons/react/24/outline";
 import { fetchSettings, updateSettings } from "../../utils/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { BellIcon } from "@heroicons/react/24/outline";
+import { BellIcon as BellIconSolid } from "@heroicons/react/24/solid";
 import { Button } from "../../components/Button";
 import { Spinner } from "../../components/Spinner";
+import { useRoute } from "preact-iso";
 
 export default function ComicNotification() {
   const { params } = useRoute();
   const queryClient = useQueryClient();
 
-  const comicSettings = useQuery(
-    ["settings", params.id],
-    async () => {
+  const comicSettings = useQuery({
+    queryKey: ["settings", params.id],
+    queryFn: async () => {
       const settings = await fetchSettings();
 
       return (
@@ -24,14 +25,12 @@ export default function ComicNotification() {
         }
       );
     },
-    {
-      refetchOnWindowFocus: false,
-      initialData: {
-        comicId: params.id,
-        enabled: false,
-      },
-    }
-  );
+    refetchOnWindowFocus: false,
+    initialData: {
+      comicId: params.id,
+      enabled: false,
+    },
+  });
 
   const mutation = useMutation({
     mutationFn: (enabled: boolean) => {
@@ -45,7 +44,9 @@ export default function ComicNotification() {
       });
     },
     onMutate: async (newState) => {
-      await queryClient.cancelQueries(["settings", params.id]);
+      await queryClient.cancelQueries({
+        queryKey: ["settings", params.id],
+      });
       const previousState = queryClient.getQueryData(["settings", params.id]);
       queryClient.setQueryData(
         ["settings", params.id],

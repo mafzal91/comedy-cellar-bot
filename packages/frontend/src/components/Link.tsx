@@ -2,11 +2,18 @@ import { FunctionalComponent, JSX } from "preact";
 
 import clsx from "clsx";
 
-type LinkProps = JSX.HTMLAttributes<HTMLAnchorElement>;
+type LinkProps = JSX.HTMLAttributes<HTMLAnchorElement> & {
+  href: string;
+  target?: string;
+  rel?: string;
+};
 
 export const Link: FunctionalComponent<LinkProps> = ({
   className,
   children,
+  href,
+  target,
+  rel,
   ...props
 }) => {
   const baseClasses = "font-small text-blue-600 hover:underline";
@@ -14,7 +21,7 @@ export const Link: FunctionalComponent<LinkProps> = ({
   const linkClasses = clsx(baseClasses, className);
 
   return (
-    <a className={linkClasses} {...props}>
+    <a className={linkClasses} href={href} target={target} rel={rel} {...props}>
       {children}
     </a>
   );
