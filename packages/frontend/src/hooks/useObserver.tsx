@@ -1,4 +1,4 @@
-import { ComponentChildren, FunctionalComponent, JSX, Ref } from "preact";
+import { ComponentChildren, JSX, Ref } from "preact";
 import { useCallback, useEffect, useState } from "preact/hooks";
 
 export type Entry = IntersectionObserverEntry | undefined;
@@ -77,7 +77,11 @@ export const ViewportObserver = <T extends keyof JSX.IntrinsicElements>({
 }: ViewportObserverProps<T>) => {
   const [ref, inView, entry] = useObserver<ElementType<T>>(options);
 
-  return <Component ref={ref}>{children({ inView, entry })}</Component>;
+  return (
+    <Component ref={ref as Ref<HTMLElement>}>
+      {children({ inView, entry })}
+    </Component>
+  );
 };
 
 // Add this type helper at the top of the file

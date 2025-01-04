@@ -38,7 +38,7 @@ export type Show = {
 export type ListApiRes<T> = {
   total: number;
   limit: number;
-  offet: number;
+  offset: number;
   results: T[];
 };
 
