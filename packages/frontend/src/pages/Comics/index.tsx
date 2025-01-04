@@ -1,6 +1,6 @@
 import { Comic, ListApiRes } from "../../types";
+import { ComicItem, ComicItemSkeleton } from "./ComicItem";
 
-import { ComicList } from "./ComicList";
 import { Legend } from "./ShowCount";
 import { fetchComics } from "../../utils/api";
 import { useEffect } from "preact/hooks";
@@ -9,7 +9,7 @@ import { useObserver } from "../../hooks/useObserver";
 
 export default function Comics() {
   const [ref, inView] = useObserver<HTMLDivElement>({
-    threshold: 0.5, // Adjust threshold as needed
+    threshold: 0, // Adjust threshold as needed
     triggerOnce: false, // If you want the observer to unobserve after the first intersection
   });
 
@@ -24,7 +24,6 @@ export default function Comics() {
       return comics;
     },
     getNextPageParam: (lastPage, allPages) => {
-      console.log({ lastPage, allPages });
       return lastPage.offset + lastPage.limit;
     },
     initialData: { pages: [], pageParams: [] },
@@ -47,8 +46,20 @@ export default function Comics() {
         <Legend />
       </div>
 
-      <ComicList comics={allComics} isLoading={isFetching} />
-      <div ref={ref} className="h-10" />
+      <ul
+        role="list"
+        className="grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-4"
+      >
+        {allComics.map((comic) => (
+          <ComicItem key={comic.name} comic={comic} />
+        ))}
+        {isFetching &&
+          Array.from({ length: 12 }).map((_, index) => (
+            <ComicItemSkeleton key={index} />
+          ))}
+      </ul>
+
+      {!isFetching && <div ref={ref} className="h-10" />}
     </div>
   );
 }

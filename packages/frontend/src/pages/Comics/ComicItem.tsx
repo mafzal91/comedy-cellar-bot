@@ -3,10 +3,10 @@ import { Img } from "../../components/Image";
 import { LinkIcon } from "@heroicons/react/24/outline";
 import { ShowCount } from "./ShowCount";
 
-function ComicItem({ comic }: { comic: Comic }) {
+export function ComicItem({ comic }: { comic: Comic }) {
   return (
     <li
-      key={comic.name}
+      key={comic.externalId}
       className="flex-col grow rounded-lg ring-1 ring-gray-200 shadow transition-shadow duration-300 hover:shadow-md"
     >
       <a href={`/comics/${comic.externalId}`} className={"grow-1"}>
@@ -44,7 +44,7 @@ function ComicItem({ comic }: { comic: Comic }) {
   );
 }
 
-function ComicItemSkeleton() {
+export function ComicItemSkeleton() {
   return (
     <li className="animate-pulse flex flex-col grow rounded-lg ring-1 ring-gray-200 shadow transition-shadow duration-300 hover:shadow-md">
       <div className="flex-1 flex flex-col">
@@ -64,26 +64,5 @@ function ComicItemSkeleton() {
         </div>
       </div>
     </li>
-  );
-}
-
-export function ComicList({
-  comics,
-  isLoading,
-}: {
-  comics: Comic[];
-  isLoading: boolean;
-}) {
-  return (
-    <ul
-      role="list"
-      className="grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-4"
-    >
-      {isLoading
-        ? Array.from({ length: 8 }).map((_, index) => (
-            <ComicItemSkeleton key={index} />
-          ))
-        : comics.map((comic) => <ComicItem key={comic.name} comic={comic} />)}
-    </ul>
   );
 }
