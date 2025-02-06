@@ -82,3 +82,17 @@ export type Room = {
   maxReservationSize: number;
   createdAt: string;
 };
+
+export type Settings = {
+  comicNotifications: ComicNotification[];
+  showNotification: {
+    enabled?: boolean;
+  };
+};
+
+export type ComicNotification = {
+  comicId: string;
+  name: string;
+  comic: string;
+  enabled: boolean;
+};

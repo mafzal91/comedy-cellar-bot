@@ -1,14 +1,18 @@
+import { One, relations, sql } from "drizzle-orm";
 import {
-  text,
-  serial,
-  varchar,
-  timestamp,
   pgTable,
+  serial,
+  text,
+  timestamp,
   uniqueIndex,
+  varchar,
 } from "drizzle-orm/pg-core";
-import { createExternalId } from "../common/createExternalId";
+
 import { USER_PREFIX } from "../common/constants";
-import { sql } from "drizzle-orm";
+import { comicNotification } from "./comicNotification.sql";
+import { comicToUser } from "./comicToUser.sql";
+import { createExternalId } from "../common/createExternalId";
+import { showNotification } from "./showNotification.sql";
 
 export const user = pgTable(
   "user",
@@ -30,6 +34,15 @@ export const user = pgTable(
     ),
   })
 );
+
+export const usersRelations = relations(user, ({ one, many }) => ({
+  showNotifications: one(showNotification, {
+    fields: [user.id],
+    references: [showNotification.userId],
+  }),
+  comicNotifications: many(comicNotification),
+  comicToUsers: many(comicToUser),
+}));
 
 export type SelectUser = typeof user.$inferSelect;
 export type InsertUser = typeof user.$inferInsert;

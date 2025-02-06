@@ -1,10 +1,14 @@
+import { ProfileTabContent, ProfileTabs } from "./profileTabs";
 import { useEffect, useRef } from "preact/hooks";
 
 import PageWrapper from "../Auth/PageWrapper";
-import { Spinner } from "../../components/Spinner";
+import { ProfileSettings } from "./profileSettings";
 import { clerk } from "../../utils/clerk";
-import { fetchSettings } from "../../utils/api";
-import { useQuery } from "@tanstack/react-query";
+
+enum ProfileTabName {
+  Settings = "Settings",
+  Profile = "Profile",
+}
 
 export default function Profile() {
   const profileRef = useRef();
@@ -16,8 +20,18 @@ export default function Profile() {
 
   return (
     <PageWrapper>
-      <div className="flex flex-col">
-        <div ref={profileRef} />
+      <div className="flex flex-col w-full">
+        <ProfileTabs>
+          <ProfileTabContent tabName={ProfileTabName.Settings}>
+            <ProfileSettings />
+          </ProfileTabContent>
+
+          <ProfileTabContent tabName={ProfileTabName.Profile}>
+            <div className="flex justify-center">
+              <div ref={profileRef} />
+            </div>
+          </ProfileTabContent>
+        </ProfileTabs>
       </div>
     </PageWrapper>
   );

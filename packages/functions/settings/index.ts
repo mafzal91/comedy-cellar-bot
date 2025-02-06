@@ -1,16 +1,21 @@
 import * as z from "zod";
-import qs from "qs";
-import { getAuthIdFromJwtClaim } from "@core/common/getAuthIdFromJwtClaim";
-import { generateResponse } from "@core/common/generateResponse";
-import { isComicExternalId } from "@core/models/comic";
-import { getUserByAuthId } from "@core/models/user";
-import { upsertShowNotification } from "@core/models/showNotification";
+
 import {
   getComicNotifications,
   upsertComicNotification,
 } from "@core/models/comicNotification";
+import {
+  getShowNotification,
+  upsertShowNotification,
+} from "@core/models/showNotification";
 
-export async function list(_evt) {
+import { generateResponse } from "@core/common/generateResponse";
+import { getAuthIdFromJwtClaim } from "@core/common/getAuthIdFromJwtClaim";
+import { getUserByAuthId } from "@core/models/user";
+import { isComicExternalId } from "@core/models/comic";
+import qs from "qs";
+
+export async function get(_evt) {
   const queryStringParameters = qs.parse(_evt.rawQueryString);
 
   const authId = getAuthIdFromJwtClaim(_evt);
@@ -42,8 +47,14 @@ export async function list(_evt) {
 
   const query = queryValidationSchema.safeParse(queryStringParameters);
 
-  const comicNotifications = await getComicNotifications(user.id);
+  const [comicNotifications, showNotification] = await Promise.all([
+    getComicNotifications(user.id),
+    getShowNotification(user.id),
+  ]);
+
   const mappedComicNotification = comicNotifications.map((i) => ({
+    name: i.comic.name,
+    comic: i.comic.img,
     comicId: i.comic.externalId,
     enabled: i.enabled,
   }));
@@ -60,6 +71,9 @@ export async function list(_evt) {
     statusCode: 200,
     body: {
       comicNotifications: mappedComicNotification,
+      showNotification: {
+        enabled: showNotification?.[0]?.enabled ?? false,
+      },
     },
   });
 }
@@ -119,7 +133,7 @@ export async function update(_evt) {
     });
   }
 
-  if (body.data.comicNotifications.length) {
+  if (body.data.comicNotifications?.length) {
     const { comicNotifications } = body.data;
     const mappedComicNotifications = comicNotifications
       .filter(

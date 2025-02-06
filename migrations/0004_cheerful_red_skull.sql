@@ -1,1 +1,0 @@
-ALTER TABLE "show" ALTER COLUMN "timestamp" DROP NOT NULL;

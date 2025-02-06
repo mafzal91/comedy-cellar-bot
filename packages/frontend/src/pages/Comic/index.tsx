@@ -56,7 +56,7 @@ export default function Comic() {
                   </h1>
                 </div>
                 <div className="mt-6 flex flex-col justify-stretch space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0">
-                  {/* {user && <ComicNotification />} */}
+                  {user && <ComicNotification />}
                   {comic.data.website && (
                     <Link
                       href={comic.data.website}

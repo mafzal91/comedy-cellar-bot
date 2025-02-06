@@ -1,16 +1,19 @@
 import {
-  text,
-  serial,
-  varchar,
-  timestamp,
-  pgTable,
   boolean,
+  pgTable,
+  serial,
+  text,
+  timestamp,
   uniqueIndex,
+  varchar,
 } from "drizzle-orm/pg-core";
-import { createExternalId } from "../common/createExternalId";
-import { COMIC_PREFIX } from "../common/constants";
 import { relations, sql } from "drizzle-orm";
+
+import { COMIC_PREFIX } from "../common/constants";
 import { act } from "./act.sql";
+import { comicNotification } from "./comicNotification.sql";
+import { comicToUser } from "./comicToUser.sql";
+import { createExternalId } from "../common/createExternalId";
 
 export const comic = pgTable(
   "comic",
@@ -36,6 +39,8 @@ export const comic = pgTable(
 
 export const comicRelations = relations(comic, ({ many }) => ({
   acts: many(act),
+  comicNotifications: many(comicNotification),
+  comicToUsers: many(comicToUser),
 }));
 
 export type SelectComic = typeof comic.$inferSelect;

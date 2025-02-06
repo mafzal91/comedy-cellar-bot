@@ -1,1 +1,0 @@
-ALTER TABLE "act" ALTER COLUMN "enabled" SET DEFAULT true;

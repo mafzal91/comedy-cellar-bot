@@ -5,127 +5,22 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1726985254429,
-      "tag": "0000_nostalgic_the_fallen",
+      "when": 1738784216225,
+      "tag": "0000_closed_mattie_franklin",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1727502526958,
-      "tag": "0001_hot_riptide",
+      "when": 1738784983072,
+      "tag": "0001_pale_nighthawk",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "7",
-      "when": 1727579143580,
-      "tag": "0002_clean_marauders",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1727589138639,
-      "tag": "0003_abandoned_cable",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1727589194908,
-      "tag": "0004_cheerful_red_skull",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1727589270215,
-      "tag": "0005_vengeful_alex_wilder",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1727589358177,
-      "tag": "0006_marvelous_scalphunter",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1727630335389,
-      "tag": "0007_noisy_mephisto",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1727644378168,
-      "tag": "0008_same_slapstick",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1727651765213,
-      "tag": "0009_puzzling_serpent_society",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1727933484437,
-      "tag": "0010_flippant_matthew_murdock",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1728626286630,
-      "tag": "0011_mature_nebula",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1728922726147,
-      "tag": "0012_brainy_wallow",
-      "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1728928816571,
-      "tag": "0013_daffy_martin_li",
-      "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "7",
-      "when": 1728933608562,
-      "tag": "0014_smooth_puff_adder",
-      "breakpoints": true
-    },
-    {
-      "idx": 15,
-      "version": "7",
-      "when": 1728960226429,
-      "tag": "0015_early_darkhawk",
-      "breakpoints": true
-    },
-    {
-      "idx": 16,
-      "version": "7",
-      "when": 1730070126036,
-      "tag": "0016_previous_supreme_intelligence",
-      "breakpoints": true
-    },
-    {
-      "idx": 17,
-      "version": "7",
-      "when": 1735781898515,
-      "tag": "0017_rich_sebastian_shaw",
+      "when": 1738812861775,
+      "tag": "0002_light_miss_america",
       "breakpoints": true
     }
   ]

@@ -74,10 +74,10 @@ export default function ComicNotification() {
       className="inline-flex gap-x-1.5"
       onClick={handleToggle}
     >
-      {mutation.isLoading ? (
+      {mutation.isPending ? (
         <>
           <Spinner size={5} />
-          Updating
+          {!isEnabled ? "Unsubscribing..." : "Subscribing..."}
         </>
       ) : isEnabled ? (
         <>
@@ -85,7 +85,7 @@ export default function ComicNotification() {
             aria-hidden="true"
             className="-ml-0.5 h-5 w-5 text-gray-400"
           />
-          Notified
+          Subscribed
         </>
       ) : (
         <>
@@ -93,7 +93,7 @@ export default function ComicNotification() {
             aria-hidden="true"
             className="-ml-0.5 h-5 w-5 text-gray-400"
           />
-          Get Notified
+          Subscribe
         </>
       )}
     </Button>
