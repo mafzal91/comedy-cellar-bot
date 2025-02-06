@@ -170,6 +170,7 @@ type SettingPostBody = {
 };
 export const updateSettings = async ({
   comicNotifications,
+  showNotification,
 }: SettingPostBody): Promise<ListApiRes<ShowDb>> => {
   const res = await customFetch(`${VITE_API_URL}/api/settings`, {
     method: "POST",
@@ -178,6 +179,7 @@ export const updateSettings = async ({
     },
     body: JSON.stringify({
       comicNotifications,
+      showNotification,
     }),
   });
 

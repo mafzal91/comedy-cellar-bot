@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "user_show_unique" ON "show_notification" USING btree ("userId");

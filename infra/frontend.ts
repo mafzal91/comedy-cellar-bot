@@ -1,5 +1,5 @@
-import { clerkCreds } from "./secrets";
 import api from "./api";
+import { clerkCreds } from "./secrets";
 
 const prodDomain = {
   domain: {

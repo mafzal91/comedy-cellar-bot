@@ -48,7 +48,7 @@ export default function Comics() {
 
       <ul
         role="list"
-        className="grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-4"
+        className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-4"
       >
         {allComics.map((comic) => (
           <ComicItem key={comic.name} comic={comic} />

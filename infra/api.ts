@@ -1,5 +1,6 @@
+import { clerkCreds, dbCreds, emailSecrets } from "./secrets";
+
 import config from "./config";
-import { dbCreds, emailSecrets, clerkCreds } from "./secrets";
 const functionDir = `packages/functions`;
 
 const prodDomain = {
@@ -98,7 +99,7 @@ api.route("GET /api/comics/{externalId}", {
 api.route(
   "GET /api/settings",
   {
-    handler: `${functionDir}/settings/index.list`,
+    handler: `${functionDir}/settings/index.get`,
     link: [dbCreds.dbUrl],
   },
   {
