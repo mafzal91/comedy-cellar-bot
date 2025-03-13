@@ -13,7 +13,7 @@ export default function Comics() {
     triggerOnce: false, // If you want the observer to unobserve after the first intersection
   });
 
-  const { data, fetchNextPage, isFetching } = useInfiniteQuery<
+  const { data, fetchNextPage, hasNextPage, isFetching } = useInfiniteQuery<
     ListApiRes<Comic>
   >({
     queryKey: ["comics"],
@@ -24,7 +24,11 @@ export default function Comics() {
       return comics;
     },
     getNextPageParam: (lastPage, allPages) => {
-      return lastPage.offset + lastPage.limit;
+      console.log(lastPage, allPages);
+      if (allPages.length < lastPage.total / lastPage.limit) {
+        return lastPage.offset + lastPage.limit;
+      }
+      return undefined;
     },
     initialData: { pages: [], pageParams: [] },
     initialPageParam: 0,
@@ -34,10 +38,10 @@ export default function Comics() {
   const allComics = data?.pages.flatMap((page) => page.results) ?? [];
 
   useEffect(() => {
-    if (inView) {
+    if (inView && hasNextPage) {
       fetchNextPage();
     }
-  }, [fetchNextPage, inView]);
+  }, [fetchNextPage, inView, hasNextPage]);
 
   return (
     <div className="flex flex-col gap-y-8">

@@ -1,4 +1,4 @@
-import { ListApiRes, ShowDb } from "../types";
+import { Comic, ListApiRes, ShowDb } from "../types";
 
 import { clerk } from "./clerk";
 import qs from "qs";
@@ -120,7 +120,7 @@ export const fetchComics = async (
     limit?: number;
     sort?: string;
   } = { sort: "-name" }
-) => {
+): Promise<ListApiRes<Comic>> => {
   const queryString = qs.stringify({ name, offset, limit, sort });
   const res = await customFetch(`${VITE_API_URL}/api/comics?${queryString}`);
 
