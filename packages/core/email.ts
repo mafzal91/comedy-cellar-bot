@@ -5,9 +5,11 @@ const FromEmailPw = Resource.FromEmailPw.value;
 
 export async function sendEmail({
   message,
+  html,
   subject,
 }: {
   message: string;
+  html?: string;
   subject: string;
 }) {
   const transporter = nodemailer.createTransport({
@@ -22,7 +24,7 @@ export async function sendEmail({
     from: FromEmail,
     to: FromEmail,
     subject,
-    text: `Message: ${message}`,
+    ...(html ? { html } : { text: `Message: ${message}` }),
   });
 
   return;
