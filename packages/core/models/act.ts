@@ -3,7 +3,7 @@ import { PgDialect } from "drizzle-orm/pg-core";
 
 import { ApiResponse } from "../../types/api";
 import { db } from "@core/database";
-import { eq, sql } from "drizzle-orm";
+import { eq, getTableColumns, sql } from "drizzle-orm";
 import { show } from "@core/sql/show.sql";
 import { comic } from "@core/sql/comic.sql";
 const pgDialect = new PgDialect();
@@ -41,17 +41,19 @@ export class Lineup {
   }
 }
 
-export function createActs(data: InsertAct[]) {
+export function createActs(data: InsertAct[]): Promise<SelectAct[]> {
   return db
     .insert(act)
     .values(data)
     .onConflictDoNothing({
       target: [act.showId, act.comicId],
-    });
+    })
+    .returning({ ...getTableColumns(act) });
 }
 
-export function createAct(data: InsertAct) {
-  return createActs([data]);
+export async function createAct(data: InsertAct): Promise<SelectAct> {
+  const newActId = await createActs([data]);
+  return newActId?.[0] ? newActId[0] : null;
 }
 
 export async function getActsByShowId(showId: SelectAct["showId"]) {

@@ -30,10 +30,16 @@ export function isComicExternalId(externalId) {
   return externalId.match(new RegExp(COMIC_PREFIX));
 }
 
-export async function createComics(data: InsertComic[]) {
-  return db.insert(comic).values(data).onConflictDoNothing({
-    target: comic.name,
-  });
+export async function createComics(
+  data: InsertComic[]
+): Promise<SelectComic[]> {
+  return db
+    .insert(comic)
+    .values(data)
+    .onConflictDoNothing({
+      target: comic.name,
+    })
+    .returning({ ...getTableColumns(comic) });
 }
 
 export async function getComics({
@@ -91,6 +97,10 @@ export async function getComicByExternalId(
   externalId: SelectComic["externalId"]
 ) {
   return db.select().from(comic).where(eq(comic.externalId, externalId));
+}
+
+export async function getComicsById(ids: SelectComic["id"][]) {
+  return db.select().from(comic).where(inArray(comic.id, ids));
 }
 
 export async function getComicByName(name: SelectComic["name"]) {

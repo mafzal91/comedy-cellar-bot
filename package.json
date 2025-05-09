@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "sst dev --mode=basic",
+    "dev:email": "email dev",
     "deploy:prod": "sst deploy --stage=prod",
     "remove:prod": "sst remove --stage=prod",
     "db": "sst shell drizzle-kit",
@@ -17,6 +18,7 @@
   "dependencies": {
     "@clerk/backend": "^1.13.9",
     "@paralleldrive/cuid2": "^2.2.2",
+    "@react-email/components": "0.0.38",
     "axios": "^1.7.7",
     "cheerio": "^1.0.0-rc.12",
     "date-fns": "^3.6.0",
@@ -26,6 +28,8 @@
     "nodemailer": "^6.9.15",
     "postgres": "^3.4.4",
     "qs": "^6.13.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "sanitize-html": "^2.13.0",
     "sst": "^3.7.10",
     "svix": "^1.37.0",
@@ -33,6 +37,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.145"
+    "@types/aws-lambda": "8.10.145",
+    "react-email": "4.0.11"
   }
 }

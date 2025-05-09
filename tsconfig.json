@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "jsx": "react-jsx",
+
     "paths": {
       "@core/*": ["./packages/core/*"],
       "@customTypes/*": ["./packages/types/*"]
