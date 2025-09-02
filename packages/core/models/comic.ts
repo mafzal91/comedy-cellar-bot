@@ -31,9 +31,7 @@ export function isComicExternalId(externalId) {
 }
 
 export async function createComics(data: InsertComic[]) {
-  return db.insert(comic).values(data).onConflictDoNothing({
-    target: comic.name,
-  });
+  return db.insert(comic).values(data).onConflictDoNothing();
 }
 
 export async function getComics({
