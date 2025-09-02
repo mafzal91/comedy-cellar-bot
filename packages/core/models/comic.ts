@@ -5,6 +5,7 @@ import {
   count,
   eq,
   getTableColumns,
+  ilike,
   inArray,
   sql,
 } from "drizzle-orm";
@@ -19,8 +20,10 @@ import { show } from "@core/sql/show.sql";
 function getComicWhereClause({ name }: { name?: string }): SQL[] {
   const where: SQL[] = [];
 
-  if (name) {
-    where.push(eq(comic.name, name));
+  if (name?.trim()) {
+    // Case-insensitive partial matching - escape special characters to prevent injection
+    const searchTerm = name.trim().replace(/[%_\\]/g, "\\$&");
+    where.push(ilike(comic.name, `%${searchTerm}%`));
   }
 
   return where;
@@ -78,7 +81,11 @@ export async function getComics({
 }
 
 export async function getComicsCount({ name }: { name?: string }) {
-  const query = db.select({ count: count() }).from(comic);
+  const where = getComicWhereClause({ name });
+  const query = db
+    .select({ count: count() })
+    .from(comic)
+    .where(and(...where));
 
   const results = await query;
 

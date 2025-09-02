@@ -18,7 +18,7 @@ export async function list(_evt: any) {
 
   const queryValidationSchema = z
     .object({
-      name: z.string().min(2, "Name must be at least 2 characters").optional(),
+      name: z.string().min(1, "Name must be at least 1 character").optional(),
       offset: z.coerce.number().min(0).default(0),
       limit: z.coerce.number().min(1).max(100).default(20),
       sort: sortFieldSchema.optional().transform(mapSortString).default(""),
