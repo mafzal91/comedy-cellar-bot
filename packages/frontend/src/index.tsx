@@ -37,6 +37,7 @@ const SignIn = lazy(() => import("./pages/Auth/SignIn"));
 const SignOut = lazy(() => import("./pages/Auth/SignOut"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Terms = lazy(() => import("./pages/Terms"));
+const Updates = lazy(() => import("./pages/Updates"));
 
 const onRouteChange = (url: string) => {
   console.log("root", url);
@@ -62,6 +63,7 @@ export function App() {
                 <Comics path="/comics" />
                 <Comic path="/comics/:id" />
                 <Terms path="/terms-privacy" />
+                <Updates path="/updates" />
                 <Profile path="/profile" />
                 <SignUp path="/sign-up" />
                 <SignIn path="/sign-in" />
