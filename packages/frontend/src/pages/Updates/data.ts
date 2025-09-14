@@ -7,6 +7,11 @@ export interface Update {
 export const updates: Update[] = [
   {
     date: "September 2025",
+    title: "Persistent Comic Search",
+    text: "Comic searches now stay in the URL! This means you can bookmark search results, share links with specific searches, and your search will persist when you refresh the page or navigate back.",
+  },
+  {
+    date: "September 2025",
     title: "Updates Page",
     text: "We've added a new Updates page where you can see all the latest features and improvements! Check out the 'Updates' link in the navigation to stay informed about what's new.",
   },
