@@ -8,13 +8,16 @@ import { fetchComics } from "../../utils/api";
 import { useEffect, useState } from "preact/hooks";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useObserver } from "../../hooks/useObserver";
+import { useLocation } from "preact-iso";
 
 export default function Comics() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const { query, route } = useLocation();
+
+=  const [searchTerm, setSearchTerm] = useState(query.search || "");
 
   const [ref, inView] = useObserver<HTMLDivElement>({
-    threshold: 0, // Adjust threshold as needed
-    triggerOnce: false, // If you want the observer to unobserve after the first intersection
+    threshold: 0, 
+    triggerOnce: false, 
   });
 
   const { data, fetchNextPage, hasNextPage, isFetching, isLoading } =
@@ -28,7 +31,6 @@ export default function Comics() {
         return comics;
       },
       getNextPageParam: (lastPage, allPages) => {
-        console.log(lastPage, allPages);
         if (allPages.length < lastPage.total / lastPage.limit) {
           return lastPage.offset + lastPage.limit;
         }
@@ -47,6 +49,14 @@ export default function Comics() {
   const showInitialSkeletons = isLoading;
   const showInfiniteScrollSkeletons = isFetching && !isLoading;
 
+  // Sync search term with URL when query changes (e.g., browser back/forward)
+  useEffect(() => {
+    const searchFromUrl = query.search || "";
+    if (searchFromUrl !== searchTerm) {
+      setSearchTerm(searchFromUrl);
+    }
+  }, [query.search]);
+
   useEffect(() => {
     if (inView && hasNextPage) {
       fetchNextPage();
@@ -55,6 +65,12 @@ export default function Comics() {
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
+
+    if (value.trim()) {
+      route(`/comics?search=${encodeURIComponent(value)}`, true);
+    } else {
+      route("/comics", true); // Clear search parameter but stay on comics page
+    }
   };
 
   return (
