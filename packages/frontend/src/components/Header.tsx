@@ -6,6 +6,7 @@ import { useEffect, useState } from "preact/hooks";
 const navigation = [
   { name: "Home", href: `/?date=${getToday()}` },
   { name: "Comics", href: "/comics" },
+  { name: "Updates", href: "/updates" },
 ];
 
 const signOutLink = [
