@@ -45,7 +45,7 @@ export const ShowDetails = (props: { show: Show; lineUp: LineUp }) => {
       <dl className="space-y-5">
         {showInfo.map((info) => (
           <div key={info.label} className="flex rounded-lg items-center">
-            <dt className="flex-shrink-0">
+            <dt className="shrink-0">
               <div className="flow-root">
                 <span className="sr-only">{info.label}</span>
                 {<info.icon className="h-6 w-6" />}

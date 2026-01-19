@@ -1,6 +1,6 @@
 export default function Terms() {
   return (
-    <div className="mt-10 max-w-4xl mx-auto p-6 bg-white shadow ring-1 ring-gray-200 rounded-lg">
+    <div className="mt-10 max-w-4xl mx-auto p-6 bg-white shadow-sm ring-1 ring-gray-200 rounded-lg">
       <section id="terms-and-conditions" className="mb-12">
         <h1 className="text-4xl font-bold mb-4 text-slate-950">
           Terms and Conditions ("Terms")

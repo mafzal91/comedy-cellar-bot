@@ -26,10 +26,10 @@ export function Checkbox({
             type="checkbox"
             aria-describedby={`${label}-description`}
             className={clsx(
-              "col-start-1 row-start-1 appearance-none rounded",
+              "col-start-1 row-start-1 appearance-none rounded-sm",
               "border border-gray-300 bg-white",
               "checked:border-primary checked:bg-primary indeterminate:border-primary indeterminate:bg-primary",
-              "focus-visible:bg-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+              "focus-visible:bg-primary focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
               "disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto"
             )}
             checked={checked}

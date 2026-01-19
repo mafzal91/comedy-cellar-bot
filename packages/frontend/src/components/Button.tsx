@@ -22,7 +22,7 @@ export const Button: FunctionalComponent<ButtonProps> = ({
   ...props
 }) => {
   const baseClasses =
-    "rounded bg-white text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 font-semibold";
+    "rounded-sm bg-white text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50 font-semibold";
 
   const sizeClasses = {
     xs: "px-2 py-1 text-xs",

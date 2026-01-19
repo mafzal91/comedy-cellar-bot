@@ -158,7 +158,7 @@ export function Calendar({ value, onChange }) {
         <div>F</div>
         <div>S</div>
       </div>
-      <div className="isolate mt-2 grid grid-cols-7 gap-px rounded-lg bg-gray-200 text-sm shadow ring-1 ring-gray-200">
+      <div className="isolate mt-2 grid grid-cols-7 gap-px rounded-lg bg-gray-200 text-sm shadow-sm ring-1 ring-gray-200">
         {days.map((day, dayIdx) => (
           <CalendarButton
             key={day.date}
