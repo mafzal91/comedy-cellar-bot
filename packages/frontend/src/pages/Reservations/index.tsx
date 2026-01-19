@@ -140,7 +140,7 @@ export default function Reservation() {
   const maxReservationSize = showData?.data?.room?.maxReservationSize ?? 4;
 
   return (
-    <div className="overflow-hidden rounded-lg bg-white shadow">
+    <div className="overflow-hidden rounded-lg bg-white shadow-sm">
       <div className="px-4 py-5 sm:p-6">
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 gap-x-5">
@@ -251,7 +251,7 @@ export default function Reservation() {
                       id="howHeard"
                       name="howHeard"
                       required
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
                     >
                       {howHeardOptions.map((option) => (
                         <option key={option}>{option}</option>
@@ -267,7 +267,7 @@ export default function Reservation() {
                           aria-describedby="smsOk-description"
                           name="smsOk"
                           type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          className="h-4 w-4 rounded-sm border-gray-300 text-primary focus:ring-primary"
                         />
                       </div>
                       <div className="ml-3 text-sm leading-6">

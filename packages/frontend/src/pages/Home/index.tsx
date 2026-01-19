@@ -64,8 +64,7 @@ export default function Home() {
         <div className="mt-10 text-center lg:col-start-1 lg:col-end-5 lg:row-start-1 lg:mt-9">
           <Calendar value={query.date} onChange={handleDateChange} />
         </div>
-
-        <div className="mt-4 overflow-hidden rounded-lg bg-white shadow ring-1 ring-gray-200 lg:col-span-7 xl:col-span-8 ">
+        <div className="mt-4 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200 lg:col-span-7 xl:col-span-8 ">
           <div className="px-4 py-5 sm:p-4">
             {showData.isLoading ? (
               <Loader />

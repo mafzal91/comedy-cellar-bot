@@ -54,7 +54,7 @@ export const Disclaimer = () => {
     <>
       {disclaimers.map((disclaimer) => (
         <div key={disclaimer.title} className="flex rounded-lg">
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <div className="flow-root">
               {<disclaimer.icon className="h-6 w-6" />}
             </div>

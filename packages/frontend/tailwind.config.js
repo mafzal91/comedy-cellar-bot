@@ -45,5 +45,7 @@ export default {
       },
     },
   },
-  plugins: [require("@tailwindcss/forms"), padPlugin],
+  plugins: [require("@tailwindcss/forms"),
+    padPlugin
+  ],
 };

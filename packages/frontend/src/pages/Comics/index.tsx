@@ -76,7 +76,7 @@ export default function Comics() {
   return (
     <div className="flex flex-col gap-y-8">
       {/* Search Section */}
-      <div className="flex flex-col gap-4 p-4 rounded-lg ring-1 ring-gray-200 shadow hover:shadow-md">
+      <div className="flex flex-col gap-4 p-4 rounded-lg ring-1 ring-gray-200 shadow-sm hover:shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h6 className="text-md font-bold">Search Comics</h6>
           {searchTerm.length >= 2 && (

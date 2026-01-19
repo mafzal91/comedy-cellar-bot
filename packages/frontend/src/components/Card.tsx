@@ -21,7 +21,7 @@ export function Card({ children }: { children: React.ReactNode }) {
     )
     .filter((child) => child.type === CardFooter);
   return (
-    <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
+    <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow-sm">
       {headers.map((header) => header)}
       {body.map((body) => body)}
       {footer.map((footer) => footer)}

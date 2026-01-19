@@ -2,7 +2,7 @@ import { updates } from "./data";
 
 export default function Updates() {
   return (
-    <div className="mt-10 max-w-4xl mx-auto p-4 bg-white shadow ring-1 ring-gray-200 rounded-lg">
+    <div className="mt-10 max-w-4xl mx-auto p-4 bg-white shadow-sm ring-1 ring-gray-200 rounded-lg">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4 text-slate-950">What's New</h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
