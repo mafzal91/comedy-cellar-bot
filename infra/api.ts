@@ -43,6 +43,10 @@ api.route("GET /api/health", {
   handler: `${functionDir}/health.handler`,
 });
 
+api.route("GET /api/frontier", {
+  handler: `${functionDir}/frontier.handler`,
+});
+
 // ---- SHOWS -----
 
 api.route("GET /api/shows/scan", {
