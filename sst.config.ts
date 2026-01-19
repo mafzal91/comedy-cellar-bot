@@ -1,12 +1,19 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 
+
 export default $config({
   app(input) {
     return {
       name: "comedy-cellar-bot",
       removal: input?.stage === "production" ? "retain" : "remove",
       home: "aws",
-      providers: { cloudflare: true, supabase: true },
+      providers: {
+        cloudflare: {
+          apiToken: process.env.CLOUDFLARE_API_TOKEN,
+          email: process.env.CLOUDFLARE_EMAIL,
+        },
+        supabase: true
+      },
     };
   },
   async run() {
