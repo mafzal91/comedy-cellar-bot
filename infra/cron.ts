@@ -36,5 +36,5 @@ new sst.aws.Cron("EventAvailabilityCron", {
       IS_CRON: "1",
     },
   },
-  schedule: "cron(0/5 * * * ? *)", // Every 5 minutes
+  schedule: "cron(0/30 * * * ? *)", // Every 20 minutes
 });

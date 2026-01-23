@@ -103,25 +103,10 @@ export async function handler() {
 
     console.log(dateForLogging, "Event Availability:", availability);
 
-    // Send Slack notification about current availability
-    const slackMessage = formatEventAvailabilityMessage({
-      spotsLeft: availability.spotsLeft,
-      totalSpots: availability.totalSpots,
-      going: availability.going,
-      waitlist: availability.waitlist,
-      interested: availability.interested,
-      eventUrl: EVENT_URL,
-    });
-
-    await sendSlackMessage(slackMessage).catch((error) => {
-      console.error("Failed to send Slack message:", error);
-    });
-
-    // Check if spots are available and send email notification
-    if (availability.spotsLeft > 0) {
-      await sendEmail({
-        subject: "🎉 Event Spots Available!",
-        message: `Spots are now available for the Akdeniz Restaurant dinner meetup!
+    // Send email notification about current availability on every cron run
+    await sendEmail({
+      subject: "Event Availability Check",
+      message: `Event availability check at ${dateForLogging}
 
 Event URL: ${EVENT_URL}
 
@@ -129,11 +114,24 @@ Current Status:
 - Spots Left: ${availability.spotsLeft}/${availability.totalSpots}
 - Going: ${availability.going}
 - Waitlist: ${availability.waitlist}
-- Interested: ${availability.interested}
+- Interested: ${availability.interested}`,
+    }).catch((error) => {
+      console.error("Failed to send email:", error);
+    });
 
-Checked at: ${dateForLogging}`,
-      }).catch((error) => {
-        console.error("Failed to send email:", error);
+    // Check if spots are available and send Slack notification
+    if (availability.spotsLeft > 0) {
+      const slackMessage = formatEventAvailabilityMessage({
+        spotsLeft: availability.spotsLeft,
+        totalSpots: availability.totalSpots,
+        going: availability.going,
+        waitlist: availability.waitlist,
+        interested: availability.interested,
+        eventUrl: EVENT_URL,
+      });
+
+      await sendSlackMessage(slackMessage).catch((error) => {
+        console.error("Failed to send Slack message:", error);
       });
 
       return {
@@ -143,7 +141,7 @@ Checked at: ${dateForLogging}`,
     }
 
     return {
-      message: "No spots available - Slack notification sent",
+      message: "No spots available - email notification sent",
       ...availability,
     };
   } catch (error) {
