@@ -25,16 +25,3 @@ new sst.aws.Cron("SyncCron", {
   },
   schedule: "cron(0 0/1 * * ? *)",
 });
-
-// This cron checks for event availability on Partiful
-new sst.aws.Cron("EventAvailabilityCron", {
-  job: {
-    handler: "packages/functions/cron/eventAvailabilityCron.handler",
-    link: [...Object.values(emailSecrets)],
-    environment: {
-      IS_ACTIVE: $app.stage === "prod" ? "1" : "0",
-      IS_CRON: "1",
-    },
-  },
-  schedule: "cron(0/30 * * * ? *)", // Every 20 minutes
-});
