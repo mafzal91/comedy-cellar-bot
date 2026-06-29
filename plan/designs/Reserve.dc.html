@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin:0; }
+    body { background:var(--bg); }
+
+    :root{
+      --bg:#FBF6EC; --surface:#ffffff; --text:#1A1714; --muted:#857B6D; --faint:#A99F8E;
+      --line:#1A1714; --shadow:#1A1714; --track:#EDE7DA; --solid:#1A1714; --solid-hover:#2c2820;
+      --on-solid:#F3C44C; --on-accent:#1A1714;
+    }
+    html[data-theme="dark"]{
+      --bg:#16130E; --surface:#221E17; --text:#F2ECE0; --muted:#A99F90; --faint:#7C7468;
+      --line:#3C352B; --shadow:#070503; --track:#322C22; --solid:#F3C44C; --solid-hover:#E0B43F;
+      --on-solid:#1A1714;
+    }
+    input::placeholder { color:#B7AE9F; }
+  </style>
+  <script>
+(function(){
+  try{ if(localStorage.getItem('cc-theme')==='dark') document.documentElement.setAttribute('data-theme','dark'); }catch(e){}
+  function mk(){
+    if(document.getElementById('cc-theme-btn')) return;
+    if(!document.body){ return setTimeout(mk,40); }
+    var b=document.createElement('button');
+    b.id='cc-theme-btn';
+    b.style.cssText='position:fixed;right:18px;bottom:18px;z-index:99999;width:46px;height:46px;border-radius:50%;border:1.5px solid #1A1714;background:#F3C44C;color:#1A1714;font-size:20px;line-height:1;cursor:pointer;box-shadow:2px 3px 0 #1A1714;display:flex;align-items:center;justify-content:center;font-family:Archivo,sans-serif;';
+    function sync(){var d=document.documentElement.getAttribute('data-theme')==='dark';b.textContent=d?'\u2600':'\u263E';b.title=d?'Switch to light mode':'Switch to dark mode';}
+    b.onclick=function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d){document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('cc-theme','light')}catch(e){}}else{document.documentElement.setAttribute('data-theme','dark');try{localStorage.setItem('cc-theme','dark')}catch(e){}}sync();};
+    sync(); document.body.appendChild(b);
+  }
+  mk();
+})();
+  </script>
+</helmet>
+
+<div style="min-height:100vh; background:var(--bg);">
+
+  <div style="background:#F3C44C; padding:16px 40px; display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; align-items:baseline; gap:11px;">
+      <span style="font-family:'Bebas Neue'; font-size:31px; letter-spacing:.03em; color:#1A1714; line-height:1;">COMEDY CELLAR</span>
+      <span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.22em; color:#1A1714; opacity:.6;">EST. NYC 1981</span>
+    </div>
+    <nav style="display:flex; align-items:center; gap:24px;">
+      <a href="Comedy%20Cellar%20Home.dc.html" style="font-family:'Archivo'; font-weight:700; font-size:15px; color:#1A1714; text-decoration:none;">Home</a>
+      <a href="Comics.dc.html" style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78; text-decoration:none;">Comics</a>
+      <a href="Updates.dc.html" style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78; text-decoration:none;">Updates</a>
+      <a href="Sign%20In.dc.html" style="font-family:'Archivo'; font-weight:700; font-size:14px; color:#F3C44C; background:#1A1714; padding:8px 16px; border-radius:999px; text-decoration:none;">Sign In</a>
+    </nav>
+  </div>
+  <div style="height:14px; background:#1A1714; background-image:radial-gradient(circle at center, #F3C44C 2.2px, transparent 2.8px); background-size:20px 14px;"></div>
+
+  <div style="max-width:1080px; margin:0 auto; padding:30px 40px 60px;">
+
+    <a href="Comedy%20Cellar%20Home.dc.html" style="display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); text-decoration:none; margin-bottom:16px;">‹ Back to shows</a>
+
+    <div style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:#9A7B1E;">You're almost in</div>
+    <h1 style="font-family:'Bebas Neue'; font-size:54px; line-height:.9; letter-spacing:.01em; color:var(--text); margin:8px 0 24px;">Reserve Your Seats</h1>
+
+    <!-- ticket -->
+    <div style="display:grid; grid-template-columns:1.45fr 1fr; background:var(--surface); border:1.5px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:5px 6px 0 var(--shadow);">
+
+      <!-- LEFT: form -->
+      <div style="padding:30px 34px;">
+        <div style="font-family:'Bebas Neue'; font-size:24px; letter-spacing:.05em; color:var(--text); margin-bottom:18px;">Reservation Details</div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+          <div>
+            <label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:7px;">First Name</label>
+            <input style="width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:9px; padding:12px 14px; font-family:'Archivo',sans-serif; font-size:15px; color:var(--text); background:var(--surface); outline:none;" style-focus="box-shadow:3px 3px 0 #F3C44C;" placeholder="Jane" />
+          </div>
+          <div>
+            <label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:7px;">Last Name</label>
+            <input style="width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:9px; padding:12px 14px; font-family:'Archivo',sans-serif; font-size:15px; color:var(--text); background:var(--surface); outline:none;" style-focus="box-shadow:3px 3px 0 #F3C44C;" placeholder="Doe" />
+          </div>
+        </div>
+
+        <div style="margin-bottom:24px;">
+          <label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:7px;">Party Size <span style="opacity:.6;">(max 10)</span></label>
+          <input style="width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:9px; padding:12px 14px; font-family:'Archivo',sans-serif; font-size:15px; color:var(--text); background:var(--surface); outline:none;" style-focus="box-shadow:3px 3px 0 #F3C44C;" placeholder="2" />
+        </div>
+
+        <div style="font-family:'Bebas Neue'; font-size:24px; letter-spacing:.05em; color:var(--text); margin-bottom:4px;">Contact</div>
+        <div style="font-family:'Archivo'; font-size:13px; color:var(--muted); margin-bottom:16px;">Your confirmation lands here.</div>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:7px;">Email Address</label>
+          <input style="width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:9px; padding:12px 14px; font-family:'Archivo',sans-serif; font-size:15px; color:var(--text); background:var(--surface); outline:none;" style-focus="box-shadow:3px 3px 0 #F3C44C;" placeholder="jane@email.com" />
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:7px;">Confirm Email</label>
+          <input style="width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:9px; padding:12px 14px; font-family:'Archivo',sans-serif; font-size:15px; color:var(--text); background:var(--surface); outline:none;" style-focus="box-shadow:3px 3px 0 #F3C44C;" placeholder="jane@email.com" />
+        </div>
+        <div style="margin-bottom:24px;">
+          <label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:7px;">Phone Number</label>
+          <input style="width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:9px; padding:12px 14px; font-family:'Archivo',sans-serif; font-size:15px; color:var(--text); background:var(--surface); outline:none;" style-focus="box-shadow:3px 3px 0 #F3C44C;" placeholder="9876543210" />
+        </div>
+
+        <div style="font-family:'Bebas Neue'; font-size:24px; letter-spacing:.05em; color:var(--text); margin-bottom:16px;">Misc</div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:7px;">How did you hear about us?</label>
+          <select style="width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:9px; padding:12px 14px; font-family:'Archivo',sans-serif; font-size:15px; color:var(--text); background:var(--surface); outline:none;" style-focus="box-shadow:3px 3px 0 #F3C44C;"><option>Other</option><option>Friend</option><option>Instagram</option><option>Walked by</option></select>
+        </div>
+
+        <label style="display:flex; align-items:flex-start; gap:11px; cursor:pointer; margin-bottom:26px;">
+          <span style="width:20px; height:20px; flex-shrink:0; border:1.5px solid var(--line); border-radius:5px; margin-top:1px;"></span>
+          <span>
+            <span style="font-family:'Archivo'; font-weight:700; font-size:14px; color:var(--text);">One-time SMS feedback</span>
+            <span style="display:block; font-family:'Archivo'; font-size:12px; color:var(--muted); margin-top:2px;">After the show we may text you once for comments. Your number is never used again.</span>
+          </span>
+        </label>
+
+        <button style="width:100%; border:none; cursor:pointer; font-family:'Archivo'; font-weight:800; font-size:16px; color:var(--on-solid); background:var(--solid); padding:15px; border-radius:999px;" style-hover="background:var(--solid-hover);">Reserve My Seats →</button>
+      </div>
+
+      <!-- RIGHT: stub -->
+      <div style="position:relative; background:var(--bg); border-left:2px dashed var(--line); padding:30px 30px 26px;">
+        <div style="position:absolute; left:-11px; top:-11px; width:20px; height:20px; border-radius:50%; background:var(--bg); border:1.5px solid var(--line);"></div>
+        <div style="position:absolute; left:-11px; bottom:-11px; width:20px; height:20px; border-radius:50%; background:var(--bg); border:1.5px solid var(--line);"></div>
+
+        <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#9A7B1E; margin-bottom:6px;">Your Show</div>
+        <div style="font-family:'Bebas Neue'; font-size:30px; line-height:.95; color:var(--text);">6PM Village Underground</div>
+
+        <div style="margin:18px 0; display:flex; flex-direction:column; gap:11px;">
+          <div style="display:flex; gap:10px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text);"><span style="color:#9A7B1E;">DATE</span> June 28th · 6:00 PM</div>
+          <div style="display:flex; gap:10px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text);"><span style="color:#9A7B1E;">ROOM</span> Village Underground</div>
+          <div style="display:flex; gap:10px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text);"><span style="color:#9A7B1E;">SEATS</span> 223 / 300</div>
+        </div>
+
+        <div style="display:flex; gap:-6px; margin-bottom:6px;">
+          <sc-for list="{{avatars}}" as="a" hint-placeholder-count="6">
+            <span style="width:30px; height:30px; border-radius:50%; border:1.5px solid var(--line); background:{{a.bg}}; margin-right:-7px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue'; font-size:14px; color:{{a.fg}};">{{a.i}}</span>
+          </sc-for>
+        </div>
+
+        <div style="border-top:1.5px solid var(--track); margin:20px 0; "></div>
+
+        <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:14px;">House Rules</div>
+        <sc-for list="{{rules}}" as="r" hint-placeholder-count="4">
+          <div style="margin-bottom:14px;">
+            <div style="font-family:'Archivo'; font-weight:800; font-size:13px; color:var(--text);">{{r.t}}</div>
+            <div style="font-family:'Archivo'; font-size:12px; line-height:1.5; color:var(--muted); margin-top:2px;">{{r.d}}</div>
+          </div>
+        </sc-for>
+
+        <div style="border-top:1.5px solid var(--track); margin:18px 0 14px;"></div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:10px; line-height:1.6; color:var(--faint);">Not affiliated with the Comedy Cellar. Visit comedycellar.com for official terms.</div>
+        <a href="#" style="display:inline-block; margin-top:10px; font-family:'Archivo'; font-weight:700; font-size:12px; color:#9A7B1E; text-decoration:none;">Reserve on comedycellar.com ↗</a>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      avatars: [
+        { i: 'JD', bg: '#F3C44C', fg: '#1A1714' },
+        { i: 'M', bg: '#E7E0CF', fg: '#1A1714' },
+        { i: 'R', bg: '#1A1714', fg: '#F3C44C' },
+        { i: 'AL', bg: '#E9C9A0', fg: '#1A1714' },
+        { i: 'S', bg: '#D9CDB6', fg: '#1A1714' },
+        { i: '+', bg: '#2B2722', fg: '#FBF6EC' },
+      ],
+      rules: [
+        { t: '2-item minimum per person', d: 'Food, drink, or a bottle of water — your call.' },
+        { t: 'Lineup subject to change', d: 'Big names drop in unannounced, so it tends to even out. Every show is a great one.' },
+        { t: 'All shows are phone-free', d: 'Phones and smart watches go in a pouch you keep for the duration of the show.' },
+        { t: 'AM shows are late-night', d: 'A Saturday 12:15 AM show is technically Sunday — but it\u2019s still the Saturday late show.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

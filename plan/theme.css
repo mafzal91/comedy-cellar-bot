@@ -1,0 +1,153 @@
+/* ============================================================================
+   Comedy Cellar — Tailwind v4 design tokens
+   ----------------------------------------------------------------------------
+   CSS-first config. Import this ONE file as your stylesheet entry:
+
+       @import "./theme.css";
+
+   It pulls in Tailwind, registers a dark-mode variant, and declares every
+   token customized away from stock Tailwind under the right v4 namespace
+   (--color-* -> bg-/text-/border-, --font-* -> font-, --text-* -> text-,
+    --radius-* -> rounded-, --shadow-* -> shadow-, --tracking-* -> tracking-).
+
+   Dark mode: set  data-theme="dark"  on <html>.
+   ============================================================================ */
+
+@import "tailwindcss";
+
+/* Enable `dark:` utilities under the [data-theme="dark"] attribute. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ----------------------------------------------------------------------------
+   Theme-aware runtime values — the ONLY things that flip between light & dark.
+   Kept as plain CSS vars so the override below actually cascades at runtime.
+   ---------------------------------------------------------------------------- */
+:root {
+  --bg:          #FBF6EC;  /* page background — warm cream        */
+  --surface:     #FFFFFF;  /* cards / panels / inputs             */
+  --text:        #1A1714;  /* primary text — warm near-black ink  */
+  --muted:       #857B6D;  /* secondary text                     */
+  --faint:       #A99F8E;  /* tertiary / disabled text           */
+  --line:        #1A1714;  /* borders & rules                    */
+  --shadow:      #1A1714;  /* hard offset block-shadow color     */
+  --track:       #EDE7DA;  /* progress tracks / dividers         */
+  --solid:       #1A1714;  /* primary button surface             */
+  --solid-hover: #2C2820;
+  --on-solid:    #F3C44C;  /* text on a solid button             */
+  --on-accent:   #1A1714;  /* text on a brand-yellow surface     */
+  --placeholder: #B7AE9F;
+}
+
+html[data-theme="dark"] {
+  --bg:          #16130E;
+  --surface:     #221E17;
+  --text:        #F2ECE0;
+  --muted:       #A99F90;
+  --faint:       #7C7468;
+  --line:        #3C352B;
+  --shadow:      #070503;
+  --track:       #322C22;
+  --solid:       #F3C44C;  /* in dark mode the primary surface IS the brand */
+  --solid-hover: #E0B43F;
+  --on-solid:    #1A1714;
+  --on-accent:   #1A1714;
+  --placeholder: #6E6658;
+}
+
+/* ----------------------------------------------------------------------------
+   Token namespace. `inline` keeps the var() references intact so the
+   light/dark overrides above keep working at runtime.
+   ---------------------------------------------------------------------------- */
+@theme inline {
+  /* ---- Colors: theme-aware ---- */
+  --color-bg:          var(--bg);          /* bg-bg                         */
+  --color-surface:     var(--surface);     /* bg-surface                    */
+  --color-text:        var(--text);        /* text-text                     */
+  --color-muted:       var(--muted);       /* text-muted                    */
+  --color-faint:       var(--faint);       /* text-faint                    */
+  --color-line:        var(--line);        /* border-line                   */
+  --color-track:       var(--track);       /* bg-track                      */
+  --color-placeholder: var(--placeholder); /* placeholder:text-placeholder  */
+  --color-solid:       var(--solid);       /* bg-solid                      */
+  --color-solid-hover: var(--solid-hover); /* hover:bg-solid-hover          */
+  --color-solid-fg:    var(--on-solid);    /* text-solid-fg                 */
+
+  /* ---- Colors: brand (constant across themes) ---- */
+  --color-brand:       #F3C44C;            /* marquee yellow                */
+  --color-brand-hover: #E0B43F;
+  --color-brand-fg:    #1A1714;            /* on a brand-yellow surface     */
+
+  /* Literal warm ink + cream (theme-independent) */
+  --color-ink:   #1A1714;
+  --color-cream: #FBF6EC;
+  --color-gold:  #9A7B1E;                  /* eyebrow / meta accent on cream */
+
+  /* ---- Colors: status  (DEFAULT bar/text · -soft tint bg · -bright dark-mode bar) ---- */
+  --color-success:        #1E8E4E;   /* "Available"     */
+  --color-success-soft:   #E6F1E9;
+  --color-success-bright: #5BD08A;
+  --color-warning:        #C0780F;   /* "Selling Fast"  */
+  --color-warning-soft:   #F8EDD9;
+  --color-warning-bright: #F0B23D;
+  --color-danger:         #C23B2E;   /* "Sold Out"      */
+  --color-danger-soft:    #F7E4E1;
+  --color-danger-bright:  #FF6B5B;
+
+  /* Sold-out ticket-stub surface */
+  --color-stub:     #E9E3D6;
+  --color-stub-ink: #A89F90;
+
+  /* ---- Fonts ---- */
+  --font-display: "Bebas Neue", sans-serif;            /* font-display */
+  --font-sans:    Archivo, system-ui, sans-serif;      /* font-sans    */
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace; /* font-mono */
+
+  /* ---- Type scale (role-based) ---- */
+  --text-eyebrow: 9px;
+  --text-eyebrow--letter-spacing: 0.22em;
+  --text-meta: 10px;
+  --text-meta--letter-spacing: 0.14em;
+  --text-label: 12px;
+  --text-label--letter-spacing: 0.2em;
+  --text-caption: 13px;
+  --text-body: 15px;
+  --text-lead: 19px;                 /* card titles            */
+  --text-d-sm: 24px;
+  --text-d-sm--line-height: 1;       /* Bebas — small display  */
+  --text-d-md: 31px;
+  --text-d-md--line-height: 1;       /* Bebas — logo / time    */
+  --text-d-lg: 46px;
+  --text-d-lg--line-height: 0.9;     /* Bebas — condensed hero */
+  --text-d-xl: 60px;
+  --text-d-xl--line-height: 0.9;     /* Bebas — hero           */
+  --text-d-2xl: 64px;
+  --text-d-2xl--line-height: 0.9;    /* Bebas — roomy hero     */
+
+  /* ---- Letter spacing ---- */
+  --tracking-tightcap: 0.03em;
+  --tracking-cap:      0.06em;
+  --tracking-wide:     0.1em;
+  --tracking-wider:    0.14em;
+  --tracking-widest:   0.2em;
+  --tracking-mega:     0.22em;
+
+  /* ---- Radii ---- */
+  --radius-field: 9px;     /* rounded-field — inputs  */
+  --radius-card:  12px;    /* rounded-card            */
+  --radius-panel: 14px;    /* rounded-panel           */
+  --radius-pill:  999px;   /* rounded-pill            */
+
+  /* ---- Hard, blur-less offset shadows (block-print depth) ---- */
+  --shadow-block-sm: 2px 3px 0 var(--shadow);
+  --shadow-block:    3px 4px 0 var(--shadow);
+  --shadow-block-md: 4px 5px 0 var(--shadow);
+  --shadow-block-lg: 5px 6px 0 var(--shadow);
+}
+
+/* ----------------------------------------------------------------------------
+   v4 has no border-width theme namespace, so expose the signature 1.5px
+   border as a small custom utility:  use `border-hair` alongside border-line.
+   ---------------------------------------------------------------------------- */
+@utility border-hair {
+  border-width: 1.5px;
+}
