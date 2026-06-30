@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin:0; }
+    body { background:var(--bg); }
+
+    :root{
+      --bg:#FBF6EC; --surface:#ffffff; --text:#1A1714; --muted:#857B6D; --faint:#A99F8E;
+      --line:#1A1714; --shadow:#1A1714; --track:#EDE7DA; --solid:#1A1714; --solid-hover:#2c2820;
+      --on-solid:#F3C44C; --on-accent:#1A1714;
+    }
+    html[data-theme="dark"]{
+      --bg:#16130E; --surface:#221E17; --text:#F2ECE0; --muted:#A99F90; --faint:#7C7468;
+      --line:#3C352B; --shadow:#070503; --track:#322C22; --solid:#F3C44C; --solid-hover:#E0B43F;
+      --on-solid:#1A1714;
+    }
+  </style>
+  <script>
+(function(){
+  try{ if(localStorage.getItem('cc-theme')==='dark') document.documentElement.setAttribute('data-theme','dark'); }catch(e){}
+  function mk(){
+    if(document.getElementById('cc-theme-btn')) return;
+    if(!document.body){ return setTimeout(mk,40); }
+    var b=document.createElement('button');
+    b.id='cc-theme-btn';
+    b.style.cssText='position:fixed;right:18px;bottom:18px;z-index:99999;width:46px;height:46px;border-radius:50%;border:1.5px solid #1A1714;background:#F3C44C;color:#1A1714;font-size:20px;line-height:1;cursor:pointer;box-shadow:2px 3px 0 #1A1714;display:flex;align-items:center;justify-content:center;font-family:Archivo,sans-serif;';
+    function sync(){var d=document.documentElement.getAttribute('data-theme')==='dark';b.textContent=d?'\u2600':'\u263E';b.title=d?'Switch to light mode':'Switch to dark mode';}
+    b.onclick=function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d){document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('cc-theme','light')}catch(e){}}else{document.documentElement.setAttribute('data-theme','dark');try{localStorage.setItem('cc-theme','dark')}catch(e){}}sync();};
+    sync(); document.body.appendChild(b);
+  }
+  mk();
+})();
+  </script>
+</helmet>
+
+<div style="min-height:100vh; background:var(--bg);">
+
+  <div style="background:#F3C44C; padding:16px 40px; display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; align-items:baseline; gap:11px;">
+      <span style="font-family:'Bebas Neue'; font-size:31px; letter-spacing:.03em; color:#1A1714; line-height:1;">COMEDY CELLAR</span>
+      <span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.22em; color:#1A1714; opacity:.6;">EST. NYC 1981</span>
+    </div>
+    <nav style="display:flex; align-items:center; gap:24px;">
+      <a href="Comedy%20Cellar%20Home.dc.html" style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78; text-decoration:none;">Home</a>
+      <a href="Comics.dc.html" style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78; text-decoration:none;">Comics</a>
+      <a href="Updates.dc.html" style="font-family:'Archivo'; font-weight:700; font-size:15px; color:#1A1714; text-decoration:none;">Updates</a>
+      <a href="Sign%20In.dc.html" style="font-family:'Archivo'; font-weight:700; font-size:14px; color:#F3C44C; background:#1A1714; padding:8px 16px; border-radius:999px; text-decoration:none;">Sign In</a>
+    </nav>
+  </div>
+  <div style="height:14px; background:#1A1714; background-image:radial-gradient(circle at center, #F3C44C 2.2px, transparent 2.8px); background-size:20px 14px;"></div>
+
+  <div style="max-width:760px; margin:0 auto; padding:36px 40px 70px;">
+
+    <div style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:#9A7B1E;">Changelog</div>
+    <h1 style="font-family:'Bebas Neue'; font-size:62px; line-height:.9; letter-spacing:.01em; color:var(--text); margin:8px 0 6px;">What's New</h1>
+    <div style="font-family:'Archivo'; font-size:15px; color:var(--muted); margin-bottom:36px;">Fresh features and fixes from backstage.</div>
+
+    <!-- timeline -->
+    <div style="position:relative; padding-left:34px;">
+      <div style="position:absolute; left:6px; top:6px; bottom:6px; border-left:2px dashed var(--line);"></div>
+      <sc-for list="{{updates}}" as="u" hint-placeholder-count="8">
+        <div style="position:relative; margin-bottom:18px;">
+          <div style="position:absolute; left:-34px; top:16px; width:14px; height:14px; border-radius:50%; background:{{u.dotBg}}; border:1.5px solid var(--line);"></div>
+          <div style="background:var(--surface); border:1.5px solid var(--line); border-radius:11px; padding:16px 20px; box-shadow:3px 4px 0 var(--shadow);" style-hover="transform:translate(-1px,-1px); box-shadow:5px 6px 0 var(--shadow);">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+              <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#9A7B1E;">{{u.date}}</span>
+              <sc-if value="{{u.isNew}}"><span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; background:#F3C44C; color:var(--on-accent); border:1.5px solid var(--line); padding:1px 7px; border-radius:999px;">New</span></sc-if>
+            </div>
+            <div style="font-family:'Archivo'; font-weight:800; font-size:18px; color:var(--text); margin-bottom:5px;">{{u.title}}</div>
+            <div style="font-family:'Archivo'; font-size:14px; line-height:1.6; color:var(--muted);">{{u.body}}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const data = [
+      ['SEP 2025', 'Persistent Comic Search', 'Comic searches now live in the URL — bookmark results, share a link to a specific search, and your search sticks when you refresh or navigate back.', true],
+      ['SEP 2025', 'Updates Page', 'A new Updates page collects every feature and fix in one place. Find the “Updates” link in the nav to stay in the loop.', true],
+      ['SEP 2025', 'Comic Search', 'Hunt down your favorite comedians instantly — just type a name in the search box on the Comics page. No more scrolling the whole list.', true],
+      ['FEB 2025', 'Better Notification Settings · Phase 2', 'Groundwork for comic and show alerts. Soon you’ll get a heads-up when your favorites are performing or new shows drop.', false],
+      ['JAN 2025', 'Faster Comic Loading', 'The Comics page loads noticeably faster. We reworked how comic info loads so you can browse without the wait.', false],
+      ['JAN 2025', 'Show Count Display', 'See how many upcoming shows each comedian has, so you can spot the busiest acts at the Cellar at a glance.', false],
+      ['NOV 2024', 'Notification Toggle · Phase 1', 'Notification controls are rolling out gradually. Set yours up now and you’ll be ready the moment the alerts go live.', false],
+      ['NOV 2024', 'Comic Notifications & Tracking · Phase 1', 'We’re building notifications step by step — including alerts for new acts and freshly added shows.', false],
+      ['OCT 2024', 'More Frequent Show Updates', 'We now check for new shows every 6 hours instead of once a day, so you never miss when a favorite gets added.', false],
+      ['OCT 2024', 'User Accounts & Profiles · Phase 1', 'Accounts are arriving in phases. Create one now for basic profile features — deeper personalization is on the way.', false],
+      ['OCT 2024', 'Buy Me a Coffee', 'Love the site? You can support the project with a coffee. Every bit keeps the lights on and funds new features.', false],
+      ['OCT 2024', 'Individual Comic Pages', 'Every comedian now has a dedicated page with their upcoming shows and a link out to their personal website.', false],
+    ];
+    return {
+      updates: data.map(([date, title, body, isNew]) => ({
+        date, title, body, isNew,
+        dotBg: isNew ? '#F3C44C' : '#fff',
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin:0; }
+    body { background:var(--bg); }
+
+    :root{
+      --bg:#FBF6EC; --surface:#ffffff; --text:#1A1714; --muted:#857B6D; --faint:#A99F8E;
+      --line:#1A1714; --shadow:#1A1714; --track:#EDE7DA; --solid:#1A1714; --solid-hover:#2c2820;
+      --on-solid:#F3C44C; --on-accent:#1A1714;
+    }
+    html[data-theme="dark"]{
+      --bg:#16130E; --surface:#221E17; --text:#F2ECE0; --muted:#A99F90; --faint:#7C7468;
+      --line:#3C352B; --shadow:#070503; --track:#322C22; --solid:#F3C44C; --solid-hover:#E0B43F;
+      --on-solid:#1A1714;
+    }
+  </style>
+  <script>
+(function(){
+  try{ if(localStorage.getItem('cc-theme')==='dark') document.documentElement.setAttribute('data-theme','dark'); }catch(e){}
+  function mk(){
+    if(document.getElementById('cc-theme-btn')) return;
+    if(!document.body){ return setTimeout(mk,40); }
+    var b=document.createElement('button');
+    b.id='cc-theme-btn';
+    b.style.cssText='position:fixed;right:18px;bottom:18px;z-index:99999;width:46px;height:46px;border-radius:50%;border:1.5px solid #1A1714;background:#F3C44C;color:#1A1714;font-size:20px;line-height:1;cursor:pointer;box-shadow:2px 3px 0 #1A1714;display:flex;align-items:center;justify-content:center;font-family:Archivo,sans-serif;';
+    function sync(){var d=document.documentElement.getAttribute('data-theme')==='dark';b.textContent=d?'\u2600':'\u263E';b.title=d?'Switch to light mode':'Switch to dark mode';}
+    b.onclick=function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d){document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('cc-theme','light')}catch(e){}}else{document.documentElement.setAttribute('data-theme','dark');try{localStorage.setItem('cc-theme','dark')}catch(e){}}sync();};
+    sync(); document.body.appendChild(b);
+  }
+  mk();
+})();
+  </script>
+</helmet>
+
+<div style="min-height:100vh; background:var(--bg);">
+
+  <div style="background:#F3C44C; padding:16px 40px; display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; align-items:baseline; gap:11px;">
+      <span style="font-family:'Bebas Neue'; font-size:31px; letter-spacing:.03em; color:#1A1714; line-height:1;">COMEDY CELLAR</span>
+      <span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.22em; color:#1A1714; opacity:.6;">EST. NYC 1981</span>
+    </div>
+    <nav style="display:flex; align-items:center; gap:24px;">
+      <a href="Comedy%20Cellar%20Home.dc.html" style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78; text-decoration:none;">Home</a>
+      <a href="Comics.dc.html" style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78; text-decoration:none;">Comics</a>
+      <a href="Updates.dc.html" style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78; text-decoration:none;">Updates</a>
+      <a href="Profile.dc.html" style="font-family:'Archivo'; font-weight:700; font-size:15px; color:#1A1714; text-decoration:none;">Profile</a>
+      <a href="Sign%20In.dc.html" style="font-family:'Archivo'; font-weight:700; font-size:14px; color:#F3C44C; background:#1A1714; padding:8px 16px; border-radius:999px; text-decoration:none;">Sign out</a>
+    </nav>
+  </div>
+  <div style="height:14px; background:#1A1714; background-image:radial-gradient(circle at center, #F3C44C 2.2px, transparent 2.8px); background-size:20px 14px;"></div>
+
+  <div style="max-width:820px; margin:0 auto; padding:34px 40px 70px;">
+
+    <div style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:#9A7B1E;">Your Account</div>
+    <h1 style="font-family:'Bebas Neue'; font-size:54px; line-height:.9; letter-spacing:.01em; color:var(--text); margin:8px 0 22px;">Backstage Pass</h1>
+
+    <!-- tabs -->
+    <div style="display:flex; gap:8px; border:1.5px solid var(--line); border-radius:999px; padding:4px; background:var(--surface); width:fit-content; box-shadow:2px 2px 0 var(--shadow); margin-bottom:30px;">
+      <button onClick="{{showSettings}}" style="border:none; cursor:pointer; font-family:'Archivo'; font-weight:700; font-size:14px; padding:9px 22px; border-radius:999px; background:{{settingsBg}}; color:{{settingsColor}};">Settings</button>
+      <button onClick="{{showProfile}}" style="border:none; cursor:pointer; font-family:'Archivo'; font-weight:700; font-size:14px; padding:9px 22px; border-radius:999px; background:{{profileBg}}; color:{{profileColor}};">Profile</button>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <sc-if value="{{isSettings}}" hint-placeholder-val="{{ true }}">
+      <!-- global notifications -->
+      <div style="background:var(--surface); border:1.5px solid var(--line); border-radius:14px; padding:24px 26px; box-shadow:4px 5px 0 var(--shadow); margin-bottom:22px;">
+        <div style="font-family:'Bebas Neue'; font-size:24px; letter-spacing:.04em; color:var(--text);">Global Notifications</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--faint); margin-bottom:20px;">System-wide setting</div>
+
+        <div style="display:flex; align-items:flex-start; gap:13px; border-top:1.5px solid var(--track); padding-top:20px;">
+          <div onClick="{{toggleShow}}" style="width:24px; height:24px; flex-shrink:0; border:1.5px solid var(--line); border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; background:{{showBg}}; margin-top:1px;">
+            <sc-if value="{{showNotif}}"><span style="font-family:'Archivo'; font-weight:900; font-size:14px; color:var(--on-accent);">✓</span></sc-if>
+          </div>
+          <div style="flex:1;">
+            <div style="font-family:'Archivo'; font-weight:800; font-size:16px; color:var(--text);">New Show Alerts</div>
+            <div style="font-family:'Archivo'; font-size:13px; color:var(--muted); margin-top:3px;">Get a heads-up whenever any new show is added — independent of comic notifications.</div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; margin-top:22px;">
+          <button style="border:none; cursor:pointer; font-family:'Archivo'; font-weight:800; font-size:14px; color:var(--on-solid); background:var(--solid); padding:11px 26px; border-radius:999px;" style-hover="background:var(--solid-hover);">Save</button>
+        </div>
+      </div>
+
+      <!-- comic notifications -->
+      <div style="background:var(--surface); border:1.5px solid var(--line); border-radius:14px; padding:24px 26px; box-shadow:4px 5px 0 var(--shadow);">
+        <div style="font-family:'Bebas Neue'; font-size:24px; letter-spacing:.04em; color:var(--text);">Comic Notifications</div>
+        <div style="font-family:'Archivo'; font-size:13px; color:var(--muted); margin-top:4px;">You'll be notified when a tracked comic is added to a show. Tap a comic to mute or unmute.</div>
+
+        <div style="margin-top:18px;">
+          <sc-for list="{{comics}}" as="c" hint-placeholder-count="4">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; border-top:1.5px solid var(--track); padding:14px 0;">
+              <div style="display:flex; align-items:center; gap:14px;">
+                <span style="width:42px; height:42px; border-radius:50%; border:1.5px solid var(--line); background:{{c.bg}}; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue'; font-size:18px; color:{{c.fg}};">{{c.initials}}</span>
+                <span style="font-family:'Archivo'; font-weight:700; font-size:16px; color:var(--text);">{{c.name}}</span>
+              </div>
+              <button onClick="{{c.toggle}}" style="cursor:pointer; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:6px 14px; border-radius:999px; border:1.5px solid {{c.pillBorder}}; background:{{c.pillBg}}; color:{{c.pillColor}};">{{c.statusLabel}}</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- PROFILE TAB -->
+    <sc-if value="{{isProfile}}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--surface); border:1.5px solid var(--line); border-radius:14px; padding:28px 26px; box-shadow:4px 5px 0 var(--shadow);">
+        <div style="display:flex; align-items:center; gap:18px; margin-bottom:24px;">
+          <span style="width:76px; height:76px; border-radius:50%; border:2px solid var(--line); background:#F3C44C; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue'; font-size:32px; color:var(--on-accent); box-shadow:3px 3px 0 var(--shadow);">CF</span>
+          <div>
+            <div style="font-family:'Bebas Neue'; font-size:30px; letter-spacing:.02em; color:var(--text); line-height:1;">Comedy Fan</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); margin-top:5px;">Member since Oct 2024</div>
+          </div>
+        </div>
+
+        <div style="border-top:1.5px solid var(--track); padding-top:18px; display:flex; flex-direction:column; gap:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint);">Email</span>
+            <span style="font-family:'Archivo'; font-size:15px; color:var(--text);">fan@email.com</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint);">Comics tracked</span>
+            <span style="font-family:'Archivo'; font-size:15px; color:var(--text);">{{trackedCount}}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint);">Phone-free pledge</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#1E8E4E; border:1.5px solid #1E8E4E; padding:4px 12px; border-radius:999px;">Signed</span>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; margin-top:24px;">
+          <button style="border:1.5px solid var(--line); cursor:pointer; font-family:'Archivo'; font-weight:700; font-size:14px; color:var(--text); background:var(--surface); padding:10px 22px; border-radius:999px; box-shadow:2px 3px 0 var(--shadow);" style-hover="background:#F3C44C; color:var(--on-accent);">Edit Profile</button>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    tab: 'settings',
+    showNotif: true,
+    comics: [
+      { name: 'Mark Normand', enabled: true },
+      { name: 'Colin Quinn', enabled: true },
+      { name: 'Nick Griffin', enabled: false },
+      { name: 'Rachel Feinstein', enabled: true },
+    ],
+  };
+
+  renderVals() {
+    const swatches = [
+      ['#F3C44C', '#1A1714'],
+      ['#E7E0CF', '#1A1714'],
+      ['#1A1714', '#F3C44C'],
+      ['#E9C9A0', '#1A1714'],
+    ];
+    const tab = this.state.tab;
+
+    const comics = this.state.comics.map((c, i) => {
+      const parts = c.name.split(' ');
+      const initials = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+      const [bg, fg] = swatches[i % swatches.length];
+      return {
+        name: c.name, initials, bg, fg,
+        statusLabel: c.enabled ? 'Enabled' : 'Muted',
+        pillColor: c.enabled ? '#1E8E4E' : '#A99F8E',
+        pillBg: c.enabled ? '#E6F1E9' : '#F2ECDF',
+        pillBorder: c.enabled ? '#1E8E4E' : '#D9CFBB',
+        toggle: () => this.setState((s) => ({
+          comics: s.comics.map((x, j) => j === i ? { ...x, enabled: !x.enabled } : x),
+        })),
+      };
+    });
+
+    return {
+      comics,
+      trackedCount: this.state.comics.filter((c) => c.enabled).length,
+      isSettings: tab === 'settings',
+      isProfile: tab === 'profile',
+      showSettings: () => this.setState({ tab: 'settings' }),
+      showProfile: () => this.setState({ tab: 'profile' }),
+      settingsBg: tab === 'settings' ? 'var(--solid)' : 'transparent',
+      settingsColor: tab === 'settings' ? 'var(--on-solid)' : 'var(--text)',
+      profileBg: tab === 'profile' ? 'var(--solid)' : 'transparent',
+      profileColor: tab === 'profile' ? 'var(--on-solid)' : 'var(--text)',
+      showNotif: this.state.showNotif,
+      showBg: this.state.showNotif ? '#F3C44C' : 'var(--surface)',
+      toggleShow: () => this.setState((s) => ({ showNotif: !s.showNotif })),
+    };
+  }
+}
+</script>
+</body>
+</html>

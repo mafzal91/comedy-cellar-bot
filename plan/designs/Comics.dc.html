@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin:0; }
+    body { background:var(--bg); }
+
+    :root{
+      --bg:#FBF6EC; --surface:#ffffff; --text:#1A1714; --muted:#857B6D; --faint:#A99F8E;
+      --line:#1A1714; --shadow:#1A1714; --track:#EDE7DA; --solid:#1A1714; --solid-hover:#2c2820;
+      --on-solid:#F3C44C; --on-accent:#1A1714;
+    }
+    html[data-theme="dark"]{
+      --bg:#16130E; --surface:#221E17; --text:#F2ECE0; --muted:#A99F90; --faint:#7C7468;
+      --line:#3C352B; --shadow:#070503; --track:#322C22; --solid:#F3C44C; --solid-hover:#E0B43F;
+      --on-solid:#1A1714;
+    }
+  </style>
+  <script>
+(function(){
+  try{ if(localStorage.getItem('cc-theme')==='dark') document.documentElement.setAttribute('data-theme','dark'); }catch(e){}
+  function mk(){
+    if(document.getElementById('cc-theme-btn')) return;
+    if(!document.body){ return setTimeout(mk,40); }
+    var b=document.createElement('button');
+    b.id='cc-theme-btn';
+    b.style.cssText='position:fixed;right:18px;bottom:18px;z-index:99999;width:46px;height:46px;border-radius:50%;border:1.5px solid #1A1714;background:#F3C44C;color:#1A1714;font-size:20px;line-height:1;cursor:pointer;box-shadow:2px 3px 0 #1A1714;display:flex;align-items:center;justify-content:center;font-family:Archivo,sans-serif;';
+    function sync(){var d=document.documentElement.getAttribute('data-theme')==='dark';b.textContent=d?'\u2600':'\u263E';b.title=d?'Switch to light mode':'Switch to dark mode';}
+    b.onclick=function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d){document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('cc-theme','light')}catch(e){}}else{document.documentElement.setAttribute('data-theme','dark');try{localStorage.setItem('cc-theme','dark')}catch(e){}}sync();};
+    sync(); document.body.appendChild(b);
+  }
+  mk();
+})();
+  </script>
+</helmet>
+
+<div style="min-height:100vh; background:var(--bg);">
+
+  <div style="background:#F3C44C; padding:16px 40px; display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; align-items:baseline; gap:11px;">
+      <span style="font-family:'Bebas Neue'; font-size:31px; letter-spacing:.03em; color:#1A1714; line-height:1;">COMEDY CELLAR</span>
+      <span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.22em; color:#1A1714; opacity:.6;">EST. NYC 1981</span>
+    </div>
+    <nav style="display:flex; align-items:center; gap:24px;">
+      <a href="Comedy%20Cellar%20Home.dc.html" style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78; text-decoration:none;">Home</a>
+      <a href="Comics.dc.html" style="font-family:'Archivo'; font-weight:700; font-size:15px; color:#1A1714; text-decoration:none;">Comics</a>
+      <a href="Updates.dc.html" style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78; text-decoration:none;">Updates</a>
+      <a href="Sign%20In.dc.html" style="font-family:'Archivo'; font-weight:700; font-size:14px; color:#F3C44C; background:#1A1714; padding:8px 16px; border-radius:999px; text-decoration:none;">Sign In</a>
+    </nav>
+  </div>
+  <div style="height:14px; background:#1A1714; background-image:radial-gradient(circle at center, #F3C44C 2.2px, transparent 2.8px); background-size:20px 14px;"></div>
+
+  <div style="max-width:1180px; margin:0 auto; padding:34px 40px 60px;">
+
+    <div style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:#9A7B1E;">The Lineup</div>
+    <h1 style="font-family:'Bebas Neue'; font-size:60px; line-height:.9; letter-spacing:.01em; color:var(--text); margin:8px 0 22px;">Meet the Comics</h1>
+
+    <!-- toolbar -->
+    <div style="background:var(--surface); border:1.5px solid var(--line); border-radius:14px; padding:20px 22px; box-shadow:4px 5px 0 var(--shadow); margin-bottom:30px;">
+      <div style="display:flex; align-items:center; gap:12px; border:1.5px solid var(--line); border-radius:999px; padding:11px 18px; background:var(--bg);">
+        <span style="font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted);">⌕</span>
+        <input value="{{query}}" onInput="{{onSearch}}" placeholder="Search by comic name…" style="flex:1; border:none; background:transparent; outline:none; font-family:'Archivo'; font-size:15px; color:var(--text);" />
+      </div>
+      <div style="display:flex; align-items:center; flex-wrap:wrap; gap:22px; margin-top:16px;">
+        <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint);">Upcoming shows</span>
+        <sc-for list="{{legend}}" as="lg" hint-placeholder-count="4">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div style="display:flex; gap:2px;">
+              <sc-for list="{{lg.marks}}" as="m" hint-placeholder-count="3">
+                <span style="width:8px; height:13px; border-radius:2px; background:{{m.bg}};"></span>
+              </sc-for>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted);">{{lg.label}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- grid -->
+    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:22px;">
+      <sc-for list="{{filtered}}" as="c" hint-placeholder-count="8">
+        <a href="Comic.dc.html" style="text-decoration:none; display:block; background:var(--surface); border:1.5px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:3px 4px 0 var(--shadow);" style-hover="transform:translate(-1px,-1px); box-shadow:5px 6px 0 var(--shadow);">
+          <div style="position:relative; height:170px; background:{{c.bg}}; display:flex; align-items:center; justify-content:center; border-bottom:1.5px solid var(--line);">
+            <span style="font-family:'Bebas Neue'; font-size:62px; letter-spacing:.04em; color:{{c.fg}};">{{c.initials}}</span>
+            <span style="position:absolute; bottom:8px; right:10px; font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:.14em; color:{{c.fg}}; opacity:.55;">PHOTO</span>
+          </div>
+          <div style="padding:14px 16px 16px;">
+            <div style="font-family:'Archivo'; font-weight:800; font-size:16px; color:var(--text); margin-bottom:7px;">{{c.name}}</div>
+            <div style="display:flex; align-items:center; gap:7px; margin-bottom:9px;">
+              <div style="display:flex; gap:2px;">
+                <sc-for list="{{c.marks}}" as="m" hint-placeholder-count="3">
+                  <span style="width:7px; height:12px; border-radius:2px; background:{{m.bg}};"></span>
+                </sc-for>
+              </div>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:{{c.heatColor}};">{{c.heatLabel}}</span>
+            </div>
+            <div style="font-family:'Archivo'; font-size:13px; line-height:1.5; color:var(--muted); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">{{c.blurb}}</div>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+      <div style="text-align:center; padding:50px 0; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--faint);">No comics match “{{query}}”.</div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { query: '' };
+
+  renderVals() {
+    const swatches = [
+      ['#F3C44C', '#1A1714'],
+      ['#E7E0CF', '#1A1714'],
+      ['#1A1714', '#F3C44C'],
+      ['#E9C9A0', '#1A1714'],
+      ['#D9CDB6', '#1A1714'],
+      ['#2B2722', '#FBF6EC'],
+    ];
+    const flameOn = '#D8841E';
+    const flameOff = '#E6DECB';
+
+    const data = [
+      ['Will Sylvince', 'showtime, hbo, short cuts film festival', 0],
+      ['Trevor Noah', 'from the daily show, the david letterman show, the tonight show', 0],
+      ['Jon Laster', 'winner of stand up nbc', 3],
+      ['Gregg Rogell', 'from the "louie" ck show, "the aristocrats", "the conan o\u2019brien show", comedy central\u2019s "tough crowd" and "the tonight show".', 0],
+      ['Geoff Chaser', 'from hbo', 0],
+      ['Brian Landers', 'from netflix', 0],
+      ['Colin Quinn', 'from the movie "trainwreck", star of one man shows: "red state blue state", "unconstitutional", "long story short" on broadway and hbo.', 2],
+      ['Sam Morril', 'from netflix special, two comedy central specials', 0],
+      ['Jon Fisch', 'from the late show with stephen colbert, "the david letterman show", "the apprentice" on nbc, "last comic standing", and more.', 0],
+      ['Reggie Conquest', 'from fox\u2019s "animal control". hbo\u2019s insecure, hbomax that damn michael che, pause with sam jay, comedy central', 0],
+      ['Rachel Feinstein', 'special on netflix, from the tonight show, from the movie "trainwreck", guest co-host "the view", comedy central half hour.', 0],
+      ['Nick Griffin', '11 appearances on "the late show with david letterman", "late show with stephen colbert", comedy central.', 4],
+      ['Maddie Wiener', 'comedy central, hbo, just for laughs', 0],
+      ['Peter Revello', 'comedy central', 6],
+      ['Mike Yard', 'from "nightly show with larry wilmore", bad boys of comedy, def comedy jam, and showtime at the apollo.', 0],
+      ['Carmen Lynch', 'from the david letterman show, comedy central', 0],
+      ['Greer Barnes', 'from hbo\u2019s "crashing", the "dave chappelle show", "tough crowd", "for love of the game", and "the david letterman show".', 0],
+      ['Andrew Fiori', 'from comedy central, host of the raw report on siriusxm', 0],
+      ['Jaye McBride', 'netflix "tales of the city", new york comedy fest, headliner, big pine comedy festival', 3],
+      ['Steve Byrne', '2 comedy central hour specials "happy hour", "the byrne identity", 1 netflix special "champion" and 1 showtime special.', 0],
+    ];
+
+    const tierOf = (n) => n === 0 ? 0 : n <= 4 ? 1 : n <= 8 ? 2 : 3;
+    const marksFor = (tier) => [0, 1, 2].map((i) => ({ bg: i < tier ? flameOn : flameOff }));
+
+    const comics = data.map(([name, blurb, count], i) => {
+      const tier = tierOf(count);
+      const parts = name.split(' ');
+      const initials = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+      const [bg, fg] = swatches[i % swatches.length];
+      return {
+        name, blurb, count, tier, initials, bg, fg,
+        marks: marksFor(tier),
+        heatLabel: count === 0 ? 'No shows' : count + ' upcoming',
+        heatColor: count === 0 ? '#A99F8E' : '#B8721A',
+      };
+    });
+
+    const q = this.state.query.trim().toLowerCase();
+    const filtered = q ? comics.filter((c) => c.name.toLowerCase().includes(q)) : comics;
+
+    const legend = [
+      { label: 'No shows', marks: marksFor(0) },
+      { label: '1\u20134 shows', marks: marksFor(1) },
+      { label: '5\u20138 shows', marks: marksFor(2) },
+      { label: '9+ shows', marks: marksFor(3) },
+    ];
+
+    return {
+      filtered, legend,
+      query: this.state.query,
+      empty: filtered.length === 0,
+      onSearch: (e) => this.setState({ query: e.target.value }),
+    };
+  }
+}
+</script>
+</body>
+</html>

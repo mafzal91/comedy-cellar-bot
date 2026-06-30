@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <meta name="design_doc_mode" content="canvas">
+  <style>
+    @keyframes spot { 0%,100%{box-shadow:0 0 0 0 rgba(243,196,76,0);} 50%{box-shadow:0 0 22px 3px rgba(243,196,76,.4);} }
+    body { margin:0; }
+  </style>
+</helmet>
+
+<!-- ============ DIRECTION A — THE MARQUEE ============ -->
+<div style="position:absolute; left:0; top:0; width:1320px;">
+  <div data-drags-parent="1" style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:#4b4438; margin-bottom:14px;">The Marquee — Roomy</div>
+  <div style="background:#FBF6EC; border-radius:14px; overflow:hidden; box-shadow:0 30px 70px -22px rgba(0,0,0,.4); border:1px solid rgba(0,0,0,.06);">
+
+    <div style="background:#F3C44C; padding:16px 40px; display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:baseline; gap:11px;">
+        <span style="font-family:'Bebas Neue'; font-size:31px; letter-spacing:.03em; color:#1A1714; line-height:1;">COMEDY CELLAR</span>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.22em; color:#1A1714; opacity:.6;">EST. NYC 1981</span>
+      </div>
+      <nav style="display:flex; align-items:center; gap:24px;">
+        <span style="font-family:'Archivo'; font-weight:700; font-size:15px; color:#1A1714;">Home</span>
+        <span style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78;">Comics</span>
+        <span style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78;">Updates</span>
+        <span style="font-family:'Archivo'; font-weight:700; font-size:14px; color:#F3C44C; background:#1A1714; padding:8px 16px; border-radius:999px;">Sign In</span>
+      </nav>
+    </div>
+
+    <div style="height:14px; background:#1A1714; background-image:radial-gradient(circle at center, #F3C44C 2.2px, transparent 2.8px); background-size:20px 14px;"></div>
+
+    <div style="padding:34px 40px 16px;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:#9A7B1E;">Sunday · June 28, 2026</div>
+      <h1 style="font-family:'Bebas Neue'; font-size:64px; line-height:.9; letter-spacing:.01em; color:#1A1714; margin:8px 0 8px;">Tonight at the Cellar</h1>
+      <div style="font-family:'Archivo'; font-size:15px; color:#6B6357;">12 shows across 3 rooms — <span style="color:#1E8E4E; font-weight:700;">8 still available</span></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:288px 1fr; gap:32px; padding:14px 40px 46px; align-items:start;">
+
+      <aside style="background:#fff; border:1.5px solid #1A1714; border-radius:14px; padding:18px 18px 20px; box-shadow:4px 5px 0 #1A1714;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border:1.5px solid #1A1714; border-radius:50%; font-family:'Archivo'; font-weight:700; cursor:pointer;">‹</span>
+          <span style="font-family:'Bebas Neue'; font-size:23px; letter-spacing:.04em; color:#1A1714;">June 2026</span>
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border:1.5px solid #1A1714; border-radius:50%; font-family:'Archivo'; font-weight:700; cursor:pointer;">›</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:4px;">
+          <sc-for list="{{dayNames}}" as="name" hint-placeholder-count="7">
+            <span style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:11px; color:#A99F8E;">{{name}}</span>
+          </sc-for>
+        </div>
+        <sc-for list="{{weeks}}" as="week" hint-placeholder-count="6">
+          <div style="display:grid; grid-template-columns:repeat(7,1fr);">
+            <sc-for list="{{week}}" as="day" hint-placeholder-count="7">
+              <div style="position:relative; height:38px; display:flex; align-items:center; justify-content:center;">
+                <sc-if value="{{day.today}}"><div style="position:absolute; width:32px; height:32px; border-radius:50%; background:#F3C44C; border:1.5px solid #1A1714;"></div></sc-if>
+                <span style="position:relative; font-family:'Archivo'; font-size:13px; font-weight:600; color:{{day.colorA}};">{{day.n}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </aside>
+
+      <div>
+        <div style="font-family:'Bebas Neue'; font-size:24px; letter-spacing:.06em; color:#1A1714; margin:0 0 16px;">Upcoming Shows</div>
+        <sc-for list="{{shows}}" as="show" hint-placeholder-count="12">
+          <div style="display:flex; background:#fff; border:1.5px solid #1A1714; border-radius:12px; overflow:hidden; margin-bottom:15px; box-shadow:3px 4px 0 #1A1714;" style-hover="transform:translate(-1px,-1px); box-shadow:5px 6px 0 #1A1714;">
+            <div style="position:relative; width:112px; flex-shrink:0; background:{{show.stubBgA}}; display:flex; flex-direction:column; align-items:center; justify-content:center; border-right:2px dashed #1A1714;">
+              <div style="font-family:'Bebas Neue'; font-size:34px; line-height:.9; color:{{show.stubInkA}};">{{show.time}}</div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em; color:{{show.stubInkA}};">{{show.ampm}}</div>
+              <sc-if value="{{show.sold}}"><div style="position:absolute; bottom:13px; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.12em; color:#C23B2E; border:1.5px solid #C23B2E; padding:2px 5px; border-radius:3px; transform:rotate(-8deg); background:#fff;">SOLD</div></sc-if>
+            </div>
+            <div style="flex:1; padding:15px 20px; min-width:0;">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+                <h3 style="font-family:'Archivo'; font-weight:800; font-size:19px; color:#1A1714; margin:0;">{{show.title}}</h3>
+                <span style="flex-shrink:0; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:4px 9px; border-radius:999px; background:{{show.tintA}}; color:{{show.colA}};">{{show.statusLabel}}</span>
+              </div>
+              <div style="margin:9px 0 12px; font-family:'JetBrains Mono',monospace; font-size:12px; color:#857B6D;">{{show.venue}} &nbsp;·&nbsp; {{show.cap}}</div>
+              <div style="display:flex; align-items:center; gap:14px;">
+                <div style="flex:1; height:6px; background:#EDE7DA; border-radius:999px; overflow:hidden;">
+                  <div style="height:100%; border-radius:999px; background:{{show.colA}}; width:{{show.pctStr}};"></div>
+                </div>
+                <sc-if value="{{show.available}}"><a href="#" style="flex-shrink:0; font-family:'Archivo'; font-weight:700; font-size:13px; color:#F3C44C; background:#1A1714; padding:9px 16px; border-radius:999px; text-decoration:none;" style-hover="background:#F3C44C; color:#1A1714;">Reserve Tickets →</a></sc-if>
+                <sc-if value="{{show.sold}}"><span style="flex-shrink:0; font-family:'JetBrains Mono',monospace; font-size:11px; color:#B7AE9F;">Reservations closed</span></sc-if>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ THE MARQUEE — CONDENSED ============ -->
+<div style="position:absolute; left:1400px; top:0; width:1320px;">
+  <div data-drags-parent="1" style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:#4b4438; margin-bottom:14px;">The Marquee — Condensed (whole night visible)</div>
+  <div style="background:#FBF6EC; border-radius:14px; overflow:hidden; box-shadow:0 30px 70px -22px rgba(0,0,0,.4); border:1px solid rgba(0,0,0,.06);">
+
+    <div style="background:#F3C44C; padding:16px 40px; display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:baseline; gap:11px;">
+        <span style="font-family:'Bebas Neue'; font-size:31px; letter-spacing:.03em; color:#1A1714; line-height:1;">COMEDY CELLAR</span>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.22em; color:#1A1714; opacity:.6;">EST. NYC 1981</span>
+      </div>
+      <nav style="display:flex; align-items:center; gap:24px;">
+        <span style="font-family:'Archivo'; font-weight:700; font-size:15px; color:#1A1714;">Home</span>
+        <span style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78;">Comics</span>
+        <span style="font-family:'Archivo'; font-weight:500; font-size:15px; color:#1A1714; opacity:.78;">Updates</span>
+        <span style="font-family:'Archivo'; font-weight:700; font-size:14px; color:#F3C44C; background:#1A1714; padding:8px 16px; border-radius:999px;">Sign In</span>
+      </nav>
+    </div>
+
+    <div style="height:14px; background:#1A1714; background-image:radial-gradient(circle at center, #F3C44C 2.2px, transparent 2.8px); background-size:20px 14px;"></div>
+
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; padding:26px 40px 14px; gap:24px;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:#9A7B1E;">Sunday · June 28, 2026</div>
+        <h1 style="font-family:'Bebas Neue'; font-size:46px; line-height:.9; letter-spacing:.01em; color:#1A1714; margin:6px 0 0;">Tonight at the Cellar</h1>
+      </div>
+      <div style="font-family:'Archivo'; font-size:14px; color:#6B6357; white-space:nowrap; padding-bottom:4px;">12 shows · <span style="color:#1E8E4E; font-weight:700;">8 available</span></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:256px 1fr; gap:30px; padding:10px 40px 40px; align-items:start;">
+
+      <aside style="background:#fff; border:1.5px solid #1A1714; border-radius:14px; padding:16px 16px 16px; box-shadow:4px 5px 0 #1A1714;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border:1.5px solid #1A1714; border-radius:50%; font-family:'Archivo'; font-weight:700; cursor:pointer;">‹</span>
+          <span style="font-family:'Bebas Neue'; font-size:22px; letter-spacing:.04em; color:#1A1714;">June 2026</span>
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border:1.5px solid #1A1714; border-radius:50%; font-family:'Archivo'; font-weight:700; cursor:pointer;">›</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:2px;">
+          <sc-for list="{{dayNames}}" as="name" hint-placeholder-count="7">
+            <span style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:10px; color:#A99F8E;">{{name}}</span>
+          </sc-for>
+        </div>
+        <sc-for list="{{weeks}}" as="week" hint-placeholder-count="6">
+          <div style="display:grid; grid-template-columns:repeat(7,1fr);">
+            <sc-for list="{{week}}" as="day" hint-placeholder-count="7">
+              <div style="position:relative; height:32px; display:flex; align-items:center; justify-content:center;">
+                <sc-if value="{{day.today}}"><div style="position:absolute; width:28px; height:28px; border-radius:50%; background:#F3C44C; border:1.5px solid #1A1714;"></div></sc-if>
+                <span style="position:relative; font-family:'Archivo'; font-size:12px; font-weight:600; color:{{day.colorA}};">{{day.n}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </aside>
+
+      <div>
+        <div style="display:grid; grid-template-columns:68px 1fr 116px 94px 120px; gap:16px; align-items:center; padding:0 14px 8px 7px;">
+          <span></span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#A99F8E;">Show</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#A99F8E;">Seats</span>
+          <span style="justify-self:center; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#A99F8E;">Status</span>
+          <span></span>
+        </div>
+        <sc-for list="{{shows}}" as="show" hint-placeholder-count="12">
+          <div style="display:grid; grid-template-columns:68px 1fr 116px 94px 120px; gap:16px; align-items:center; background:#fff; border:1.5px solid #1A1714; border-radius:10px; padding:7px 14px 7px 7px; margin-bottom:9px; box-shadow:2px 3px 0 #1A1714;" style-hover="transform:translate(-1px,-1px); box-shadow:4px 5px 0 #1A1714;">
+            <div style="text-align:center; background:{{show.stubBgA}}; border:1.5px solid #1A1714; border-radius:7px; padding:5px 0;">
+              <div style="font-family:'Bebas Neue'; font-size:21px; line-height:.95; color:{{show.stubInkA}};">{{show.time}}</div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:9px; color:{{show.stubInkA}};">{{show.ampm}}</div>
+            </div>
+            <div style="min-width:0;">
+              <div style="font-family:'Archivo'; font-weight:700; font-size:15px; color:#1A1714; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{show.title}}</div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#857B6D; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{show.venue}}</div>
+            </div>
+            <div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#857B6D; margin-bottom:4px;">{{show.cap}}</div>
+              <div style="height:5px; background:#EDE7DA; border-radius:999px; overflow:hidden;"><div style="height:100%; border-radius:999px; background:{{show.colA}}; width:{{show.pctStr}};"></div></div>
+            </div>
+            <span style="justify-self:center; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.06em; text-transform:uppercase; padding:3px 8px; border-radius:999px; background:{{show.tintA}}; color:{{show.colA}}; white-space:nowrap;">{{show.statusLabel}}</span>
+            <div style="justify-self:end;">
+              <sc-if value="{{show.available}}"><a href="#" style="font-family:'Archivo'; font-weight:700; font-size:12px; color:#F3C44C; background:#1A1714; padding:8px 14px; border-radius:999px; text-decoration:none; white-space:nowrap;" style-hover="background:#F3C44C; color:#1A1714;">Reserve →</a></sc-if>
+              <sc-if value="{{show.sold}}"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#B7AE9F; white-space:nowrap;">Closed</span></sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const raw = [
+      ['1:30','PM','Brunch Show, MacDougal St','MacDougal St',176,190],
+      ['6:00','PM','Village Underground','Village Underground',223,300],
+      ['6:30','PM','Fat Black Pussycat Bar','Fat Black Pussycat',14,110],
+      ['7:00','PM','Fat Black Pussycat Lounge','Fat Black Pussycat',90,100],
+      ['7:30','PM','MacDougal St.','MacDougal St',180,180],
+      ['8:00','PM','Village Underground Show','Village Underground',300,300],
+      ['8:30','PM','Fat Black Pussycat Pub','Fat Black Pussycat',83,110],
+      ['9:00','PM','Fat Black Pussycat Lounge','Fat Black Pussycat',100,100],
+      ['9:30','PM','MacDougal St.','MacDougal St',180,180],
+      ['10:00','PM','Village Underground Show','Village Underground',152,300],
+      ['10:30','PM','Fat Black Pussycat Bar','Fat Black Pussycat',21,110],
+      ['11:30','PM','MacDougal St.','MacDougal St',163,180],
+    ];
+    const shows = raw.map(([time, ampm, title, venue, cur, max]) => {
+      const pct = Math.round((cur / max) * 100);
+      const sold = cur >= max;
+      const fast = !sold && pct >= 85;
+      const left = max - cur;
+      return {
+        time, ampm, title, venue,
+        cap: cur + ' / ' + max,
+        pct, pctStr: Math.min(pct, 100) + '%',
+        sold, available: !sold, fast,
+        showSeats: fast,
+        seatsLeft: left + ' seats left',
+        statusLabel: sold ? 'Sold Out' : fast ? 'Selling Fast' : 'Available',
+        colA: sold ? '#C23B2E' : fast ? '#C0780F' : '#1E8E4E',
+        colB: sold ? '#FF6B5B' : fast ? '#F0B23D' : '#5BD08A',
+        tintA: sold ? '#F7E4E1' : fast ? '#F8EDD9' : '#E6F1E9',
+        stubBgA: sold ? '#E9E3D6' : '#F3C44C',
+        stubInkA: sold ? '#A89F90' : '#1A1714',
+        timeColB: sold ? '#7A7165' : '#F3C44C',
+      };
+    });
+
+    const grid = [31,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,1,2,3,4,5,6,7,8,9,10,11];
+    const weeks = [];
+    for (let w = 0; w < 6; w++) {
+      const row = [];
+      for (let d = 0; d < 7; d++) {
+        const idx = w * 7 + d;
+        const n = grid[idx];
+        const muted = idx === 0 || idx >= 31;
+        const today = idx === 28;
+        row.push({
+          n, today, muted,
+          colorA: today ? '#1A1714' : muted ? '#BCB4A4' : '#26221C',
+          colorB: today ? '#161310' : muted ? '#5C544B' : '#E7E1D5',
+        });
+      }
+      weeks.push(row);
+    }
+
+    return { shows, weeks, dayNames: ['S','M','T','W','T','F','S'] };
+  }
+}
+</script>
+</body>
+</html>
