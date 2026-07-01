@@ -14,13 +14,13 @@ export function ComicItem({ comic }: { comic: Comic }) {
       >
         {/* Photo placeholder — swatch bg + centered Bebas initials */}
         <div
-          className="relative flex h-[170px] items-center justify-center border-b-[1.5px] border-line"
+          className="relative flex h-44 items-center justify-center border-b-2 border-line"
           style={{ backgroundColor: bg }}
           role="img"
           aria-label={`${comic.name}'s photo`}
         >
           <span
-            className="font-display text-[62px] leading-none tracking-[0.04em]"
+            className="font-display text-8xl leading-none tracking-[0.04em]"
             style={{ color: fg }}
           >
             {initials}
@@ -34,14 +34,14 @@ export function ComicItem({ comic }: { comic: Comic }) {
         </div>
 
         {/* Body */}
-        <div className="px-4 pb-4 pt-[14px]">
-          <h3 className="mb-[7px] font-sans text-[16px] font-extrabold text-text">
+        <div className="px-4 pb-4 pt-4">
+          <h3 className="mb-2 font-sans text-base font-extrabold text-text">
             {comic.name}
           </h3>
-          <div className="mb-[9px]">
+          <div className="mb-3">
             <ShowCount showCount={comic.showCount ?? 0} />
           </div>
-          <p className="line-clamp-3 font-sans text-caption leading-[1.5] text-muted">
+          <p className="line-clamp-3 font-sans text-caption leading-relaxed text-muted">
             {comic.description}
           </p>
         </div>
