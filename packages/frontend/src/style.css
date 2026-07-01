@@ -1,14 +1,28 @@
 @import 'tailwindcss';
 
+/* Design tokens (Tailwind v4 @theme, dark variant, block shadows, radii, fonts,
+   status colors, `border-hair`). ADDITIVE for now — see theme.css. */
+@import './theme.css';
+
 @config '../tailwind.config.js';
 
 /*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
+  Keep the page rendering exactly as it does today until the phased re-skin
+  opts screens into the new tokens. theme.css sets --font-sans/--font-mono to
+  the marquee fonts, which would otherwise flip the DEFAULT body font. Pin the
+  v4 default font stacks back to stock so nothing changes globally; the
+  `font-display`/`font-sans`/`font-mono` utilities stay available for opt-in.
+*/
+@theme inline {
+  --default-font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --default-mono-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
 
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
+/*
+  The default border color changed to `currentcolor` in Tailwind CSS v4, so we
+  keep these compatibility styles so everything looks as it did with v3.
 */
 @layer base {
   *,
