@@ -1,8 +1,19 @@
-export function Input(props) {
+import { JSX } from "preact";
+
+import clsx from "clsx";
+
+type InputProps = JSX.HTMLAttributes<HTMLInputElement>;
+
+export function Input({ className, ...props }: InputProps) {
   return (
     <input
       {...props}
-      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+      className={clsx(
+        "block w-full bg-surface text-text border-hair border-line rounded-field px-3.5 py-3",
+        "font-sans text-body placeholder:text-placeholder outline-none",
+        "focus:shadow-[3px_3px_0_#F3C44C]",
+        className
+      )}
     />
   );
 }

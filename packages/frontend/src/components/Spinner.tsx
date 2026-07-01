@@ -9,7 +9,7 @@ export function Spinner({ className, size }: SpinnerProps = { size: 5 }) {
   const spinnerSize = `h-${size} w-${size}`;
   return (
     <svg
-      className={clsx("animate-spin text-black", className, spinnerSize)}
+      className={clsx("animate-spin text-text", className, spinnerSize)}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

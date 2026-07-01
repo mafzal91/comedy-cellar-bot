@@ -4,6 +4,7 @@ import clsx from "clsx";
 
 interface CustomButtonProps {
   size?: "xs" | "sm" | "md" | "lg" | "xl";
+  variant?: "solid" | "outline" | "reserve";
 }
 
 // Use Preact's JSXInternal.HTMLAttributes for button element attributes
@@ -15,6 +16,7 @@ type ButtonProps = CustomButtonProps &
 
 export const Button: FunctionalComponent<ButtonProps> = ({
   size = "md",
+  variant = "solid",
   className,
   children,
   disabled,
@@ -22,7 +24,15 @@ export const Button: FunctionalComponent<ButtonProps> = ({
   ...props
 }) => {
   const baseClasses =
-    "rounded-sm bg-white text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50 font-semibold";
+    "rounded-pill font-sans font-semibold transition";
+
+  const variantClasses = {
+    solid: "bg-solid text-solid-fg hover:bg-solid-hover",
+    outline:
+      "bg-surface text-text border-hair border-line hover:bg-brand hover:text-brand-fg",
+    reserve:
+      "bg-solid text-solid-fg hover:bg-brand hover:text-brand-fg",
+  };
 
   const sizeClasses = {
     xs: "px-2 py-1 text-xs",
@@ -34,13 +44,14 @@ export const Button: FunctionalComponent<ButtonProps> = ({
 
   const buttonClasses = clsx(
     baseClasses,
+    variantClasses[variant],
     sizeClasses[size],
     disabled && "opacity-50 cursor-not-allowed",
     className
   );
 
   return (
-    <button type={type} className={buttonClasses} {...props}>
+    <button type={type} className={buttonClasses} disabled={disabled} {...props}>
       {children}
     </button>
   );
