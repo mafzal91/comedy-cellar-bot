@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "packageManager": "pnpm@10.23.0",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "sst dev --mode=basic",
@@ -34,5 +35,12 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.159"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "bufferutil",
+      "utf-8-validate"
+    ]
   }
 }
