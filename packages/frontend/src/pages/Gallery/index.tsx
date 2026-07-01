@@ -147,7 +147,7 @@ export default function Gallery() {
         <Section title="SegmentedToggle" note="Controlled — click to switch">
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex flex-col gap-2">
-              <SegmentedToggle
+              <SegmentedToggle<"relaxed" | "compact">
                 options={[
                   { label: "Relaxed", value: "relaxed" },
                   { label: "Compact", value: "compact" },
@@ -158,7 +158,7 @@ export default function Gallery() {
               <span className="font-mono text-meta text-muted">mode: {mode}</span>
             </div>
             <div className="flex flex-col gap-2">
-              <SegmentedToggle
+              <SegmentedToggle<"settings" | "profile">
                 options={[
                   { label: "Settings", value: "settings" },
                   { label: "Profile", value: "profile" },

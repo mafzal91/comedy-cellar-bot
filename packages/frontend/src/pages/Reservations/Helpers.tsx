@@ -1,27 +1,43 @@
-export const Section: React.FC<{ title: string; description?: string }> = ({
+import type { ComponentChildren } from "preact";
+
+export const Section = ({
   title,
   description,
   children,
+}: {
+  title: string;
+  description?: string;
+  children: ComponentChildren;
 }) => (
-  <div className="pb-4">
-    <h2 className="text-base font-semibold leading-7 text-gray-900">{title}</h2>
-    <p className="mt-1 text-sm leading-6 text-gray-600">{description}</p>
+  <div className="pb-6">
+    <h2 className="font-display text-d-sm tracking-cap text-text">{title}</h2>
+    {description ? (
+      <p className="mt-1 font-sans text-caption text-muted">{description}</p>
+    ) : null}
+    <div className="mt-4">{children}</div>
+  </div>
+);
+
+export const Field = ({
+  label,
+  labelText,
+  children,
+}: {
+  label: string;
+  labelText: string;
+  children: ComponentChildren;
+}) => (
+  <div>
+    <label
+      htmlFor={label}
+      className="mb-[7px] block font-mono text-meta uppercase text-muted"
+    >
+      {labelText}
+    </label>
     {children}
   </div>
 );
 
-export const Field = ({ label, labelText, children }) => (
-  <div className="">
-    <label
-      htmlFor={label}
-      className="block text-sm font-medium leading-6 text-gray-900"
-    >
-      {labelText}
-    </label>
-    <div className="mt-2">{children}</div>
-  </div>
-);
-
-export const FieldWrapper = ({ children }) => (
-  <div className="mt-2 grid grid-cols-1 gap-x-2 gap-y-2">{children}</div>
+export const FieldWrapper = ({ children }: { children: ComponentChildren }) => (
+  <div className="grid grid-cols-1 gap-4">{children}</div>
 );

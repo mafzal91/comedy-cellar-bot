@@ -1,6 +1,10 @@
 import clsx from "clsx";
 
-export type StatusPillStatus = "available" | "selling-fast" | "sold-out";
+export type StatusPillStatus =
+  | "available"
+  | "selling-fast"
+  | "sold-out"
+  | "ended";
 
 type StatusPillProps = {
   status?: StatusPillStatus;
@@ -19,6 +23,10 @@ const STATUS_CONFIG: Record<StatusPillStatus, { label: string; classes: string }
   "sold-out": {
     label: "Sold Out",
     classes: "text-danger bg-danger-soft border-danger",
+  },
+  ended: {
+    label: "Show Ended",
+    classes: "text-stub-ink bg-stub border-hair",
   },
 };
 

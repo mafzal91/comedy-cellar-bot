@@ -5,6 +5,10 @@ import PageWrapper from "../Auth/PageWrapper";
 import { ProfileSettings } from "./profileSettings";
 import { clerk } from "../../utils/clerk";
 
+import { Card, CardBody, CardHeader } from "../../components/Card";
+import { Eyebrow } from "../../components/ui/Eyebrow";
+import { PageHeader } from "../../components/ui/PageHeader";
+
 enum ProfileTabName {
   Settings = "Settings",
   Profile = "Profile",
@@ -20,16 +24,32 @@ export default function Profile() {
 
   return (
     <PageWrapper>
-      <div className="flex flex-col w-full">
+      <div className="w-full max-w-[820px] px-6 pb-16">
+        <PageHeader
+          eyebrow="Your Account"
+          title="Backstage Pass"
+          className="mb-7"
+        />
+
         <ProfileTabs>
           <ProfileTabContent tabName={ProfileTabName.Settings}>
             <ProfileSettings />
           </ProfileTabContent>
 
           <ProfileTabContent tabName={ProfileTabName.Profile}>
-            <div className="flex justify-center">
-              <div ref={profileRef} />
-            </div>
+            <Card>
+              <CardHeader>
+                <Eyebrow>Account</Eyebrow>
+                <h3 className="mt-1 font-display text-d-sm tracking-cap text-text">
+                  Your Details
+                </h3>
+              </CardHeader>
+              <CardBody>
+                <div className="flex justify-center">
+                  <div ref={profileRef} />
+                </div>
+              </CardBody>
+            </Card>
           </ProfileTabContent>
         </ProfileTabs>
       </div>

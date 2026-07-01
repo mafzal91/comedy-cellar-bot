@@ -1,69 +1,53 @@
-import {
-  MapPinIcon,
-  CalendarIcon,
-  UserGroupIcon,
-  MicrophoneIcon,
-} from "@heroicons/react/24/outline";
 import { LineUp, Show } from "../../types";
 import { deriveShowDetails } from "../../utils/deriveShowDetails";
+import { Avatar } from "../../components/ui/Avatar";
+import { Eyebrow } from "../../components/ui/Eyebrow";
 
 export const ShowDetails = (props: { show: Show; lineUp: LineUp }) => {
-  const { roomName, max } = props.show;
+  const { roomName, max, description } = props.show;
 
-  const { dateTime, date, time, isEventOver, reservedSeats } =
-    deriveShowDetails(props.show);
+  const { dateTime, date, time, reservedSeats } = deriveShowDetails(props.show);
 
   const showInfo = [
     {
-      label: "Show Name",
-      value: props.show.description,
-      icon: MicrophoneIcon,
-    },
-    {
-      label: "Date",
+      label: "DATE",
       value: (
         <time dateTime={dateTime.toISOString()}>
-          {date} at {time}
+          {date} · {time}
         </time>
       ),
-      icon: CalendarIcon,
     },
     {
-      label: "Location",
+      label: "ROOM",
       value: roomName,
-      icon: MapPinIcon,
     },
     {
-      label: "Occupancy Rate",
-      value: `${reservedSeats}/${max}`,
-      icon: UserGroupIcon,
+      label: "SEATS",
+      value: `${reservedSeats} / ${max}`,
     },
   ];
 
   return (
-    <>
-      <dl className="space-y-5">
+    <div>
+      <Eyebrow>Your Show</Eyebrow>
+      <h2 className="mt-1.5 font-display text-d-md leading-[0.95] text-text">
+        {description}
+      </h2>
+
+      <dl className="mt-5 flex flex-col gap-3">
         {showInfo.map((info) => (
-          <div key={info.label} className="flex rounded-lg items-center">
-            <dt className="shrink-0">
-              <div className="flow-root">
-                <span className="sr-only">{info.label}</span>
-                {<info.icon className="h-6 w-6" />}
-              </div>
-            </dt>
-            <dd className="ml-5">
-              <span className="text-sm font-medium text-gray-900">
-                {info.value}
-              </span>
-            </dd>
+          <div
+            key={info.label}
+            className="flex gap-2.5 font-mono text-meta text-text"
+          >
+            <dt className="text-gold">{info.label}</dt>
+            <dd>{info.value}</dd>
           </div>
         ))}
-        <div>
-          <span className="sr-only">Line Up</span>
-          {props.lineUp && <LineUpDetails lineUp={props.lineUp} />}
-        </div>
       </dl>
-    </>
+
+      {props.lineUp && <LineUpDetails lineUp={props.lineUp} />}
+    </div>
   );
 };
 
@@ -71,15 +55,16 @@ function LineUpDetails(props: { lineUp: LineUp }) {
   const { lineUp } = props;
 
   return (
-    <div className="flex -space-x-2 overflow-hidden">
+    <div className="mt-5 flex">
       {lineUp.acts.map((act) => (
-        <img
+        <span
           key={act.name}
-          className="inline-block h-10 w-10 rounded-full ring-2 ring-white"
-          src={act.img}
-          alt={act.name}
           title={act.name}
-        />
+          className="-mr-[7px] inline-flex"
+        >
+          <span className="sr-only">{act.name}</span>
+          <Avatar name={act.name} size={30} />
+        </span>
       ))}
     </div>
   );
