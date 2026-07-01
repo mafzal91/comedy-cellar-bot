@@ -1,38 +1,17 @@
 export function EventLoader() {
   return (
-    <div class="animate-pulse grow flex space-x-4">
-      <div class="hidden sm:flex shrink-0 space-y-4 items-center">
-        <div class="grid grid-cols-1">
-          <div class="rounded-full bg-gray-300 size-8"></div>
-          <div class="mt-0.5 h-4 bg-gray-300 rounded-sm" />
+    <div className="flex animate-pulse overflow-hidden rounded-card border-hair border-line bg-surface shadow-block">
+      <div className="w-28 shrink-0 border-r-2 border-dashed border-line bg-track" />
+      <div className="min-w-0 flex-1 space-y-3 px-5 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="h-4 w-44 rounded bg-track" />
+          <div className="h-4 w-20 rounded-pill bg-track" />
         </div>
-      </div>
-
-      <div class="flex-1 space-y-4">
-        <div class="grid grid-cols-6 gap-4">
-          <div class="h-4 bg-gray-300	rounded-sm col-span-5 sm:col-span-4" />
+        <div className="h-3 w-32 rounded bg-track" />
+        <div className="flex items-center gap-3.5">
+          <div className="h-1.5 flex-1 rounded-pill bg-track" />
+          <div className="h-9 w-36 rounded-pill bg-track" />
         </div>
-
-        <div class="space-y-4">
-          <div class="grid grid-cols-7 gap-4 divide-x divide-gray-100">
-            <div class="h-4 bg-gray-300	rounded-sm col-span-4 xl:col-span-2" />
-            <div class="h-4 bg-gray-300 rounded-sm col-span-4 xl:col-span-2" />
-            <div class="h-4 bg-gray-300 rounded-sm col-span-4 xl:col-span-2" />
-            <div class="sm:hidden h-4 bg-gray-300 rounded-sm col-span-4 xl:col-span-2" />
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-0.5 flex items-center">
-        <span
-          aria-disabled={true}
-          className="mr-2 rounded-sm bg-gray-300 px-2 py-1 text-xs font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300"
-        >
-          <div className="-ml-0.5 h-5 w-5"></div>
-        </span>
-        <span className="rounded-sm bg-gray-300 px-2 py-1 text-xs font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300">
-          <div className="-ml-0.5 size-5"></div>
-        </span>
       </div>
     </div>
   );

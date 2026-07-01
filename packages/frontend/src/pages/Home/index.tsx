@@ -4,13 +4,30 @@ import { fetchLineUp, fetchShows } from "../../utils/api";
 import { Calendar } from "../../components/Calendar";
 import { Event } from "../../components/Event";
 import { EventLoader } from "../../components/EventLoader";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SegmentedToggle } from "../../components/ui/SegmentedToggle";
+import { CompactRow } from "./CompactRow";
+import type { ViewMode } from "./types";
 import { getToday } from "../../utils/date";
-import { useEffect } from "preact/hooks";
+import { format, isPast } from "date-fns";
+import { useEffect, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useQuery } from "@tanstack/react-query";
 
+const VIEW_OPTIONS: { label: string; value: ViewMode }[] = [
+  { label: "Relaxed", value: "relaxed" },
+  { label: "Compact", value: "compact" },
+];
+
+function formatEyebrowDate(date: string): string {
+  const [year, month, day] = date.split("-").map((part) => parseInt(part, 10));
+  if (!year || !month || !day) return "";
+  return format(new Date(year, month - 1, day), "EEEE · MMMM d, yyyy");
+}
+
 export default function Home() {
   const { query, route } = useLocation();
+  const [mode, setMode] = useState<ViewMode>("relaxed");
 
   useEffect(() => {
     // I shouldn't have to check pathname here bc the home component should unmount when the path changes but its not and IDK why
@@ -55,68 +72,124 @@ export default function Home() {
     route(`?date=${date}`);
   };
 
-  return (
+  const shows = showData.data ?? [];
+  const showCount = shows.length;
+  const roomCount = new Set(shows.map((show) => show.roomId)).size;
+  const availableCount = shows.filter(
+    (show) => !show.soldout && !isPast(new Date(show.timestamp * 1000))
+  ).length;
+
+  const subline = showData.isLoading ? (
+    "Loading tonight's lineup…"
+  ) : (
     <>
-      <h2 className="text-base font-semibold leading-6 text-gray-900">
-        Upcoming Shows
-      </h2>
-      <div className="lg:grid lg:grid-cols-12 lg:gap-x-16">
-        <div className="mt-10 text-center lg:col-start-1 lg:col-end-5 lg:row-start-1 lg:mt-9">
-          <Calendar value={query.date} onChange={handleDateChange} />
-        </div>
-        <div className="mt-4 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200 lg:col-span-7 xl:col-span-8 ">
-          <div className="px-4 py-5 sm:p-4">
-            {showData.isLoading ? (
-              <Loader />
-            ) : (
-              <ol className="divide-y divide-gray-100 text-sm leading-6">
-                {showData.data && showData.data.length ? (
-                  showData.data.map((show) => (
-                    <li
-                      key={show.id}
-                      data-timestamp={show.timestamp}
-                      className="relative xl:static py-4 first:pt-0 last:pb-0"
-                    >
-                      <Event
-                        show={show}
-                        lineUp={
-                          (!lineUpData.isLoading &&
-                            findLineUp(show.timestamp)) ?? {
-                            reservationUrl: "",
-                            timestamp: 0,
-                            acts: [],
-                          }
-                        }
-                        isLineUpLoading={lineUpData.isLoading}
-                      />
-                    </li>
-                  ))
-                ) : (
-                  <li className="relative flex space-x-6 xl:static py-4 first:pt-0 last:pb-0 ">
-                    <div className="flex space-x-3 md:space-x-6">
-                      <h3 className="font-semibold text-gray-900">
-                        No shows found for this date
-                      </h3>
-                    </div>
-                  </li>
-                )}
-              </ol>
-            )}
-          </div>
-        </div>
-      </div>
+      {showCount} {showCount === 1 ? "show" : "shows"} across {roomCount}{" "}
+      {roomCount === 1 ? "room" : "rooms"} —{" "}
+      <span className="font-bold text-success">
+        {availableCount} still available
+      </span>
     </>
+  );
+
+  return (
+    <div className="mx-auto w-full max-w-[1180px] bg-bg text-text">
+      <PageHeader
+        eyebrow={formatEyebrowDate(query.date)}
+        title="Tonight at the Cellar"
+        subline={subline}
+      />
+
+      <div className="mt-7 grid grid-cols-1 items-start gap-8 md:grid-cols-[288px_1fr]">
+        {/* Calendar */}
+        <aside>
+          <Calendar value={query.date} onChange={handleDateChange} />
+        </aside>
+
+        {/* Shows list */}
+        <section>
+          <div className="mb-[18px] flex items-end justify-between gap-4">
+            <h2 className="font-display text-d-sm tracking-cap text-text">
+              Upcoming Shows
+            </h2>
+            <div className="flex items-center gap-2.5">
+              <span className="font-mono text-meta uppercase tracking-wide text-faint">
+                View
+              </span>
+              <SegmentedToggle<ViewMode>
+                options={VIEW_OPTIONS}
+                value={mode}
+                onChange={setMode}
+              />
+            </div>
+          </div>
+
+          {showData.isLoading ? (
+            <Loader />
+          ) : shows.length ? (
+            mode === "relaxed" ? (
+              <ol className="flex flex-col gap-[15px]">
+                {shows.map((show) => (
+                  <li key={show.id} data-timestamp={show.timestamp}>
+                    <Event
+                      show={show}
+                      lineUp={
+                        (!lineUpData.isLoading &&
+                          findLineUp(show.timestamp)) ?? {
+                          reservationUrl: "",
+                          timestamp: 0,
+                          acts: [],
+                        }
+                      }
+                      isLineUpLoading={lineUpData.isLoading}
+                    />
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <div>
+                <div className="grid grid-cols-[62px_minmax(0,1fr)_104px_88px_108px] items-center gap-[13px] px-[7px] pb-2 pr-3.5">
+                  <span />
+                  <span className="font-mono text-meta uppercase tracking-wide text-faint">
+                    Show
+                  </span>
+                  <span className="font-mono text-meta uppercase tracking-wide text-faint">
+                    Seats
+                  </span>
+                  <span className="justify-self-center font-mono text-meta uppercase tracking-wide text-faint">
+                    Status
+                  </span>
+                  <span />
+                </div>
+                <ol className="flex flex-col gap-[9px]">
+                  {shows.map((show) => (
+                    <li key={show.id} data-timestamp={show.timestamp}>
+                      <CompactRow show={show} />
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )
+          ) : (
+            <div className="rounded-card border-hair border-line bg-surface p-8 text-center shadow-block">
+              <h3 className="font-display text-d-sm text-text">
+                No shows found for this date
+              </h3>
+              <p className="mt-1 font-sans text-caption text-muted">
+                Try picking another date on the calendar.
+              </p>
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
   );
 }
 
 function Loader() {
   return (
-    <ol className="divide-y divide-gray-100 text-sm leading-6">
-      {new Array(10).fill(0).map((_, index) => (
-        <li
-          key={index}
-          className="relative flex space-x-6 xl:static py-4 first:pt-0 last:pb-0 "
-        >
+    <ol className="flex flex-col gap-[15px]">
+      {new Array(8).fill(0).map((_, index) => (
+        <li key={index}>
           <EventLoader />
         </li>
       ))}

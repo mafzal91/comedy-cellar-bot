@@ -1,28 +1,68 @@
+import clsx from "clsx";
+
+import { PageHeader } from "../../components/ui/PageHeader";
+import { Pill } from "../../components/ui/Pill";
 import { updates } from "./data";
 
 export default function Updates() {
-  return (
-    <div className="mt-10 max-w-4xl mx-auto p-4 bg-white shadow-sm ring-1 ring-gray-200 rounded-lg">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4 text-slate-950">What's New</h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Stay up to date with the latest features and improvements
-        </p>
-      </div>
+  // data.ts carries no `isNew` flag, so the marquee "New" accent is derived
+  // purely for display from the newest date group (does not alter data wiring).
+  const newestDate = updates[0]?.date;
 
-      {/* Updates */}
-      <div className="space-y-8">
-        {updates.map((update, index) => (
-          <div key={index} className="border-l-4 border-primary pl-4 py-4">
-            <div className="flex items-center mb-2">
-              <span className="text-sm text-gray-500">{update.date}</span>
-            </div>
-            <h3 className="text-xl font-semibold mb-2 text-slate-950">
-              {update.title}
-            </h3>
-            <p className="text-gray-700">{update.text}</p>
-          </div>
-        ))}
+  return (
+    <div className="min-h-screen bg-bg text-text">
+      <div className="mx-auto max-w-[760px] px-6 pt-9 pb-[70px]">
+        <PageHeader
+          eyebrow="Changelog"
+          title="What's New"
+          subline="Fresh features and fixes from backstage."
+        />
+
+        {/* timeline */}
+        <div className="relative mt-9 pl-[34px]">
+          {/* dashed left rail */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-[6px] top-[6px] bottom-[6px] border-l-2 border-dashed border-line"
+          />
+
+          {updates.map((update, index) => {
+            const isNew = update.date === newestDate;
+            return (
+              <div key={index} className="relative mb-[18px]">
+                {/* node dot on the rail */}
+                <div
+                  aria-hidden="true"
+                  className={clsx(
+                    "absolute left-[-34px] top-4 size-[0.875rem] rounded-full border-hair border-line",
+                    isNew ? "bg-brand" : "bg-surface",
+                  )}
+                />
+
+                <div className="rounded-xl border-hair border-line bg-surface px-5 py-4 shadow-block transition-all duration-150 ease-out hover:-translate-x-px hover:-translate-y-px hover:shadow-block-lg">
+                  <div className="mb-1.5 flex items-center gap-2.5">
+                    <span className="font-mono text-meta uppercase tracking-wider text-gold">
+                      {update.date}
+                    </span>
+                    {isNew ? (
+                      <Pill className="border-brand bg-brand text-brand-fg">
+                        New
+                      </Pill>
+                    ) : null}
+                  </div>
+
+                  <h3 className="mb-1.5 font-sans text-lg font-extrabold text-text">
+                    {update.title}
+                  </h3>
+
+                  <p className="font-sans text-caption leading-relaxed text-muted">
+                    {update.text}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

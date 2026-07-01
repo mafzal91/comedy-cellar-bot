@@ -1,6 +1,10 @@
 import clsx from "clsx";
 
-export type ProgressBarStatus = "available" | "selling-fast" | "sold-out";
+export type ProgressBarStatus =
+  | "available"
+  | "selling-fast"
+  | "sold-out"
+  | "ended";
 
 export interface ProgressBarProps {
   pct: number;
@@ -12,6 +16,7 @@ const FILL_CLASS: Record<ProgressBarStatus, string> = {
   available: "bg-success",
   "selling-fast": "bg-warning",
   "sold-out": "bg-danger",
+  ended: "bg-stub-ink",
 };
 
 export function ProgressBar({ pct, status, className }: ProgressBarProps) {

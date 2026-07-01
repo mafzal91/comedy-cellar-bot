@@ -3,7 +3,7 @@ import { ComicItem, ComicItemSkeleton } from "./ComicItem";
 
 import { Legend } from "./ShowCount";
 import { SearchInput } from "../../components/SearchInput";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { PageHeader } from "../../components/ui/PageHeader";
 import { fetchComics } from "../../utils/api";
 import { useEffect, useState } from "preact/hooks";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -42,7 +42,6 @@ export default function Comics() {
     });
 
   const allComics = data?.pages.flatMap((page) => page.results) ?? [];
-  const totalCount = data?.pages?.[0]?.total ?? 0;
   const hasResults = allComics.length > 0;
   const showNoResults =
     !isLoading && !isFetching && searchTerm.length >= 2 && !hasResults;
@@ -74,41 +73,27 @@ export default function Comics() {
   };
 
   return (
-    <div className="flex flex-col gap-y-8">
-      {/* Search Section */}
-      <div className="flex flex-col gap-4 p-4 rounded-lg ring-1 ring-gray-200 shadow-sm hover:shadow-md">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h6 className="text-md font-bold">Search Comics</h6>
-          {searchTerm.length >= 2 && (
-            <span className="text-sm text-gray-600">
-              {totalCount} result{totalCount !== 1 ? "s" : ""} for "{searchTerm}
-              "
-            </span>
-          )}
-        </div>
+    <div className="mx-auto flex max-w-[1180px] flex-col gap-8">
+      <PageHeader eyebrow="The Lineup" title="Meet the Comics" />
+
+      {/* Toolbar */}
+      <div className="rounded-panel border-hair border-line bg-surface px-[22px] py-5 shadow-block-md">
         <SearchInput
-          placeholder="Search by comic name..."
+          placeholder="Search by comic name…"
           value={searchTerm}
           onSearch={handleSearch}
           loading={isFetching && !isLoading}
-          className="max-w-md"
         />
 
-        <span className="text-md font-bold">Upcoming shows</span>
-        <Legend />
+        <div className="mt-4">
+          <Legend />
+        </div>
       </div>
 
       {/* No Results State */}
       {showNoResults && (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
-            No comics found
-          </h3>
-          <p className="mt-1 text-sm text-gray-500">
-            No comics match your search for "{searchTerm}". Try a different
-            search term.
-          </p>
+        <div className="py-12 text-center font-mono text-caption text-faint">
+          No comics match “{searchTerm}”.
         </div>
       )}
 
@@ -116,7 +101,7 @@ export default function Comics() {
       {showInitialSkeletons && (
         <ul
           role="list"
-          className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-4"
+          className="grid grid-cols-1 gap-[22px] sm:grid-cols-2 lg:grid-cols-4"
         >
           {Array.from({ length: 12 }).map((_, index) => (
             <ComicItemSkeleton key={`initial-skeleton-${index}`} />
@@ -128,7 +113,7 @@ export default function Comics() {
       {!showInitialSkeletons && (
         <ul
           role="list"
-          className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-4"
+          className="grid grid-cols-1 gap-[22px] sm:grid-cols-2 lg:grid-cols-4"
         >
           {allComics.map((comic) => (
             <ComicItem key={comic.name} comic={comic} />

@@ -1,6 +1,5 @@
 import { Comic as ComicType, ListApiRes, ShowDb } from "../../types";
 
-import { Spinner } from "../../components/Spinner";
 import { fetchShowsNew } from "../../utils/api";
 import { useMemo } from "preact/hooks";
 import { useQuery } from "@tanstack/react-query";
@@ -69,66 +68,81 @@ export function UpcomingShows({ comicId }: { comicId: string }) {
   }, [data]);
 
   return (
-    <div className="mx-auto mt-4 max-w-5xl py-4 sm:px-6 lg:px-8 space-y-2">
-      <h2 className="text-sm font-medium">Upcoming shows:</h2>
+    <div className="mt-8">
+      <h2 className="mb-4 font-display text-d-sm tracking-cap text-text">
+        Upcoming Shows
+      </h2>
 
       {isFetching ? (
-        <div className="mt-1 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {new Array(4).fill(0).map((i) => (
-            <ShowItemSkeleton />
+        <div className="flex flex-col gap-3">
+          {new Array(4).fill(0).map((_, i) => (
+            <ShowItemSkeleton key={i} />
           ))}
         </div>
       ) : shows.length ? (
-        <ol className=" space-y-3">
-          {shows.map(({ date, shows }) => (
-            <li className="">
-              <h3 className="text-sm font-medium text-gray-500 underline">
-                {date}
-              </h3>
-              <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {shows.map((show) => (
-                  <ShowItem show={show} />
-                ))}
-              </div>
-            </li>
-          ))}
+        <ol className="flex flex-col gap-3">
+          {shows.map(({ shows }) =>
+            shows.map((show) => <ShowItem key={show.externalId} show={show} />)
+          )}
         </ol>
       ) : (
-        // TODO: fix UI on this
-        <span>No upcoming shows</span>
+        <p className="font-mono text-caption text-muted">No upcoming shows</p>
       )}
     </div>
   );
 }
 
 function ShowItem({ show }: { show: ShowDb }) {
+  const dt = new Date(show.timestamp * 1000);
+  const day = dt.toLocaleDateString("en-US", { day: "2-digit" });
+  const mon = dt
+    .toLocaleDateString("en-US", { month: "short" })
+    .toUpperCase();
+  const meta = `${dt.toLocaleDateString("en-US", {
+    weekday: "short",
+  })} · ${dt.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })} · ${dt.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  })}`;
+
   return (
-    <div
-      key={show.externalId}
-      className="relative flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-xs focus-within:ring-2 focus-within:ring-pink-500 focus-within:ring-offset-2 hover:border-gray-400"
-    >
-      <div className="min-w-0 flex-1">
-        <a
-          href={`/reservations/${show.timestamp}`}
-          className="focus:outline-hidden"
-        >
-          <span aria-hidden="true" className="absolute inset-0" />
-          <p className="text-sm font-medium text-gray-900">
+    <li className="flex items-stretch overflow-hidden rounded-card border-hair border-line bg-bg shadow-block transition hover:-translate-x-px hover:-translate-y-px hover:shadow-block-lg">
+      <div className="flex w-24 shrink-0 flex-col items-center justify-center border-r-2 border-dashed border-line bg-brand py-3.5">
+        <span className="font-display text-d-md leading-none text-brand-fg">
+          {day}
+        </span>
+        <span className="font-mono text-meta tracking-wide text-brand-fg">
+          {mon}
+        </span>
+      </div>
+      <div className="flex flex-1 items-center justify-between gap-4 px-5 py-3.5">
+        <div className="min-w-0">
+          <p className="font-sans text-[17px] font-extrabold text-text">
             {show.description}
           </p>
-          {/* TODO: Add more information about show here */}
-          {/* <p className="truncate text-sm text-gray-500">{comic.role}</p> */}
+          <p className="mt-0.5 font-mono text-caption text-muted">{meta}</p>
+        </div>
+        <a
+          href={`/reservations/${show.timestamp}`}
+          className="shrink-0 rounded-pill bg-solid px-4 py-2 font-sans text-caption font-bold text-solid-fg transition hover:bg-brand hover:text-brand-fg"
+        >
+          Reserve →
         </a>
       </div>
-    </div>
+    </li>
   );
 }
 
 function ShowItemSkeleton() {
   return (
-    <div className="animate-pulse  relative flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-xs focus-within:ring-2 focus-within:ring-pink-500 focus-within:ring-offset-2 hover:border-gray-400">
-      <div className="min-w-0 flex-1">
-        <div class="h-4 bg-gray-300	rounded-sm col-span-4 xl:col-span-2" />
+    <div className="flex animate-pulse items-stretch overflow-hidden rounded-card border-hair border-line bg-bg shadow-block">
+      <div className="w-24 shrink-0 border-r-2 border-dashed border-line bg-track" />
+      <div className="flex flex-1 items-center px-5 py-3.5">
+        <div className="h-4 w-2/3 rounded-field bg-track" />
       </div>
     </div>
   );

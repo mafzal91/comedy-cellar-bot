@@ -12,18 +12,18 @@ export const Availablity = ({
 }) => {
   let hoverText = "Seating is available";
   let Component = CheckIcon;
-  let color = "text-green-400";
+  let color = "text-success";
   let text = "Available";
 
   if (isNearingCapacity) {
     Component = ExclamationCircleIcon;
-    color = "text-yellow-400";
+    color = "text-warning";
     hoverText = "This show is almost sold out";
   }
 
   if (isEventOver || soldout) {
     Component = NoSymbolIcon;
-    color = "text-red-400";
+    color = "text-danger";
     text = "Evt Ovr.";
     hoverText = "This show is over";
     if (soldout) {

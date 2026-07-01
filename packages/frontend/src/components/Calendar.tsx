@@ -126,39 +126,42 @@ export function Calendar({ value, onChange }) {
     onChange(date);
   };
 
+  const weekdayInitials = ["S", "M", "T", "W", "T", "F", "S"];
+
   return (
-    <>
-      <div className="flex items-center text-gray-900">
+    <div className="border-hair border-line rounded-panel bg-surface p-[1.125rem] shadow-block-md">
+      <div className="mb-3.5 flex items-center justify-between">
         <button
           type="button"
           onClick={handlePreviousMonth}
-          className="-m-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500"
+          className="flex size-7 items-center justify-center rounded-full border-hair border-line text-text outline-none transition hover:bg-track focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           <span className="sr-only">Previous month</span>
-          <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+          <ChevronLeftIcon className="size-4" aria-hidden="true" />
         </button>
-        <div className="flex-auto text-sm font-semibold">
+        <span className="font-display text-d-sm tracking-cap text-text">
           {monthString} {selectedYear}
-        </div>
+        </span>
         <button
           type="button"
           onClick={handleNextMonth}
-          className="-m-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500"
+          className="flex size-7 items-center justify-center rounded-full border-hair border-line text-text outline-none transition hover:bg-track focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           <span className="sr-only">Next month</span>
-          <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+          <ChevronRightIcon className="size-4" aria-hidden="true" />
         </button>
       </div>
-      <div className="mt-6 grid grid-cols-7 text-xs leading-6 text-gray-500">
-        <div>S</div>
-        <div>M</div>
-        <div>T</div>
-        <div>W</div>
-        <div>T</div>
-        <div>F</div>
-        <div>S</div>
+      <div className="grid grid-cols-7">
+        {weekdayInitials.map((name, index) => (
+          <span
+            key={index}
+            className="text-center font-mono text-[11px] text-faint"
+          >
+            {name}
+          </span>
+        ))}
       </div>
-      <div className="isolate mt-2 grid grid-cols-7 gap-px rounded-lg bg-gray-200 text-sm shadow-sm ring-1 ring-gray-200">
+      <div className="mt-1 grid grid-cols-7">
         {days.map((day, dayIdx) => (
           <CalendarButton
             key={day.date}
@@ -169,6 +172,6 @@ export function Calendar({ value, onChange }) {
           />
         ))}
       </div>
-    </>
+    </div>
   );
 }

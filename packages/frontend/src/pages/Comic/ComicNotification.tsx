@@ -71,7 +71,8 @@ export default function ComicNotification() {
   return (
     <Button
       type="button"
-      className="inline-flex gap-x-1.5"
+      variant="outline"
+      className="inline-flex items-center gap-x-1.5 px-5 py-2.5 text-sm font-bold shadow-block-sm"
       onClick={handleToggle}
     >
       {mutation.isPending ? (
@@ -81,18 +82,12 @@ export default function ComicNotification() {
         </>
       ) : isEnabled ? (
         <>
-          <BellIconSolid
-            aria-hidden="true"
-            className="-ml-0.5 h-5 w-5 text-gray-400"
-          />
+          <BellIconSolid aria-hidden="true" className="-ml-0.5 size-5" />
           Subscribed
         </>
       ) : (
         <>
-          <BellIcon
-            aria-hidden="true"
-            className="-ml-0.5 h-5 w-5 text-gray-400"
-          />
+          <BellIcon aria-hidden="true" className="-ml-0.5 size-5" />
           Subscribe
         </>
       )}

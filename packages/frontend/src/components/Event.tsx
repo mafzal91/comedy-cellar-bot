@@ -1,18 +1,17 @@
 import { useState } from "preact/hooks";
-import { format, isPast } from "date-fns";
+import clsx from "clsx";
 import {
-  CalendarIcon,
-  MapPinIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  UsersIcon,
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/20/solid";
-import { Availablity } from "./Availablity";
+
 import { Link } from "./Link";
 import { Act } from "./Act";
+import { StatusPill } from "./ui/StatusPill";
+import { ProgressBar } from "./ui/ProgressBar";
 import { Show, LineUp } from "../types";
-import { WARNING_OCCUPANCY_RATE } from "../utils/constants";
+import { getShowView } from "../pages/Home/types";
 
 type EventItemProps = {
   show: Show;
@@ -23,146 +22,130 @@ type EventItemProps = {
 export function Event(props: EventItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { isLineUpLoading } = props;
-  const {
-    showName,
-    description,
-    soldout,
-    roomName,
-    timestamp,
-    occupancyRate,
-    reservationUrl,
-    totalGuests,
-    max,
-  } = props.show;
+  const { description, timestamp, reservationUrl } = props.show;
   const { acts } = props.lineUp;
-  const dateTime = new Date(timestamp * 1000);
-  const dateTimeString = dateTime.toISOString();
-  const date = format(dateTime, "MMMM do");
-  const time = format(dateTime, "h:mm a");
-  const isEventOver = isPast(dateTime);
-  const reserverdSeats = totalGuests > max ? max : totalGuests;
+
+  const view = getShowView(props.show);
 
   return (
     <>
-      <div className="flex space-x-3 md:space-x-6">
-        <div className="hidden sm:flex flex-col items-center justify-center">
-          <Availablity
-            soldout={soldout}
-            isEventOver={isEventOver}
-            isNearingCapacity={
-              occupancyRate > WARNING_OCCUPANCY_RATE && occupancyRate < 1
-            }
-          />
-        </div>
-
-        <div className="flex-auto">
-          <div className="flex">
-            <h3 className="font-semibold text-gray-900" title={description}>
-              {showName}
-            </h3>
-          </div>
-          <dl className="mt-2 flex flex-col text-gray-500 xl:flex-row">
-            <div className="flex items-start space-x-2">
-              <dt className="mt-0.5">
-                <span className="sr-only">Date</span>
-                <CalendarIcon
-                  className="h-5 w-5 text-gray-400"
-                  aria-hidden="true"
-                />
-              </dt>
-              <dd>
-                <time dateTime={dateTimeString}>
-                  {date} at {time}
-                </time>
-              </dd>
-            </div>
-            <div className="flex items-start space-x-2 xl:ml-2 xl:mt-0 xl:border-l xl:border-gray-400 xl:border-opacity-50 xl:pl-2">
-              <dt className="mt-0.5">
-                <span className="sr-only">Location</span>
-                <MapPinIcon
-                  className="h-5 w-5 text-gray-400"
-                  aria-hidden="true"
-                />
-              </dt>
-              <dd>{roomName}</dd>
-            </div>
-            <div className="flex items-start space-x-2 xl:ml-2 xl:mt-0 xl:border-l xl:border-gray-400 xl:border-opacity-50 xl:pl-2">
-              <dt className="mt-0.5">
-                <span className="sr-only">Occupancy Rate</span>
-                <UsersIcon
-                  className="h-5 w-5 text-gray-400"
-                  aria-hidden="true"
-                />
-              </dt>
-              <dd>
-                {reserverdSeats}/{max}
-              </dd>
-            </div>
-            <div className="sm:hidden flex items-start xl:ml-2 xl:mt-0 xl:border-l xl:border-gray-400 xl:border-opacity-50 xl:pl-2">
-              <span className="sr-only">Availability</span>
-              <Availablity
-                soldout={soldout}
-                isEventOver={isEventOver}
-                isNearingCapacity={
-                  occupancyRate > WARNING_OCCUPANCY_RATE && occupancyRate < 1
-                }
-              />
-            </div>
-          </dl>
-
-          {!isEventOver && !soldout && (
-            <div className="mt-2">
-              <Link href={`/reservations/${timestamp}`}>Reserve Tickets</Link>
-            </div>
+      <article className="group flex overflow-hidden rounded-card border-hair border-line bg-surface shadow-block transition hover:-translate-x-px hover:-translate-y-px hover:shadow-block-lg">
+        {/* Time stub */}
+        <div
+          className={clsx(
+            "relative flex w-28 shrink-0 flex-col items-center justify-center border-r-2 border-dashed border-line",
+            view.closed ? "bg-stub" : "bg-brand"
           )}
-        </div>
-        <div className="mt-0.5 flex items-center">
-          {!isEventOver && !soldout && (
-            <Link
-              target={"_blank"}
-              rel="noreferrer noopener"
-              href={reservationUrl}
-            >
-              <ArrowTopRightOnSquareIcon
-                className="-ml-0.5 h-5 w-5"
-                aria-hidden="true"
-              />
-            </Link>
-          )}
-          <button
-            className="px-2 py-1 text-xs font-semibold text-gray-900 ring-gray-300 border-0"
-            disabled={isLineUpLoading}
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? (
-              <ChevronUpIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
-            ) : (
-              <ChevronDownIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
+        >
+          <time
+            dateTime={view.dateTimeString}
+            className={clsx(
+              "font-display text-d-md leading-none",
+              view.closed ? "text-stub-ink" : "text-brand-fg"
             )}
-          </button>
+          >
+            {view.time}
+          </time>
+          <span
+            className={clsx(
+              "font-mono text-[11px] tracking-wide",
+              view.closed ? "text-stub-ink" : "text-brand-fg"
+            )}
+          >
+            {view.ampm}
+          </span>
+          {view.soldOut && (
+            <span className="absolute bottom-3 rotate-[-8deg] rounded-[3px] border-hair border-danger bg-surface px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-danger">
+              SOLD
+            </span>
+          )}
         </div>
-      </div>
+
+        {/* Body */}
+        <div className="min-w-0 flex-1 px-5 py-4">
+          <div className="flex items-start justify-between gap-3">
+            <h3
+              className="min-w-0 font-sans text-lead font-extrabold text-text"
+              title={description}
+            >
+              {view.title}
+            </h3>
+            <StatusPill status={view.status} className="shrink-0" />
+          </div>
+
+          <div className="mb-3 mt-2.5 flex items-center gap-2">
+            <p className="min-w-0 truncate font-mono text-meta text-muted">
+              {view.venue} <span className="text-faint">·</span> {view.capLabel}
+            </p>
+            <div className="ml-auto flex shrink-0 items-center gap-1.5">
+              {view.reservable && (
+                <Link
+                  href={reservationUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  aria-label="Open reservation page in a new tab"
+                  className="grid size-8 place-items-center rounded-full border-hair border-line text-muted no-underline transition hover:bg-track hover:text-text hover:no-underline"
+                >
+                  <ArrowTopRightOnSquareIcon
+                    className="size-4"
+                    aria-hidden="true"
+                  />
+                </Link>
+              )}
+              <button
+                type="button"
+                disabled={isLineUpLoading}
+                aria-expanded={isExpanded}
+                aria-label={isExpanded ? "Hide lineup" : "Show lineup"}
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="grid size-8 place-items-center rounded-full border-hair border-line text-muted outline-none transition hover:bg-track hover:text-text disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              >
+                {isExpanded ? (
+                  <ChevronUpIcon className="size-4" aria-hidden="true" />
+                ) : (
+                  <ChevronDownIcon className="size-4" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3.5">
+            <div className="flex-1">
+              <ProgressBar pct={view.pct} status={view.status} />
+            </div>
+            {view.reservable ? (
+              <Link
+                href={`/reservations/${timestamp}`}
+                className="inline-flex shrink-0 items-center rounded-pill bg-solid px-4 py-2 font-sans text-caption font-bold text-solid-fg no-underline transition hover:bg-brand hover:text-brand-fg hover:no-underline"
+              >
+                Reserve Tickets &rarr;
+              </Link>
+            ) : (
+              <span className="shrink-0 font-mono text-[11px] text-faint">
+                Reservations closed
+              </span>
+            )}
+          </div>
+        </div>
+      </article>
+
       {isExpanded && (
-        <div className="mt-4">
-          <ul role="list" className="divide-y divide-gray-100">
+        <div className="mt-2.5 rounded-card border-hair border-line bg-surface p-4 shadow-block-sm">
+          <ul role="list" className="divide-y divide-line">
             {acts.length > 0 ? (
               acts.map((act, index) => (
                 <li
                   key={index}
-                  className="flex gap-x-4 py-4 first:pt-0 last:pb-0 even:bg-gray-50"
+                  className="flex gap-x-4 py-3 first:pt-0 last:pb-0"
                 >
                   <Act {...act} />
                 </li>
               ))
             ) : (
-              <li className="flex gap-x-4 py-4 first:pt-0 last:pb-0 even:bg-gray-50">
-                <div className="flex-auto">
-                  <div className="flex">
-                    <h3 className="font-semibold text-gray-900">
-                      No acts found for this show
-                    </h3>
-                  </div>
-                </div>
+              <li className="py-1">
+                <h3 className="font-sans text-caption font-semibold text-text">
+                  No acts found for this show
+                </h3>
               </li>
             )}
           </ul>

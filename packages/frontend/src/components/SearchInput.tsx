@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
-import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { ArrowPathIcon } from "@heroicons/react/24/solid";
+import clsx from "clsx";
+
+import { Spinner } from "./Spinner";
 
 interface SearchInputProps {
   placeholder?: string;
@@ -48,36 +49,43 @@ export function SearchInput({
   };
 
   return (
-    <div className={`relative ${className}`}>
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-        <MagnifyingGlassIcon className="size-5 text-gray-400" />
-      </div>
+    <div
+      className={clsx(
+        "flex items-center gap-3 rounded-pill border-hair border-line bg-bg px-[1.125rem] py-3",
+        "focus-within:shadow-[3px_3px_0_var(--color-brand)]",
+        disabled && "opacity-60",
+        className,
+      )}
+    >
+      <span
+        aria-hidden="true"
+        className="select-none font-mono text-caption leading-none text-muted"
+      >
+        ⌕
+      </span>
       <input
         type="text"
         value={inputValue}
         onInput={(e) => setInputValue((e.target as HTMLInputElement).value)}
         placeholder={placeholder}
         disabled={disabled}
-        className={`block w-full rounded-md border-0 bg-white py-1.5 px-10 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 ${
-          disabled ? "bg-gray-50 text-gray-500" : ""
-        }`}
+        aria-label={placeholder}
+        className="min-w-0 flex-1 border-none bg-transparent font-sans text-body text-text outline-none placeholder:text-placeholder disabled:cursor-not-allowed"
       />
 
       {/* Loading spinner */}
-      {loading && (
-        <div className="pointer-events-none absolute inset-y-0 right-8 flex items-center">
-          <ArrowPathIcon className="size-4 animate-spin text-gray-400" />
-        </div>
-      )}
+      {loading && <Spinner size={5} />}
 
       {/* Clear button */}
       {inputValue && !disabled && (
         <button
           type="button"
           onClick={handleClear}
-          className="absolute inset-y-0 right-0 flex items-center pr-3 hover:text-gray-600"
+          className="flex items-center leading-none text-faint hover:text-text"
         >
-          <XMarkIcon className="size-5 text-gray-400" />
+          <span aria-hidden="true" className="text-body">
+            ×
+          </span>
           <span className="sr-only">Clear search</span>
         </button>
       )}

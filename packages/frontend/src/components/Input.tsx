@@ -2,7 +2,7 @@ import { JSX } from "preact";
 
 import clsx from "clsx";
 
-type InputProps = JSX.HTMLAttributes<HTMLInputElement>;
+type InputProps = JSX.IntrinsicElements["input"];
 
 export function Input({ className, ...props }: InputProps) {
   return (

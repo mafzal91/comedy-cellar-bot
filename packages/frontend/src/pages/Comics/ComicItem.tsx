@@ -1,43 +1,49 @@
 import { Comic } from "../../types";
-import { Img } from "../../components/Image";
-import { LinkIcon } from "@heroicons/react/24/outline";
 import { ShowCount } from "./ShowCount";
+import { getInitials, getSwatch } from "../../utils/swatches";
 
 export function ComicItem({ comic }: { comic: Comic }) {
+  const { bg, fg } = getSwatch(comic.name);
+  const initials = getInitials(comic.name);
+
   return (
-    <li
-      key={comic.externalId}
-      className="flex-col grow rounded-lg ring-1 ring-gray-200 shadow-sm transition-shadow duration-300 hover:shadow-md"
-    >
-      <a href={`/comics/${comic.externalId}`} className={"grow"}>
-        <Img
-          alt={`${comic.name}'s picture`}
-          loading={"lazy"}
-          src={comic.img}
-          className="aspect-3/2 w-full rounded-lg object-cover"
-        />
-        <div className="flex-col grow justify-between p-4">
-          <div className="flex items-center space-x-2">
-            <h3 className="text-lg font-semibold leading-8 tracking-tight text-gray-900">
-              {comic.name}
-            </h3>
+    <li key={comic.externalId} className="list-none">
+      <a
+        href={`/comics/${comic.externalId}`}
+        className="block overflow-hidden rounded-card border-hair border-line bg-surface shadow-block transition-all duration-150 hover:-translate-x-px hover:-translate-y-px hover:shadow-block-lg focus:outline-none focus-visible:-translate-x-px focus-visible:-translate-y-px focus-visible:shadow-block-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      >
+        {/* Photo placeholder — swatch bg + centered Bebas initials */}
+        <div
+          className="relative flex h-[170px] items-center justify-center border-b-[1.5px] border-line"
+          style={{ backgroundColor: bg }}
+          role="img"
+          aria-label={`${comic.name}'s photo`}
+        >
+          <span
+            className="font-display text-[62px] leading-none tracking-[0.04em]"
+            style={{ color: fg }}
+          >
+            {initials}
+          </span>
+          <span
+            className="absolute bottom-2 right-2.5 font-mono text-[8px] uppercase tracking-wider"
+            style={{ color: fg, opacity: 0.55 }}
+          >
+            PHOTO
+          </span>
+        </div>
+
+        {/* Body */}
+        <div className="px-4 pb-4 pt-[14px]">
+          <h3 className="mb-[7px] font-sans text-[16px] font-extrabold text-text">
+            {comic.name}
+          </h3>
+          <div className="mb-[9px]">
             <ShowCount showCount={comic.showCount ?? 0} />
           </div>
-          <p className="text-base leading-7 text-gray-600 line-clamp-4">
+          <p className="line-clamp-3 font-sans text-caption leading-[1.5] text-muted">
             {comic.description}
           </p>
-          <ul role="list" className="mt-6 flex gap-x-6">
-            <li>
-              <a
-                href={comic.website}
-                target="_blank"
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <span className="sr-only">Website</span>
-                <LinkIcon aria-hidden="true" className="h-5 w-5" />
-              </a>
-            </li>
-          </ul>
         </div>
       </a>
     </li>
@@ -46,21 +52,17 @@ export function ComicItem({ comic }: { comic: Comic }) {
 
 export function ComicItemSkeleton() {
   return (
-    <li className="animate-pulse flex flex-col grow rounded-lg ring-1 ring-gray-200 shadow-sm transition-shadow duration-300 hover:shadow-md">
-      <div className="flex-1 flex flex-col">
-        <div className="aspect-3/2 w-full rounded-lg bg-gray-300" />
-        <div className="flex flex-col flex-1 justify-between p-4 space-y-4">
-          <div className="h-6 bg-gray-300 rounded-sm w-3/4" />
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-300 rounded-sm w-full" />
-            <div className="h-4 bg-gray-300 rounded-sm w-5/6" />
-            <div className="h-4 bg-gray-300 rounded-sm w-4/6" />
+    <li className="list-none animate-pulse">
+      <div className="block overflow-hidden rounded-card border-hair border-line bg-surface shadow-block">
+        <div className="h-[170px] border-b-[1.5px] border-line bg-track" />
+        <div className="flex flex-col gap-3 px-4 pb-4 pt-[14px]">
+          <div className="h-4 w-3/4 rounded-field bg-track" />
+          <div className="h-3 w-1/2 rounded-field bg-track" />
+          <div className="flex flex-col gap-2">
+            <div className="h-3 w-full rounded-field bg-track" />
+            <div className="h-3 w-5/6 rounded-field bg-track" />
+            <div className="h-3 w-4/6 rounded-field bg-track" />
           </div>
-          <ul role="list" className="mt-6 flex gap-x-6">
-            <li>
-              <div className="h-5 w-5 bg-gray-300 rounded-full" />
-            </li>
-          </ul>
         </div>
       </div>
     </li>
