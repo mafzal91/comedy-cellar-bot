@@ -1,7 +1,9 @@
 import { getToday } from "../utils/date";
 import { clerk } from "../utils/clerk";
 import { Link } from "../components/Link";
+import { Perforation } from "./Perforation";
 import { useEffect, useState } from "preact/hooks";
+import clsx from "clsx";
 
 const navigation = [
   { name: "Home", href: `/?date=${getToday()}` },
@@ -29,26 +31,46 @@ export function Header() {
   }, []);
 
   return (
-    <header className="flex h-16 border-b border-gray-900/10 bg-primary">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-1 items-center gap-x-6">
-          <a href="/" className="p-1.5">
-            <span className="sr-only">Comedy Cellar NYC Schedule</span>
-            <img
-              className="h-10 w-auto"
-              src="https://www.comedycellar.com/wp-content/uploads/2023/03/TheComedyCellar_Famous_1981_logo_light.svg"
-              alt=""
-            />
-          </a>
-        </div>
-        <nav className="flex text-xs gap-x-2 md:gap-x-8 md:text-sm font-semibold md:leading-6 md:text-black">
-          {navLinks.map((item, itemIdx) => (
-            <Link key={itemIdx} href={item.href} className="text-slate-950">
-              {item.name}
-            </Link>
-          ))}
+    <>
+      <header className="flex w-full items-center justify-between bg-brand px-5 py-4 sm:px-10">
+        <a href="/" className="flex items-baseline">
+          <span className="font-display text-d-md leading-none tracking-tightcap text-ink">
+            COMEDY CELLAR
+          </span>
+          <span className="ml-2.5 font-mono text-eyebrow tracking-mega text-ink/60">
+            EST. NYC 1981
+          </span>
+        </a>
+        <nav className="flex items-center gap-x-6">
+          {navLinks.map((item, itemIdx) => {
+            const isLast = itemIdx === navLinks.length - 1;
+            const isAuthAction = item.name === "Sign In" || item.name === "Sign out";
+
+            if (isLast && isAuthAction) {
+              return (
+                <Link
+                  key={itemIdx}
+                  href={item.href}
+                  className="rounded-pill bg-ink px-4 py-2 font-sans text-sm font-bold text-brand hover:bg-solid-hover hover:no-underline"
+                >
+                  {item.name}
+                </Link>
+              );
+            }
+
+            return (
+              <Link
+                key={itemIdx}
+                href={item.href}
+                className={clsx("font-sans text-body font-medium text-ink opacity-[.78]")}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
-      </div>
-    </header>
+      </header>
+      <Perforation />
+    </>
   );
 }
