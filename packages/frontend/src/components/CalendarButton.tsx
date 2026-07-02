@@ -21,47 +21,37 @@ function extractDay(date: string): string {
   return date.split("-").pop().replace(/^0/, "");
 }
 
-export function CalendarButton({
-  day,
-  dayIdx,
-  days,
-  onClick,
-}: CalendarButtonProps) {
+export function CalendarButton({ day, onClick }: CalendarButtonProps) {
+  const { isToday, isSelected, isCurrentMonth } = day;
+
   return (
     <button
-      key={day.date}
       type="button"
-      className={clsx(
-        "py-1.5 hover:bg-gray-100 focus:z-10",
-        day.isCurrentMonth ? "bg-white" : "bg-gray-50",
-        (day.isSelected || day.isToday) && "font-semibold",
-        day.isSelected && "text-white",
-        day.isSelected && day.isToday && "text-black",
-        !day.isSelected &&
-          day.isCurrentMonth &&
-          !day.isToday &&
-          "text-gray-900",
-        !day.isSelected &&
-          !day.isCurrentMonth &&
-          !day.isToday &&
-          "text-gray-400",
-        day.isToday && !day.isSelected && "text-primary",
-        dayIdx === 0 && "rounded-tl-lg",
-        dayIdx === 6 && "rounded-tr-lg",
-        dayIdx === days.length - 7 && "rounded-bl-lg",
-        dayIdx === days.length - 1 && "rounded-br-lg"
-      )}
       onClick={() => {
         onClick(day.date);
       }}
+      aria-pressed={isSelected}
+      className="group relative flex h-[2.375rem] items-center justify-center rounded-full outline-none focus:z-10 focus-visible:z-10 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
     >
+      <span
+        aria-hidden="true"
+        className={clsx(
+          "absolute size-8 rounded-full transition-colors",
+          isSelected && "bg-solid",
+          isToday && !isSelected && "border-2 border-solid",
+          !isToday &&
+            !isSelected &&
+            "group-hover:bg-track group-focus-visible:bg-track"
+        )}
+      />
       <time
-        title={dayIdx + ""}
         dateTime={day.date}
         className={clsx(
-          "mx-auto flex h-7 w-7 items-center justify-center rounded-full",
-          day.isSelected && day.isToday && "bg-primary",
-          day.isSelected && !day.isToday && "bg-gray-900"
+          "relative font-sans text-[13px] font-semibold",
+          isSelected && "text-solid-fg",
+          isToday && !isSelected && "text-text",
+          !isToday && !isSelected && isCurrentMonth && "text-text",
+          !isToday && !isSelected && !isCurrentMonth && "text-faint"
         )}
       >
         {extractDay(day.date)}

@@ -1,9 +1,9 @@
 export const Act = ({ name, website, description, img }) => {
   return (
     <>
-      <div className="flex-col flex-none items-center justify-center">
+      <div className="flex-none flex-col items-center justify-center">
         <img
-          className="h-10 w-10 rounded-full bg-gray-50"
+          className="size-10 rounded-full border-hair border-line bg-track object-cover"
           src={img}
           alt={`Image of ${name}`}
         />
@@ -13,11 +13,11 @@ export const Act = ({ name, website, description, img }) => {
           href={website}
           target={"_blank"}
           rel="noopener noreferrer"
-          className="text-sm font-semibold leading-6 text-gray-900"
+          className="font-sans text-caption font-semibold text-text hover:underline"
         >
           {name}
         </a>
-        <p className="mt-1 text-xs leading-5 text-gray-500 capitalize">
+        <p className="mt-1 font-mono text-meta capitalize text-muted">
           {description}
         </p>
       </div>

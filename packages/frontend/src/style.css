@@ -4,21 +4,11 @@
    status colors, `border-hair`). ADDITIVE for now — see theme.css. */
 @import './theme.css';
 
-@config '../tailwind.config.js';
-
 /*
-  Keep the page rendering exactly as it does today until the phased re-skin
-  opts screens into the new tokens. theme.css sets --font-sans/--font-mono to
-  the marquee fonts, which would otherwise flip the DEFAULT body font. Pin the
-  v4 default font stacks back to stock so nothing changes globally; the
-  `font-display`/`font-sans`/`font-mono` utilities stay available for opt-in.
+  Phase 2: all screens migrated to the marquee tokens, so the default body font
+  now follows --font-sans (Archivo) / --font-mono (JetBrains Mono) from
+  theme.css. The stock-font pin that kept the pre-re-skin body font is removed.
 */
-@theme inline {
-  --default-font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --default-mono-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
-}
 
 /*
   The default border color changed to `currentcolor` in Tailwind CSS v4, so we

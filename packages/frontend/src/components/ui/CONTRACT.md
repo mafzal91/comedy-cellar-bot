@@ -44,9 +44,6 @@ raw hex or stock Tailwind grays — hardcoded colors won't flip in dark mode.
   `text-d-sm` `text-d-md` `text-d-lg` `text-d-xl` `text-d-2xl`.
 - Tracking: `tracking-tightcap` `tracking-cap` `tracking-wide` `tracking-wider` `tracking-widest` `tracking-mega`.
 
-### Layout helper
-- `pad-x-<n>` / `pad-y-<n>` — even inner gutters on direct children (first/last edge zeroed).
-
 ---
 
 ## Existing shared primitives (restyled in place — APIs stable, additive only)

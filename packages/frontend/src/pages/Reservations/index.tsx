@@ -6,6 +6,7 @@ import { useLocation, useRoute } from "preact-iso";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { Button } from "../../components/Button";
+import { Checkbox } from "../../components/Checkbox";
 import { Disclaimer } from "../../components/Disclaimer";
 import { FormError } from "./FormError";
 import { FormSuccess } from "./FormSuccess";
@@ -13,9 +14,11 @@ import { Input } from "../../components/Input";
 import { Link } from "../../components/Link";
 import { NetworkError } from "./NetworkError";
 import { PageError } from "./PageError";
+import { PageHeader } from "../../components/ui/PageHeader";
 import { PageLoader } from "../../components/PageLoader";
 import { ShowDetails } from "./ShowDetails";
 import { Spinner } from "../../components/Spinner";
+import { TicketStub } from "../../components/ui/TicketStub";
 import { isPast } from "date-fns";
 
 const howHeardOptions = [
@@ -49,6 +52,15 @@ const howHeardOptions = [
 
 const timestampRegex = /\b\d{10}\b/;
 
+// customFetch (utils/api.ts) throws the raw API body on 4xx, so the query/
+// mutation error is the API error shape, not a plain Error.
+type ShowQueryError = { error?: string };
+type ReservationFieldError = { field: string; message: string };
+type ReservationMutationError = {
+  error?: { fieldErrors?: ReservationFieldError[]; message?: string };
+  message?: string;
+};
+
 export default function Reservation() {
   const [errors, setErrors] = useState([]);
   const {
@@ -56,31 +68,47 @@ export default function Reservation() {
   } = useRoute();
   const location = useLocation();
 
-  if (
+  // Invalid or past timestamps can't be reserved — computed up front so the
+  // query never fires for them and the guard below can bail before render.
+  const invalidTimestamp =
     !timestamp ||
     timestampRegex.test(timestamp) === false ||
-    isPast(+timestamp * 1000)
-  ) {
-    location.route("/404");
-  }
+    isPast(+timestamp * 1000);
 
-  const showData = useQuery<{
-    show?: Show;
-    lineUp?: LineUp;
-    room?: Room;
-    error?: string;
-  }>({
+  const showData = useQuery<
+    {
+      show?: Show;
+      lineUp?: LineUp;
+      room?: Room;
+      error?: string;
+    },
+    ShowQueryError
+  >({
     queryKey: ["timestamp", timestamp],
     queryFn: async () => {
       const showData = await fetchShowByTimestamp({ timestamp });
 
       return showData;
     },
+    enabled: !invalidTimestamp,
   });
 
-  const reservationMutation = useMutation({
+  const reservationMutation = useMutation<
+    Awaited<ReturnType<typeof createReservation>>,
+    ReservationMutationError,
+    Parameters<typeof createReservation>[0]
+  >({
     mutationFn: createReservation,
   });
+
+  useEffect(() => {
+    if (reservationMutation.error?.error?.fieldErrors) {
+      setErrors((prevErrors) => [
+        ...prevErrors,
+        ...(reservationMutation.error?.error?.fieldErrors ?? []),
+      ]);
+    }
+  }, [reservationMutation.error]);
 
   const handleSubmit = (event: Event) => {
     event.preventDefault();
@@ -116,53 +144,63 @@ export default function Reservation() {
     });
   };
 
+  // All hooks are above — safe to bail out of render entirely from here on.
+  if (invalidTimestamp) {
+    location.route("/404");
+    return null;
+  }
+
   if (showData.isLoading) {
     return <PageLoader />;
   }
 
-  if (!showData.data || showData.error?.error === "Show not found") {
+  if (showData.error?.error === "Show not found") {
     location.route("/404");
+    return null;
   }
 
   if (showData.isError) {
     return <PageError />;
   }
 
-  useEffect(() => {
-    if (reservationMutation.error?.error?.fieldErrors) {
-      setErrors((prevErrors) => [
-        ...prevErrors,
-        ...reservationMutation.error.error.fieldErrors,
-      ]);
-    }
-  }, [reservationMutation.error]);
+  if (!showData.data?.show) {
+    location.route("/404");
+    return null;
+  }
 
   const maxReservationSize = showData?.data?.room?.maxReservationSize ?? 4;
 
   return (
-    <div className="overflow-hidden rounded-lg bg-white shadow-sm">
-      <div className="px-4 py-5 sm:p-6">
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 gap-x-5">
-            <div className="sm:hidden mb-5">
-              <ShowDetails
-                show={showData.data.show}
-                lineUp={showData.data.lineUp}
-              />
-              <hr className="mt-5" />
-            </div>
-            <div className="col-span-2 sm:col-span-2 md:col-span-3 lg:col-span-4">
-              <Section title="Reservation Information" description="">
-                <input
-                  disabled
-                  type="hidden"
-                  name="showId"
-                  value={showData.data.show.id}
-                />
+    <div className="mx-auto max-w-[1080px] pb-10">
+      <a
+        href="/"
+        className="mb-4 inline-block font-mono text-meta uppercase tracking-wider text-muted no-underline hover:text-text"
+      >
+        ‹ Back to shows
+      </a>
 
-                <input type="hidden" name="timestamp" value={timestamp} />
+      <PageHeader
+        eyebrow="You're almost in"
+        title="Reserve Your Seats"
+        className="mb-6"
+      />
 
-                <FieldWrapper>
+      <form onSubmit={handleSubmit}>
+        <div className="grid overflow-hidden rounded-2xl border-hair border-line bg-surface shadow-block-lg md:grid-cols-[1.45fr_1fr]">
+          {/* LEFT: reservation form */}
+          <div className="px-8 py-7">
+            <input
+              disabled
+              type="hidden"
+              name="showId"
+              value={showData.data.show.id}
+            />
+
+            <input type="hidden" name="timestamp" value={timestamp} />
+
+            <Section title="Reservation Information" description="">
+              <FieldWrapper>
+                <div className="grid grid-cols-2 gap-4">
                   <Field label="firstName" labelText={"First Name"}>
                     <Input
                       type="text"
@@ -182,165 +220,140 @@ export default function Reservation() {
                       autoComplete="family-name"
                     />
                   </Field>
+                </div>
 
-                  <Field
-                    label="size"
-                    labelText={`Party Size (max ${maxReservationSize})`}
+                <Field
+                  label="size"
+                  labelText={`Party Size (max ${maxReservationSize})`}
+                >
+                  <Input
+                    required
+                    type="number"
+                    name="size"
+                    id="size"
+                    max={maxReservationSize}
+                    min={1}
+                  />
+                </Field>
+              </FieldWrapper>
+            </Section>
+
+            <Section
+              title="Contact Information"
+              description="You'll receive your reservation confirmation here"
+            >
+              <FieldWrapper>
+                <Field label="email" labelText={"Email Address"}>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                  />
+                </Field>
+
+                <Field label="emailConfirm" labelText={"Confirm Email Address"}>
+                  <Input
+                    id="emailConfirm"
+                    name="emailConfirm"
+                    type="email"
+                    required
+                    autoComplete="email"
+                  />
+                </Field>
+
+                <Field label="phone" labelText="Phone Number">
+                  <Input
+                    type="tel"
+                    name="phone"
+                    id="phone"
+                    pattern="[0-9][0-9]{9}"
+                    placeholder={"9876543210"}
+                    required
+                  />
+                </Field>
+              </FieldWrapper>
+            </Section>
+
+            <Section title="Misc">
+              <FieldWrapper>
+                <Field label="howHeard" labelText="How did you hear about us?">
+                  <select
+                    id="howHeard"
+                    name="howHeard"
+                    required
+                    className="block w-full rounded-field border-hair border-line bg-surface px-3.5 py-3 font-sans text-body text-text outline-none focus:shadow-[3px_3px_0_var(--color-brand)]"
                   >
-                    <Input
-                      required
-                      type="number"
-                      name="size"
-                      id="size"
-                      max={maxReservationSize}
-                      min={1}
-                    />
-                  </Field>
-                </FieldWrapper>
-              </Section>
+                    {howHeardOptions.map((option) => (
+                      <option key={option}>{option}</option>
+                    ))}
+                  </select>
+                </Field>
 
-              <Section
-                title="Contact Information"
-                description="You'll receive your reservation confirmation here"
-              >
-                <FieldWrapper>
-                  <Field label="email" labelText={"Email Address"}>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                    />
-                  </Field>
-
-                  <Field
-                    label="emailConfirm"
-                    labelText={"Confirm Email Address"}
-                  >
-                    <Input
-                      id="emailConfirm"
-                      name="emailConfirm"
-                      type="email"
-                      required
-                      autoComplete="email"
-                    />
-                  </Field>
-
-                  <Field label="phone" labelText="Phone Number">
-                    <Input
-                      type="tel"
-                      name="phone"
-                      id="phone"
-                      pattern="[0-9][0-9]{9}"
-                      placeholder={"9876543210"}
-                      required
-                    />
-                  </Field>
-                </FieldWrapper>
-              </Section>
-
-              <Section title="Misc">
-                <FieldWrapper>
-                  <Field
-                    label="howHeard"
-                    labelText="How did you hear about us?
-"
-                  >
-                    <select
-                      id="howHeard"
-                      name="howHeard"
-                      required
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
-                    >
-                      {howHeardOptions.map((option) => (
-                        <option key={option}>{option}</option>
-                      ))}
-                    </select>
-                  </Field>
-
-                  <div className="space-y-5">
-                    <div className="relative flex items-start">
-                      <div className="flex h-6 items-center">
-                        <input
-                          id="smsOk"
-                          aria-describedby="smsOk-description"
-                          name="smsOk"
-                          type="checkbox"
-                          className="h-4 w-4 rounded-sm border-gray-300 text-primary focus:ring-primary"
-                        />
-                      </div>
-                      <div className="ml-3 text-sm leading-6">
-                        <label
-                          htmlFor="smsOk"
-                          className="font-medium text-gray-900"
-                        >
-                          One time SMS feedback
-                        </label>
-                        <p id="comments-description" className="text-gray-500">
-                          After the show, can the cellar text you a request for
-                          your comments? The number will never be used again
-                          after.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </FieldWrapper>
-
-                <FormStatus
-                  formErrors={errors}
-                  mutation={reservationMutation}
+                <Checkbox
+                  label="smsOk"
+                  displayLabel="One time SMS feedback"
+                  description="After the show, can the cellar text you a request for your comments? The number will never be used again after."
                 />
-              </Section>
-            </div>
-            <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-2 space-y-5">
-              <div className="hidden sm:block">
-                <ShowDetails
-                  show={showData.data.show}
-                  lineUp={showData.data.lineUp}
-                />
-              </div>
-              <hr />
-              <Disclaimer />
+              </FieldWrapper>
+            </Section>
+
+            <FormStatus formErrors={errors} mutation={reservationMutation} />
+
+            <div className="mt-6">
+              {reservationMutation.isSuccess ? (
+                <div className="flex flex-col gap-4">
+                  <FormSuccess
+                    message={reservationMutation.data.content.message}
+                  />
+                  <Link href="/" className="font-bold text-gold!">
+                    Return home
+                  </Link>
+                </div>
+              ) : (
+                <Button
+                  type="submit"
+                  variant="solid"
+                  className="w-full py-[15px]! text-body! font-extrabold!"
+                  disabled={
+                    showData.data.show.soldout ||
+                    reservationMutation.status === "pending"
+                  }
+                >
+                  {reservationMutation.status === "pending" ? (
+                    <Spinner size={5} className="text-solid-fg!" />
+                  ) : (
+                    "Reserve My Seats →"
+                  )}
+                </Button>
+              )}
             </div>
           </div>
-          {reservationMutation.isSuccess ? (
-            <>
-              <div className="py-6">
-                <FormSuccess
-                  message={reservationMutation.data.content.message}
-                />
-              </div>
-              <Link href="/">Return home</Link>
-            </>
-          ) : (
-            <div className="mt-6 flex items-center justify-between gap-x-6">
-              <Button
-                type="submit"
-                className="bg-primary"
-                disabled={
-                  showData.data.show.soldout ||
-                  reservationMutation.status === "pending"
-                }
-              >
-                {reservationMutation.status === "pending" ? (
-                  <Spinner size={5} />
-                ) : (
-                  "Submit"
-                )}
-              </Button>
-              <Link
-                target="_blank"
-                rel="noopener noreferrer"
-                href={showData.data.show.reservationUrl}
-                title={"We won't be offended"}
-              >
-                Reserve on comedycellar.com
-              </Link>
-            </div>
-          )}
-        </form>
-      </div>
+
+          {/* RIGHT: ticket stub */}
+          <TicketStub>
+            <ShowDetails
+              show={showData.data.show}
+              lineUp={showData.data.lineUp}
+            />
+
+            <div className="my-5 border-t-2 border-dashed border-line" />
+
+            <Disclaimer />
+
+            <Link
+              target="_blank"
+              rel="noopener noreferrer"
+              href={showData.data.show.reservationUrl}
+              title={"We won't be offended"}
+              className="mt-2.5 inline-block font-bold text-caption text-gold!"
+            >
+              Reserve on comedycellar.com ↗
+            </Link>
+          </TicketStub>
+        </div>
+      </form>
     </div>
   );
 }

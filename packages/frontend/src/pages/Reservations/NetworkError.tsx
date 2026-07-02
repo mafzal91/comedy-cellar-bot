@@ -12,20 +12,22 @@ export function NetworkError({ message }: { message: string }) {
     return null;
   }
   return (
-    <div className="rounded-md bg-red-50 p-4 py-6">
+    <div className="rounded-card border-hair border-danger bg-danger-soft p-4">
       <div className="flex">
         <div className="shrink-0">
-          <XCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
+          <XCircleIcon className="size-5 text-danger" aria-hidden="true" />
         </div>
         <div className="ml-3">
-          <h3 className="text-sm font-medium text-red-800">{message}</h3>
+          <h3 className="font-sans text-caption font-semibold text-danger">
+            {message}
+          </h3>
         </div>
         <div className="ml-auto pl-3">
           <div className="-mx-1.5 -my-1.5">
             <button
               type="button"
               onClick={dismissError}
-              className="inline-flex rounded-md bg-red-50 p-1.5 text-red-500 hover:bg-red-100 focus:outline-hidden focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:ring-offset-red-50"
+              className="inline-flex rounded-field p-1.5 text-danger transition hover:bg-danger/10 focus:outline-none focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger"
             >
               <span className="sr-only">Dismiss</span>
               <XMarkIcon className="h-5 w-5" aria-hidden="true" />

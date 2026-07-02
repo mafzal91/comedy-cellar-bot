@@ -1,13 +1,16 @@
-import { Card, CardBody, CardHeader } from "../../components/Card";
-import { ComicNotification, Settings } from "../../types";
-import { fetchSettings, updateSettings } from "../../utils/api";
+import { Card, CardBody, CardHeader } from "@/components/Card";
+import { ComicNotification, Settings } from "@/types";
+import { fetchSettings, updateSettings } from "@/utils/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { Button } from "../../components/Button";
-import { Checkbox } from "../../components/Checkbox";
-import { Link } from "../../components/Link";
-import { PageLoader } from "../../components/PageLoader";
-import { Spinner } from "../../components/Spinner";
+import { Button } from "@/components/Button";
+import { Checkbox } from "@/components/Checkbox";
+import { Link } from "@/components/Link";
+import { PageLoader } from "@/components/PageLoader";
+
+import { Avatar } from "@/components/ui/Avatar";
+import { Badge } from "@/components/ui/Badge";
+import { BellAlertIcon, BellSlashIcon } from "@heroicons/react/20/solid";
 
 export function ProfileSettings() {
   const { data, isLoading } = useQuery<Settings>({
@@ -30,25 +33,28 @@ export function ProfileSettings() {
   if (isLoading) {
     return <PageLoader />;
   }
+
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-[22px]">
       <Card>
         <CardHeader>
-          <h3 className="text-base font-semibold text-gray-900">
+          <h3 className="font-display text-d-sm tracking-cap text-text">
             Global Notifications
           </h3>
-          <p className="mt-1 text-sm text-gray-500">System setting below</p>
+          <p className="mt-1 font-mono text-[11px] text-faint">
+            System-wide setting
+          </p>
         </CardHeader>
         <CardBody>
-          <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
             <Checkbox
               label="showNotification"
-              displayLabel="Show Notification"
-              description="Get whenever any new shows are added (this is independent of comic notifications)"
+              displayLabel="New Show Alerts"
+              description="Get a heads-up whenever any new show is added — independent of comic notifications."
               defaultChecked={data?.showNotification.enabled ?? false}
             />
             <div className="flex justify-end">
-              <Button type="submit" disabled={isPending}>
+              <Button type="submit" variant="solid" disabled={isPending}>
                 {isPending ? "Saving..." : "Save"}
               </Button>
             </div>
@@ -58,72 +64,56 @@ export function ProfileSettings() {
 
       <Card>
         <CardHeader>
-          <h3 className="text-base font-semibold text-gray-900">
+          <h3 className="font-display text-d-sm tracking-cap text-text">
             Comic Notifications
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
-            You'll be notified when a comic is assigned to a show.
-          </p>
-          <p className="mt-1 text-sm text-gray-500">
-            You can disable notifications for by going to the comic's profile
-            page.
+          <p className="mt-1 font-sans text-caption text-muted">
+            You'll be notified when a tracked comic is added to a show. Manage
+            each comic from its profile page.
           </p>
         </CardHeader>
         <CardBody>
-          <ComicNotificationList
-            comicNotifications={data?.comicNotifications}
-          />
+          <ComicNotificationList comicNotifications={data?.comicNotifications} />
         </CardBody>
       </Card>
     </div>
   );
 }
 
-export function Badge({ enabled }: { enabled: boolean }) {
-  const color = enabled
-    ? "bg-green-50 text-green-700 ring-green-600/20"
-    : "bg-red-50 text-red-700 ring-red-600/20";
-  return (
-    <span
-      className={`inline-flex items-center rounded-md ${color} px-2 py-1 text-xs font-medium ring-1 ring-inset`}
-    >
-      {enabled ? "Enabled" : "Disabled"}
-    </span>
+function NotificationPill({ enabled }: { enabled: boolean }) {
+  return enabled ? (
+    <Badge tone="success" icon={BellAlertIcon}>
+      Enabled
+    </Badge>
+  ) : (
+    <Badge tone="muted" icon={BellSlashIcon}>
+      Muted
+    </Badge>
   );
 }
 
 export function ComicNotificationList({
   comicNotifications,
 }: {
-  comicNotifications: ComicNotification[];
+  comicNotifications?: ComicNotification[];
 }) {
   return (
-    <ul role="list" className="flex flex-col divide-y divide-gray-100 pad-y-5">
-      {comicNotifications.map((comicNotification) => (
+    <ul role="list" className="flex flex-col divide-y divide-track">
+      {(comicNotifications ?? []).map((comicNotification) => (
         <li
           key={comicNotification.comicId}
-          className="flex justify-between gap-x-6"
+          className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0"
         >
-          <div className="flex min-w-0 gap-x-4">
-            <img
-              alt={`${comicNotification.name} comic image`}
-              src={comicNotification.comic}
-              className="size-12 flex-none rounded-full bg-gray-50"
-            />
-            <div className="min-w-0 flex-auto">
-              <Link
-                href={`/comics/${comicNotification.comicId}`}
-                className="text-sm/6 font-semibold text-gray-900"
-              >
-                {comicNotification.name}
-              </Link>
-            </div>
+          <div className="flex min-w-0 items-center gap-3.5">
+            <Avatar name={comicNotification.name} img={comicNotification.comic} size={42} />
+            <Link
+              href={`/comics/${comicNotification.comicId}`}
+              className="truncate text-body font-bold text-text"
+            >
+              {comicNotification.name}
+            </Link>
           </div>
-          <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-            <p className="text-sm/6 text-gray-900">
-              <Badge enabled={comicNotification.enabled} />
-            </p>
-          </div>
+          <NotificationPill enabled={comicNotification.enabled} />
         </li>
       ))}
     </ul>

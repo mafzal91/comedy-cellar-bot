@@ -93,6 +93,6 @@ export type Settings = {
 export type ComicNotification = {
   comicId: string;
   name: string;
-  comic: string;
+  comic: string;  /* image URL */
   enabled: boolean;
 };

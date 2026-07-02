@@ -1,21 +1,21 @@
+import { Eyebrow } from "../../components/ui/Eyebrow";
+import { Link } from "../../components/Link";
+
 export default function NotFound() {
   return (
-    <div className="flex justify-center items-center h-[calc(100vh-72px)]">
-      <div className="text-center">
-        <p className="text-base font-semibold text-primary">404</p>
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-          Not Found
+    <div className="flex min-h-[calc(100vh-72px)] items-center justify-center px-6">
+      <div className="flex flex-col items-center text-center">
+        <Eyebrow>Error 404</Eyebrow>
+        <h1 className="mt-2 font-display text-d-lg leading-none tracking-tightcap text-text sm:text-d-xl">
+          Lost your ticket?
         </h1>
-        <p className="mt-6 text-base leading-7 text-gray-600">
+        <p className="mt-4 max-w-md font-sans text-body leading-relaxed text-muted">
           Sorry, we couldn&apos;t find the page you&apos;re looking for.
         </p>
-        <div className="mt-10 flex items-center justify-center gap-x-6">
-          <a
-            href="/"
-            className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-white hover:text-primary hover:border-primary focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
+        <div className="mt-8">
+          <Link href="/" variant="underline">
             Go back home
-          </a>
+          </Link>
         </div>
       </div>
     </div>

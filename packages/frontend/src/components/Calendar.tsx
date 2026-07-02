@@ -25,7 +25,7 @@ const mapToDay = (days, isCurrentMonth) => {
     return {
       date: day,
       dayOfWeek: "",
-      isCurrentMonth: isCurrentMonth,
+      isCurrentMonth,
       isToday: false,
       isSelected: false,
     };
@@ -47,7 +47,8 @@ export function Calendar({ value, onChange }) {
     return parseInt(
       new Date(today).toLocaleDateString("en-US", {
         month: "numeric",
-      })
+      }),
+      10
     );
   });
 
@@ -56,7 +57,8 @@ export function Calendar({ value, onChange }) {
     return parseInt(
       new Date(today).toLocaleDateString("en-US", {
         year: "numeric",
-      })
+      }),
+      10
     );
   });
 
@@ -86,21 +88,23 @@ export function Calendar({ value, onChange }) {
       ...mapToDay(previousMonthDatesToDisplay, false),
       ...mapToDay(currentMonthDates.datesBetweenStartAndEnd, true),
       ...mapToDay(nextMonthDatesToDisplay, false),
-    ];
-    return calendarDays as Day[];
+    ] as Day[];
+
+    // set the today date to isToday true
+    const todayIndex = calendarDays.findIndex((day) => day.date === getToday());
+    if (todayIndex !== -1) {
+      calendarDays[todayIndex].isToday = true;
+    }
+
+    const selectDateIndex = calendarDays.findIndex((day) => day.date === value);
+    if (selectDateIndex !== -1) {
+      calendarDays[selectDateIndex].isSelected = true;
+    }
+
+    return calendarDays;
   }, [selectedMonth, value]);
 
   const monthString = getMonthName(selectedMonth);
-  // set the today date to isToday true
-  const todayIndex = days.findIndex((day) => day.date === getToday());
-  if (todayIndex !== -1) {
-    days[todayIndex].isToday = true;
-  }
-
-  const selectDateIndex = days.findIndex((day) => day.date === value);
-  if (selectDateIndex !== -1) {
-    days[selectDateIndex].isSelected = true;
-  }
 
   const handlePreviousMonth = () => {
     setSelectedMonth((prev) => {
@@ -126,39 +130,42 @@ export function Calendar({ value, onChange }) {
     onChange(date);
   };
 
+  const weekdayInitials = ["S", "M", "T", "W", "T", "F", "S"];
+
   return (
-    <>
-      <div className="flex items-center text-gray-900">
+    <div className="calendar-dark-shadow border-hair border-line rounded-panel bg-surface p-[1.125rem] shadow-block-md">
+      <div className="mb-3.5 flex items-center justify-between">
         <button
           type="button"
           onClick={handlePreviousMonth}
-          className="-m-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500"
+          className="flex size-7 items-center justify-center rounded-full border-hair border-line text-text outline-none transition hover:bg-track focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           <span className="sr-only">Previous month</span>
-          <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+          <ChevronLeftIcon className="size-4" aria-hidden="true" />
         </button>
-        <div className="flex-auto text-sm font-semibold">
+        <span className="font-display text-d-sm tracking-cap text-text">
           {monthString} {selectedYear}
-        </div>
+        </span>
         <button
           type="button"
           onClick={handleNextMonth}
-          className="-m-1.5 flex flex-none items-center justify-center p-1.5 text-gray-400 hover:text-gray-500"
+          className="flex size-7 items-center justify-center rounded-full border-hair border-line text-text outline-none transition hover:bg-track focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           <span className="sr-only">Next month</span>
-          <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+          <ChevronRightIcon className="size-4" aria-hidden="true" />
         </button>
       </div>
-      <div className="mt-6 grid grid-cols-7 text-xs leading-6 text-gray-500">
-        <div>S</div>
-        <div>M</div>
-        <div>T</div>
-        <div>W</div>
-        <div>T</div>
-        <div>F</div>
-        <div>S</div>
+      <div className="grid grid-cols-7">
+        {weekdayInitials.map((name, index) => (
+          <span
+            key={index}
+            className="text-center font-mono text-[11px] text-faint"
+          >
+            {name}
+          </span>
+        ))}
       </div>
-      <div className="isolate mt-2 grid grid-cols-7 gap-px rounded-lg bg-gray-200 text-sm shadow-sm ring-1 ring-gray-200">
+      <div className="mt-1 grid grid-cols-7">
         {days.map((day, dayIdx) => (
           <CalendarButton
             key={day.date}
@@ -169,6 +176,6 @@ export function Calendar({ value, onChange }) {
           />
         ))}
       </div>
-    </>
+    </div>
   );
 }

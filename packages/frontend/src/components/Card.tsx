@@ -1,6 +1,13 @@
 import * as Preact from "preact";
+import clsx from "clsx";
 
-export function Card({ children }: { children: React.ReactNode }) {
+export function Card({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const childrenArray = Preact.toChildArray(children);
   const headers = childrenArray
     .filter(
@@ -21,7 +28,12 @@ export function Card({ children }: { children: React.ReactNode }) {
     )
     .filter((child) => child.type === CardFooter);
   return (
-    <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow-sm">
+    <div
+      className={clsx(
+        "divide-y divide-line overflow-hidden rounded-panel border-hair border-line bg-surface shadow-block-md",
+        className
+      )}
+    >
       {headers.map((header) => header)}
       {body.map((body) => body)}
       {footer.map((footer) => footer)}

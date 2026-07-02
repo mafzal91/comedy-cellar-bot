@@ -121,13 +121,30 @@ is a distinct, non-overlapping owner.
 - `src/components/CalendarButton.tsx` — day cell; today = 32px yellow disc; out-of-month faint.
 - `src/components/Event.tsx` — **Relaxed** ticket card: 112px time stub (`border-right:2px dashed`,
   yellow or stub-gray), rotated SOLD stamp, title, `StatusPill`, venue·cap meta, `ProgressBar`,
-  Reserve pill → `/reservations/:timestamp`.
-- **NEW** `src/pages/Home/CompactRow.tsx` — compact dense-grid row variant.
+  Reserve pill → `/reservations/:timestamp`. **Lineup expand/collapse (per
+  `Home Redesign.dc.html`, updated):** the whole card header is the click target (not just a
+  small icon button) — clicking anywhere except the Reserve pill toggles the lineup (Reserve
+  link stops propagation). Chevron rotates 180° in place (no icon swap) with a short
+  transform transition. The lineup panel is **fused into the same card** — `border-top: 2px
+  dashed var(--line)`, `background: var(--bg)`, no gap/shadow of its own — not a detached box.
+  Meta line gains a third segment: `venue · capacity · "{n} comics"` (or `"lineup TBA"` when
+  empty). Panel opens with a heading `"Tonight's Lineup · {n} acts"` above the `Act` rows; empty
+  state is richer than plain text — a dashed-circle `?` glyph + "Lineup not announced yet" +
+  "Acts are usually posted the morning of the show." subtext.
+- **NEW** `src/pages/Home/CompactRow.tsx` — compact dense-grid row variant. **Same lineup
+  expand/collapse as Relaxed**, condensed: add a 6th grid column (~26px) for a small rotating
+  chevron; clicking the row (except Reserve) toggles; expanded panel spans full width below the
+  row (`border-top: 1.5px dashed`, `lineupIn` fade/slide-in) and renders acts as **wrapped pill
+  chips** (30px avatar + name only, no credits/description) rather than the Relaxed list layout.
+  Needs `lineUp`/`isLineUpLoading` props threaded in from the assembler (currently only
+  `Event` receives them).
 - `src/components/EventLoader.tsx` — skeleton in new style.
-- `src/components/Act.tsx` + `src/components/Availablity.tsx` — lineup act + status (one agent).
+- `src/components/Act.tsx` — lineup act row (name, credits/description, avatar). `Availablity.tsx`
+  has been folded into `Event.tsx` directly (no longer a separate single-consumer file).
 - `src/pages/Home/index.tsx` (assembler) — `PageHeader`, 2-col grid `288px 1fr`, Relaxed/Compact
   `SegmentedToggle` (local `mode`), keep `fetchShows`/`fetchLineUp`; derive view-model
-  (pct, status, colors). Move shared `src/utils/deriveShowDetails.ts` work here if Home-only.
+  (pct, status, colors, lineup note/heading/empty-state, `isOpen`/`onToggle` per show). Pass
+  lineup data + toggle state to **both** `Event` and `CompactRow`.
 
 ### Comics — `src/pages/Comics/` (+ SearchInput) — ~4 agents
 - `src/components/SearchInput.tsx` — pill `⌕` search input (keep debounce).
@@ -177,8 +194,12 @@ is a distinct, non-overlapping owner.
 - Minor reskin: `PageHeader` + surface card.
 
 ### Skipped
-- **`Home Redesign.dc.html`** — exploration canvas, not a route. The Relaxed/Compact toggle on Home
-  already subsumes both directions. Do not build.
+- **`Home Redesign.dc.html`** as a standalone route — still not a route; it's the side-by-side
+  canvas exploration of Roomy vs Condensed. The Relaxed/Compact toggle on Home subsumes both
+  directions, so no new page is built from it. **However**, as of the latest handoff update this
+  file is no longer purely exploratory — it now specifies the click-to-expand lineup behavior
+  (see Home section above), which **is** in scope and must be built into the live `Event`/
+  `CompactRow` components on the real Home page.
 
 ---
 
@@ -220,6 +241,10 @@ on the other agents finishing pixel work.
   persists across reload (`localStorage["cc-theme"]`).
 - **Smoke flows:** Home → Reserve CTA → form; Comics search + `?q=` → Comic detail; Profile
   notification toggles persist via `updateSettings`.
+- **Home lineup expand/collapse:** in both Relaxed and Compact modes, clicking a show card/row
+  (outside the Reserve pill) opens the fused lineup panel with correct heading/empty-state and
+  chevron rotation; clicking Reserve navigates without toggling; collapsing/re-expanding
+  preserves per-show state independently.
 
 ## Open notes / divergences to honor during re-skin
 - **Auth & Profile account** stay on **Clerk's mounted widgets** (themed via `appearance`), not the
