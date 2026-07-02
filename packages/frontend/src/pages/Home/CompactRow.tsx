@@ -159,7 +159,15 @@ export function CompactRow({
                   key={index}
                   className="flex items-center gap-[9px] rounded-pill border-hair border-line bg-surface py-[5px] pl-[5px] pr-3.5 shadow-[1.5px_2px_0_var(--shadow)]"
                 >
-                  <Avatar name={act.name} size={30} />
+                  {act.img ? (
+                    <img
+                      src={act.img}
+                      alt={`Image of ${act.name}`}
+                      className="size-[30px] shrink-0 rounded-full border-hair border-line bg-track object-cover"
+                    />
+                  ) : (
+                    <Avatar name={act.name} size={30} />
+                  )}
                   <a
                     href={act.website}
                     target="_blank"
