@@ -7,10 +7,10 @@ export function ComicItem({ comic }: { comic: Comic }) {
   const initials = getInitials(comic.name);
 
   return (
-    <li key={comic.externalId} className="list-none">
+    <li key={comic.externalId} className="list-none h-full">
       <a
         href={`/comics/${comic.externalId}`}
-        className="block overflow-hidden rounded-card border-hair border-line bg-surface shadow-block transition-all duration-150 hover:-translate-x-px hover:-translate-y-px hover:shadow-block-lg focus:outline-none focus-visible:-translate-x-px focus-visible:-translate-y-px focus-visible:shadow-block-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        className="flex h-full flex-col overflow-hidden rounded-card border-hair border-line bg-surface shadow-block transition-all duration-150 hover:-translate-x-px hover:-translate-y-px hover:shadow-block-lg focus:outline-none focus-visible:-translate-x-px focus-visible:-translate-y-px focus-visible:shadow-block-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
         {/* Photo placeholder — swatch bg + centered Bebas initials */}
         <div
@@ -34,7 +34,7 @@ export function ComicItem({ comic }: { comic: Comic }) {
         </div>
 
         {/* Body */}
-        <div className="px-4 pb-4 pt-4">
+        <div className="flex-1 px-4 pb-4 pt-4">
           <h3 className="mb-2 font-sans text-base font-extrabold text-text">
             {comic.name}
           </h3>

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "preact/hooks";
 import { UserResource } from "@clerk/types";
-import { clerk } from "../utils/clerk";
+import { getClerk } from "../utils/clerk";
 
 export function useAuth() {
   const [user, setUser] = useState<UserResource | null>(null);
 
   useEffect(() => {
-    clerk.load().then(() => {
+    getClerk().then((clerk) => {
       if (clerk.user) {
         setUser(clerk.user);
       } else {

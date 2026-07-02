@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "preact/hooks";
 
-import { clerk } from "../../utils/clerk";
+import { getClerk } from "../../utils/clerk";
 import { Link } from "../../components/Link";
 import PageWrapper from "./PageWrapper";
 import { authAppearance } from "./authAppearance";
@@ -8,7 +8,7 @@ import { authAppearance } from "./authAppearance";
 export default function SignUp() {
   const signUpRef = useRef();
   useEffect(() => {
-    clerk.load().then(() => {
+    getClerk().then((clerk) => {
       clerk.mountSignUp(signUpRef.current, { appearance: authAppearance });
     });
   }, []);

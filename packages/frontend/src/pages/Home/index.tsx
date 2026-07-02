@@ -6,6 +6,7 @@ import { Event } from "../../components/Event";
 import { EventLoader } from "../../components/EventLoader";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { SegmentedToggle } from "../../components/ui/SegmentedToggle";
+import { CompactLoader } from "./CompactLoader";
 import { CompactRow } from "./CompactRow";
 import type { ViewMode } from "./types";
 import { getToday } from "../../utils/date";
@@ -19,6 +20,21 @@ const VIEW_OPTIONS: { label: string; value: ViewMode }[] = [
   { label: "Compact", value: "compact" },
 ];
 
+const VIEW_MODE_STORAGE_KEY = "cc-view-mode";
+
+function getInitialViewMode(): ViewMode {
+  if (typeof window === "undefined") {
+    return "relaxed";
+  }
+
+  const stored = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+  if (stored === "relaxed" || stored === "compact") {
+    return stored;
+  }
+
+  return "relaxed";
+}
+
 function formatEyebrowDate(date: string): string {
   const [year, month, day] = date.split("-").map((part) => parseInt(part, 10));
   if (!year || !month || !day) return "";
@@ -27,7 +43,14 @@ function formatEyebrowDate(date: string): string {
 
 export default function Home() {
   const { query, route } = useLocation();
-  const [mode, setMode] = useState<ViewMode>("relaxed");
+  const [mode, setMode] = useState<ViewMode>(() => getInitialViewMode());
+
+  const handleModeChange = (next: ViewMode) => {
+    setMode(next);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, next);
+    }
+  };
 
   useEffect(() => {
     // I shouldn't have to check pathname here bc the home component should unmount when the path changes but its not and IDK why
@@ -118,13 +141,17 @@ export default function Home() {
               <SegmentedToggle<ViewMode>
                 options={VIEW_OPTIONS}
                 value={mode}
-                onChange={setMode}
+                onChange={handleModeChange}
               />
             </div>
           </div>
 
           {showData.isLoading ? (
-            <Loader />
+            mode === "relaxed" ? (
+              <Loader />
+            ) : (
+              <CompactLoader />
+            )
           ) : shows.length ? (
             mode === "relaxed" ? (
               <ol className="flex flex-col gap-[15px]">

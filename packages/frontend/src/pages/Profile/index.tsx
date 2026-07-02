@@ -3,7 +3,7 @@ import { useEffect, useRef } from "preact/hooks";
 
 import PageWrapper from "../Auth/PageWrapper";
 import { ProfileSettings } from "./profileSettings";
-import { clerk } from "../../utils/clerk";
+import { getClerk } from "../../utils/clerk";
 
 import { Card, CardBody, CardHeader } from "../../components/Card";
 import { Eyebrow } from "../../components/ui/Eyebrow";
@@ -17,7 +17,7 @@ enum ProfileTabName {
 export default function Profile() {
   const profileRef = useRef();
   useEffect(() => {
-    clerk.load().then(() => {
+    getClerk().then((clerk) => {
       clerk.mountUserProfile(profileRef.current);
     });
   }, []);

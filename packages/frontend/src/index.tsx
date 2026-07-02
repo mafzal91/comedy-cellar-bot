@@ -85,6 +85,7 @@ export function App() {
               <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-4 px-10 py-6">
                 <Link
                   href="/terms-privacy"
+                  variant="plain"
                   className="font-mono text-meta uppercase tracking-wider text-muted no-underline hover:text-text"
                 >
                   Terms &amp; Privacy

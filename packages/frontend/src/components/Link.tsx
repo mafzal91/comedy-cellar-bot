@@ -6,7 +6,7 @@ type LinkProps = JSX.HTMLAttributes<HTMLAnchorElement> & {
   href: string;
   target?: string;
   rel?: string;
-  variant?: "default" | "underline";
+  variant?: "default" | "underline" | "plain";
 };
 
 export const Link: FunctionalComponent<LinkProps> = ({
@@ -24,6 +24,8 @@ export const Link: FunctionalComponent<LinkProps> = ({
     default: "text-text hover:underline",
     underline:
       "inline text-text no-underline border-b-2 border-brand pb-0.5 hover:border-brand-hover",
+    // No color classes — the caller owns color via className.
+    plain: "",
   };
 
   const linkClasses = clsx(baseClasses, variantClasses[variant], className);

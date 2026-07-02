@@ -4,8 +4,6 @@
    status colors, `border-hair`). ADDITIVE for now — see theme.css. */
 @import './theme.css';
 
-@config '../tailwind.config.js';
-
 /*
   Phase 2: all screens migrated to the marquee tokens, so the default body font
   now follows --font-sans (Archivo) / --font-mono (JetBrains Mono) from

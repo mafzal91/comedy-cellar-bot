@@ -1,5 +1,5 @@
 import { getToday } from "../utils/date";
-import { clerk } from "../utils/clerk";
+import { getClerk } from "../utils/clerk";
 import { Link } from "../components/Link";
 import { Perforation } from "./Perforation";
 import { useEffect, useState } from "preact/hooks";
@@ -21,7 +21,7 @@ export function Header() {
   const [navLinks, setNavLinks] = useState(navigation);
 
   useEffect(() => {
-    clerk.load().then(() => {
+    getClerk().then((clerk) => {
       if (clerk.user) {
         setNavLinks([...navigation, ...signOutLink]);
       } else {
@@ -51,7 +51,8 @@ export function Header() {
                 <Link
                   key={itemIdx}
                   href={item.href}
-                  className="rounded-pill bg-ink px-4 py-2 font-sans text-sm font-bold text-brand hover:bg-solid-hover hover:no-underline"
+                  variant="plain"
+                  className="rounded-pill bg-ink px-4 py-2 font-sans text-sm font-bold text-brand hover:bg-ink/80"
                 >
                   {item.name}
                 </Link>
@@ -62,7 +63,10 @@ export function Header() {
               <Link
                 key={itemIdx}
                 href={item.href}
-                className={clsx("font-sans text-body font-medium text-ink opacity-[.78]")}
+                variant="plain"
+                className={clsx(
+                  "font-sans text-body font-medium text-ink opacity-[.78] hover:underline"
+                )}
               >
                 {item.name}
               </Link>
