@@ -14,14 +14,42 @@
   <meta name="design_doc_mode" content="canvas">
   <style>
     @keyframes spot { 0%,100%{box-shadow:0 0 0 0 rgba(243,196,76,0);} 50%{box-shadow:0 0 22px 3px rgba(243,196,76,.4);} }
-    body { margin:0; }
+    @keyframes lineupIn { from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
+    html, body { margin:0; }
+    body { background:var(--bg); }
+    :root{
+      --bg:#FBF6EC; --surface:#ffffff; --text:#1A1714; --muted:#857B6D; --faint:#A99F8E;
+      --line:#1A1714; --shadow:#1A1714; --track:#EDE7DA; --hover:#FEFBF3;
+      --solid:#1A1714; --on-solid:#F3C44C;
+    }
+    html[data-theme="dark"]{
+      --bg:#16130E; --surface:#221E17; --text:#F2ECE0; --muted:#A99F90; --faint:#7C7468;
+      --line:#3C352B; --shadow:#070503; --track:#322C22; --hover:#2A251D;
+      --solid:#F3C44C; --on-solid:#1A1714;
+    }
   </style>
+  <script>
+(function(){
+  try{ if(localStorage.getItem('cc-theme')==='dark') document.documentElement.setAttribute('data-theme','dark'); }catch(e){}
+  function mk(){
+    if(document.getElementById('cc-theme-btn')) return;
+    if(!document.body){ return setTimeout(mk,40); }
+    var b=document.createElement('button');
+    b.id='cc-theme-btn';
+    b.style.cssText='position:fixed;right:18px;bottom:18px;z-index:99999;width:46px;height:46px;border-radius:50%;border:1.5px solid #1A1714;background:#F3C44C;color:#1A1714;font-size:20px;line-height:1;cursor:pointer;box-shadow:2px 3px 0 #1A1714;display:flex;align-items:center;justify-content:center;font-family:Archivo,sans-serif;';
+    function sync(){var d=document.documentElement.getAttribute('data-theme')==='dark';b.textContent=d?'\u2600':'\u263E';b.title=d?'Switch to light mode':'Switch to dark mode';}
+    b.onclick=function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d){document.documentElement.removeAttribute('data-theme');try{localStorage.setItem('cc-theme','light')}catch(e){}}else{document.documentElement.setAttribute('data-theme','dark');try{localStorage.setItem('cc-theme','dark')}catch(e){}}sync();};
+    sync(); document.body.appendChild(b);
+  }
+  mk();
+})();
+  </script>
 </helmet>
 
 <!-- ============ DIRECTION A — THE MARQUEE ============ -->
 <div style="position:absolute; left:0; top:0; width:1320px;">
-  <div data-drags-parent="1" style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:#4b4438; margin-bottom:14px;">The Marquee — Roomy</div>
-  <div style="background:#FBF6EC; border-radius:14px; overflow:hidden; box-shadow:0 30px 70px -22px rgba(0,0,0,.4); border:1px solid rgba(0,0,0,.06);">
+  <div data-drags-parent="1" style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:14px;">The Marquee — Roomy · click a show for the lineup</div>
+  <div style="background:var(--bg); border-radius:14px; overflow:hidden; box-shadow:0 30px 70px -22px rgba(0,0,0,.4); border:1px solid rgba(0,0,0,.06);">
 
     <div style="background:#F3C44C; padding:16px 40px; display:flex; align-items:center; justify-content:space-between;">
       <div style="display:flex; align-items:baseline; gap:11px;">
@@ -40,28 +68,28 @@
 
     <div style="padding:34px 40px 16px;">
       <div style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:#9A7B1E;">Sunday · June 28, 2026</div>
-      <h1 style="font-family:'Bebas Neue'; font-size:64px; line-height:.9; letter-spacing:.01em; color:#1A1714; margin:8px 0 8px;">Tonight at the Cellar</h1>
-      <div style="font-family:'Archivo'; font-size:15px; color:#6B6357;">12 shows across 3 rooms — <span style="color:#1E8E4E; font-weight:700;">8 still available</span></div>
+      <h1 style="font-family:'Bebas Neue'; font-size:64px; line-height:.9; letter-spacing:.01em; color:var(--text); margin:8px 0 8px;">Tonight at the Cellar</h1>
+      <div style="font-family:'Archivo'; font-size:15px; color:var(--muted);">12 shows across 3 rooms — <span style="color:#1E8E4E; font-weight:700;">8 still available</span></div>
     </div>
 
     <div style="display:grid; grid-template-columns:288px 1fr; gap:32px; padding:14px 40px 46px; align-items:start;">
 
-      <aside style="background:#fff; border:1.5px solid #1A1714; border-radius:14px; padding:18px 18px 20px; box-shadow:4px 5px 0 #1A1714;">
+      <aside style="background:var(--surface); border:1.5px solid var(--line); border-radius:14px; padding:18px 18px 20px; box-shadow:4px 5px 0 var(--shadow);">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-          <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border:1.5px solid #1A1714; border-radius:50%; font-family:'Archivo'; font-weight:700; cursor:pointer;">‹</span>
-          <span style="font-family:'Bebas Neue'; font-size:23px; letter-spacing:.04em; color:#1A1714;">June 2026</span>
-          <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border:1.5px solid #1A1714; border-radius:50%; font-family:'Archivo'; font-weight:700; cursor:pointer;">›</span>
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border:1.5px solid var(--line); border-radius:50%; font-family:'Archivo'; font-weight:700; color:var(--text); cursor:pointer;">‹</span>
+          <span style="font-family:'Bebas Neue'; font-size:23px; letter-spacing:.04em; color:var(--text);">June 2026</span>
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border:1.5px solid var(--line); border-radius:50%; font-family:'Archivo'; font-weight:700; color:var(--text); cursor:pointer;">›</span>
         </div>
         <div style="display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:4px;">
           <sc-for list="{{dayNames}}" as="name" hint-placeholder-count="7">
-            <span style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:11px; color:#A99F8E;">{{name}}</span>
+            <span style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--faint);">{{name}}</span>
           </sc-for>
         </div>
         <sc-for list="{{weeks}}" as="week" hint-placeholder-count="6">
           <div style="display:grid; grid-template-columns:repeat(7,1fr);">
             <sc-for list="{{week}}" as="day" hint-placeholder-count="7">
               <div style="position:relative; height:38px; display:flex; align-items:center; justify-content:center;">
-                <sc-if value="{{day.today}}"><div style="position:absolute; width:32px; height:32px; border-radius:50%; background:#F3C44C; border:1.5px solid #1A1714;"></div></sc-if>
+                <sc-if value="{{day.today}}"><div style="position:absolute; width:32px; height:32px; border-radius:50%; background:#F3C44C; border:1.5px solid var(--line);"></div></sc-if>
                 <span style="position:relative; font-family:'Archivo'; font-size:13px; font-weight:600; color:{{day.colorA}};">{{day.n}}</span>
               </div>
             </sc-for>
@@ -70,28 +98,61 @@
       </aside>
 
       <div>
-        <div style="font-family:'Bebas Neue'; font-size:24px; letter-spacing:.06em; color:#1A1714; margin:0 0 16px;">Upcoming Shows</div>
+        <div style="font-family:'Bebas Neue'; font-size:24px; letter-spacing:.06em; color:var(--text); margin:0 0 16px;">Upcoming Shows</div>
         <sc-for list="{{shows}}" as="show" hint-placeholder-count="12">
-          <div style="display:flex; background:#fff; border:1.5px solid #1A1714; border-radius:12px; overflow:hidden; margin-bottom:15px; box-shadow:3px 4px 0 #1A1714;" style-hover="transform:translate(-1px,-1px); box-shadow:5px 6px 0 #1A1714;">
-            <div style="position:relative; width:112px; flex-shrink:0; background:{{show.stubBgA}}; display:flex; flex-direction:column; align-items:center; justify-content:center; border-right:2px dashed #1A1714;">
-              <div style="font-family:'Bebas Neue'; font-size:34px; line-height:.9; color:{{show.stubInkA}};">{{show.time}}</div>
-              <div style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em; color:{{show.stubInkA}};">{{show.ampm}}</div>
-              <sc-if value="{{show.sold}}"><div style="position:absolute; bottom:13px; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.12em; color:#C23B2E; border:1.5px solid #C23B2E; padding:2px 5px; border-radius:3px; transform:rotate(-8deg); background:#fff;">SOLD</div></sc-if>
-            </div>
-            <div style="flex:1; padding:15px 20px; min-width:0;">
-              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
-                <h3 style="font-family:'Archivo'; font-weight:800; font-size:19px; color:#1A1714; margin:0;">{{show.title}}</h3>
-                <span style="flex-shrink:0; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:4px 9px; border-radius:999px; background:{{show.tintA}}; color:{{show.colA}};">{{show.statusLabel}}</span>
+          <div style="background:var(--surface); border:1.5px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:15px; box-shadow:3px 4px 0 var(--shadow);">
+
+            <div onClick="{{show.onToggle}}" style="display:flex; cursor:pointer;" style-hover="background:var(--hover);">
+              <div style="position:relative; width:112px; flex-shrink:0; background:{{show.stubBgA}}; display:flex; flex-direction:column; align-items:center; justify-content:center; border-right:2px dashed var(--line);">
+                <div style="font-family:'Bebas Neue'; font-size:34px; line-height:.9; color:{{show.stubInkA}};">{{show.time}}</div>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em; color:{{show.stubInkA}};">{{show.ampm}}</div>
+                <sc-if value="{{show.sold}}"><div style="position:absolute; bottom:13px; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.12em; color:#C23B2E; border:1.5px solid #C23B2E; padding:2px 5px; border-radius:3px; transform:rotate(-8deg); background:#fff;">SOLD</div></sc-if>
               </div>
-              <div style="margin:9px 0 12px; font-family:'JetBrains Mono',monospace; font-size:12px; color:#857B6D;">{{show.venue}} &nbsp;·&nbsp; {{show.cap}}</div>
-              <div style="display:flex; align-items:center; gap:14px;">
-                <div style="flex:1; height:6px; background:#EDE7DA; border-radius:999px; overflow:hidden;">
-                  <div style="height:100%; border-radius:999px; background:{{show.colA}}; width:{{show.pctStr}};"></div>
+              <div style="flex:1; padding:15px 20px; min-width:0;">
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+                  <h3 style="font-family:'Archivo'; font-weight:800; font-size:19px; color:var(--text); margin:0;">{{show.title}}</h3>
+                  <div style="display:flex; align-items:center; gap:11px; flex-shrink:0;">
+                    <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:4px 9px; border-radius:999px; background:{{show.tintA}}; color:{{show.colA}};">{{show.statusLabel}}</span>
+                    <span style="display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border:1.5px solid var(--line); border-radius:50%; font-family:'Archivo'; font-weight:700; font-size:12px; color:var(--text); background:var(--surface); transition:transform .22s ease; transform:{{show.chevTransform}};">▾</span>
+                  </div>
                 </div>
-                <sc-if value="{{show.available}}"><a href="#" style="flex-shrink:0; font-family:'Archivo'; font-weight:700; font-size:13px; color:#F3C44C; background:#1A1714; padding:9px 16px; border-radius:999px; text-decoration:none;" style-hover="background:#F3C44C; color:#1A1714;">Reserve Tickets →</a></sc-if>
-                <sc-if value="{{show.sold}}"><span style="flex-shrink:0; font-family:'JetBrains Mono',monospace; font-size:11px; color:#B7AE9F;">Reservations closed</span></sc-if>
+                <div style="margin:9px 0 12px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);">{{show.venue}} &nbsp;·&nbsp; {{show.cap}} &nbsp;·&nbsp; {{show.lineupNote}}</div>
+                <div style="display:flex; align-items:center; gap:14px;">
+                  <div style="flex:1; height:6px; background:var(--track); border-radius:999px; overflow:hidden;">
+                    <div style="height:100%; border-radius:999px; background:{{show.colA}}; width:{{show.pctStr}};"></div>
+                  </div>
+                  <sc-if value="{{show.available}}"><a href="Reserve.dc.html" onClick="{{stopProp}}" style="flex-shrink:0; font-family:'Archivo'; font-weight:700; font-size:13px; color:var(--on-solid); background:var(--solid); padding:9px 16px; border-radius:999px; text-decoration:none;" style-hover="background:#F3C44C; color:#1A1714;">Reserve Tickets →</a></sc-if>
+                  <sc-if value="{{show.sold}}"><span style="flex-shrink:0; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--faint);">Reservations closed</span></sc-if>
+                </div>
               </div>
             </div>
+
+            <sc-if value="{{show.isOpen}}">
+              <div style="border-top:2px dashed var(--line); background:var(--bg); padding:18px 22px 20px; animation:lineupIn .22s ease;">
+                <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:#9A7B1E; margin-bottom:14px;">{{show.lineupHeading}}</div>
+                <sc-if value="{{show.hasLineup}}">
+                  <sc-for list="{{show.lineup}}" as="comic" hint-placeholder-count="3">
+                    <div style="display:flex; align-items:flex-start; gap:14px; padding:11px 0; border-bottom:1px solid var(--track);">
+                      <div style="width:46px; height:46px; flex-shrink:0; border-radius:50%; background:{{comic.avBg}}; border:1.5px solid var(--line); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue'; font-size:20px; letter-spacing:.02em; color:{{comic.avInk}}; box-shadow:2px 2px 0 var(--shadow);">{{comic.initials}}</div>
+                      <div style="min-width:0; padding-top:2px;">
+                        <div style="font-family:'Archivo'; font-weight:800; font-size:16px; color:var(--text);">{{comic.name}}</div>
+                        <div style="font-family:'Archivo'; font-weight:400; font-size:13px; line-height:1.5; color:var(--muted); margin-top:2px;">{{comic.credits}}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </sc-if>
+                <sc-if value="{{show.noLineup}}">
+                  <div style="display:flex; align-items:center; gap:12px; padding:8px 0 4px;">
+                    <span style="display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; border:1.5px dashed var(--faint); font-family:'Archivo'; font-size:16px; color:var(--faint);">?</span>
+                    <div>
+                      <div style="font-family:'Archivo'; font-weight:800; font-size:15px; color:var(--text);">Lineup not announced yet</div>
+                      <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--faint); margin-top:2px;">Acts are usually posted the morning of the show.</div>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+
           </div>
         </sc-for>
       </div>
@@ -101,8 +162,8 @@
 
 <!-- ============ THE MARQUEE — CONDENSED ============ -->
 <div style="position:absolute; left:1400px; top:0; width:1320px;">
-  <div data-drags-parent="1" style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:#4b4438; margin-bottom:14px;">The Marquee — Condensed (whole night visible)</div>
-  <div style="background:#FBF6EC; border-radius:14px; overflow:hidden; box-shadow:0 30px 70px -22px rgba(0,0,0,.4); border:1px solid rgba(0,0,0,.06);">
+  <div data-drags-parent="1" style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:14px;">The Marquee — Condensed · click a row for the lineup</div>
+  <div style="background:var(--bg); border-radius:14px; overflow:hidden; box-shadow:0 30px 70px -22px rgba(0,0,0,.4); border:1px solid rgba(0,0,0,.06);">
 
     <div style="background:#F3C44C; padding:16px 40px; display:flex; align-items:center; justify-content:space-between;">
       <div style="display:flex; align-items:baseline; gap:11px;">
@@ -122,29 +183,29 @@
     <div style="display:flex; align-items:flex-end; justify-content:space-between; padding:26px 40px 14px; gap:24px;">
       <div>
         <div style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:#9A7B1E;">Sunday · June 28, 2026</div>
-        <h1 style="font-family:'Bebas Neue'; font-size:46px; line-height:.9; letter-spacing:.01em; color:#1A1714; margin:6px 0 0;">Tonight at the Cellar</h1>
+        <h1 style="font-family:'Bebas Neue'; font-size:46px; line-height:.9; letter-spacing:.01em; color:var(--text); margin:6px 0 0;">Tonight at the Cellar</h1>
       </div>
-      <div style="font-family:'Archivo'; font-size:14px; color:#6B6357; white-space:nowrap; padding-bottom:4px;">12 shows · <span style="color:#1E8E4E; font-weight:700;">8 available</span></div>
+      <div style="font-family:'Archivo'; font-size:14px; color:var(--muted); white-space:nowrap; padding-bottom:4px;">12 shows · <span style="color:#1E8E4E; font-weight:700;">8 available</span></div>
     </div>
 
     <div style="display:grid; grid-template-columns:256px 1fr; gap:30px; padding:10px 40px 40px; align-items:start;">
 
-      <aside style="background:#fff; border:1.5px solid #1A1714; border-radius:14px; padding:16px 16px 16px; box-shadow:4px 5px 0 #1A1714;">
+      <aside style="background:var(--surface); border:1.5px solid var(--line); border-radius:14px; padding:16px 16px 16px; box-shadow:4px 5px 0 var(--shadow);">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-          <span style="display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border:1.5px solid #1A1714; border-radius:50%; font-family:'Archivo'; font-weight:700; cursor:pointer;">‹</span>
-          <span style="font-family:'Bebas Neue'; font-size:22px; letter-spacing:.04em; color:#1A1714;">June 2026</span>
-          <span style="display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border:1.5px solid #1A1714; border-radius:50%; font-family:'Archivo'; font-weight:700; cursor:pointer;">›</span>
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border:1.5px solid var(--line); border-radius:50%; font-family:'Archivo'; font-weight:700; color:var(--text); cursor:pointer;">‹</span>
+          <span style="font-family:'Bebas Neue'; font-size:22px; letter-spacing:.04em; color:var(--text);">June 2026</span>
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border:1.5px solid var(--line); border-radius:50%; font-family:'Archivo'; font-weight:700; color:var(--text); cursor:pointer;">›</span>
         </div>
         <div style="display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:2px;">
           <sc-for list="{{dayNames}}" as="name" hint-placeholder-count="7">
-            <span style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:10px; color:#A99F8E;">{{name}}</span>
+            <span style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--faint);">{{name}}</span>
           </sc-for>
         </div>
         <sc-for list="{{weeks}}" as="week" hint-placeholder-count="6">
           <div style="display:grid; grid-template-columns:repeat(7,1fr);">
             <sc-for list="{{week}}" as="day" hint-placeholder-count="7">
               <div style="position:relative; height:32px; display:flex; align-items:center; justify-content:center;">
-                <sc-if value="{{day.today}}"><div style="position:absolute; width:28px; height:28px; border-radius:50%; background:#F3C44C; border:1.5px solid #1A1714;"></div></sc-if>
+                <sc-if value="{{day.today}}"><div style="position:absolute; width:28px; height:28px; border-radius:50%; background:#F3C44C; border:1.5px solid var(--line);"></div></sc-if>
                 <span style="position:relative; font-family:'Archivo'; font-size:12px; font-weight:600; color:{{day.colorA}};">{{day.n}}</span>
               </div>
             </sc-for>
@@ -153,32 +214,55 @@
       </aside>
 
       <div>
-        <div style="display:grid; grid-template-columns:68px 1fr 116px 94px 120px; gap:16px; align-items:center; padding:0 14px 8px 7px;">
+        <div style="display:grid; grid-template-columns:68px 1fr 116px 94px 120px 26px; gap:16px; align-items:center; padding:0 14px 8px 7px;">
           <span></span>
-          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#A99F8E;">Show</span>
-          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#A99F8E;">Seats</span>
-          <span style="justify-self:center; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#A99F8E;">Status</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint);">Show</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint);">Seats</span>
+          <span style="justify-self:center; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint);">Status</span>
+          <span></span>
           <span></span>
         </div>
         <sc-for list="{{shows}}" as="show" hint-placeholder-count="12">
-          <div style="display:grid; grid-template-columns:68px 1fr 116px 94px 120px; gap:16px; align-items:center; background:#fff; border:1.5px solid #1A1714; border-radius:10px; padding:7px 14px 7px 7px; margin-bottom:9px; box-shadow:2px 3px 0 #1A1714;" style-hover="transform:translate(-1px,-1px); box-shadow:4px 5px 0 #1A1714;">
-            <div style="text-align:center; background:{{show.stubBgA}}; border:1.5px solid #1A1714; border-radius:7px; padding:5px 0;">
-              <div style="font-family:'Bebas Neue'; font-size:21px; line-height:.95; color:{{show.stubInkA}};">{{show.time}}</div>
-              <div style="font-family:'JetBrains Mono',monospace; font-size:9px; color:{{show.stubInkA}};">{{show.ampm}}</div>
+          <div style="background:var(--surface); border:1.5px solid var(--line); border-radius:10px; overflow:hidden; margin-bottom:9px; box-shadow:2px 3px 0 var(--shadow);">
+            <div onClick="{{show.onToggle}}" style="display:grid; grid-template-columns:68px 1fr 116px 94px 120px 26px; gap:16px; align-items:center; padding:7px 14px 7px 7px; cursor:pointer;" style-hover="background:var(--hover);">
+              <div style="text-align:center; background:{{show.stubBgA}}; border:1.5px solid var(--line); border-radius:7px; padding:5px 0;">
+                <div style="font-family:'Bebas Neue'; font-size:21px; line-height:.95; color:{{show.stubInkA}};">{{show.time}}</div>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:9px; color:{{show.stubInkA}};">{{show.ampm}}</div>
+              </div>
+              <div style="min-width:0;">
+                <div style="font-family:'Archivo'; font-weight:700; font-size:15px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{show.title}}</div>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{show.venue}} · {{show.lineupNote}}</div>
+              </div>
+              <div>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); margin-bottom:4px;">{{show.cap}}</div>
+                <div style="height:5px; background:var(--track); border-radius:999px; overflow:hidden;"><div style="height:100%; border-radius:999px; background:{{show.colA}}; width:{{show.pctStr}};"></div></div>
+              </div>
+              <span style="justify-self:center; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.06em; text-transform:uppercase; padding:3px 8px; border-radius:999px; background:{{show.tintA}}; color:{{show.colA}}; white-space:nowrap;">{{show.statusLabel}}</span>
+              <div style="justify-self:end;">
+                <sc-if value="{{show.available}}"><a href="Reserve.dc.html" onClick="{{stopProp}}" style="font-family:'Archivo'; font-weight:700; font-size:12px; color:var(--on-solid); background:var(--solid); padding:8px 14px; border-radius:999px; text-decoration:none; white-space:nowrap;" style-hover="background:#F3C44C; color:#1A1714;">Reserve →</a></sc-if>
+                <sc-if value="{{show.sold}}"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--faint); white-space:nowrap;">Closed</span></sc-if>
+              </div>
+              <span style="justify-self:center; font-family:'Archivo'; font-weight:700; font-size:12px; color:var(--text); transition:transform .22s ease; transform:{{show.chevTransform}};">▾</span>
             </div>
-            <div style="min-width:0;">
-              <div style="font-family:'Archivo'; font-weight:700; font-size:15px; color:#1A1714; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{show.title}}</div>
-              <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#857B6D; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{show.venue}}</div>
-            </div>
-            <div>
-              <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#857B6D; margin-bottom:4px;">{{show.cap}}</div>
-              <div style="height:5px; background:#EDE7DA; border-radius:999px; overflow:hidden;"><div style="height:100%; border-radius:999px; background:{{show.colA}}; width:{{show.pctStr}};"></div></div>
-            </div>
-            <span style="justify-self:center; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.06em; text-transform:uppercase; padding:3px 8px; border-radius:999px; background:{{show.tintA}}; color:{{show.colA}}; white-space:nowrap;">{{show.statusLabel}}</span>
-            <div style="justify-self:end;">
-              <sc-if value="{{show.available}}"><a href="#" style="font-family:'Archivo'; font-weight:700; font-size:12px; color:#F3C44C; background:#1A1714; padding:8px 14px; border-radius:999px; text-decoration:none; white-space:nowrap;" style-hover="background:#F3C44C; color:#1A1714;">Reserve →</a></sc-if>
-              <sc-if value="{{show.sold}}"><span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#B7AE9F; white-space:nowrap;">Closed</span></sc-if>
-            </div>
+
+            <sc-if value="{{show.isOpen}}">
+              <div style="border-top:1.5px dashed var(--line); background:var(--bg); padding:14px 16px 15px; animation:lineupIn .22s ease;">
+                <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:#9A7B1E; margin-bottom:11px;">{{show.lineupHeading}}</div>
+                <sc-if value="{{show.hasLineup}}">
+                  <div style="display:flex; flex-wrap:wrap; gap:9px;">
+                    <sc-for list="{{show.lineup}}" as="comic" hint-placeholder-count="3">
+                      <div style="display:flex; align-items:center; gap:9px; background:var(--surface); border:1.5px solid var(--line); border-radius:999px; padding:5px 14px 5px 5px; box-shadow:1.5px 2px 0 var(--shadow);">
+                        <div style="width:30px; height:30px; flex-shrink:0; border-radius:50%; background:{{comic.avBg}}; border:1.5px solid var(--line); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue'; font-size:14px; color:{{comic.avInk}};">{{comic.initials}}</div>
+                        <span style="font-family:'Archivo'; font-weight:700; font-size:13px; color:var(--text); white-space:nowrap;">{{comic.name}}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{show.noLineup}}">
+                  <div style="font-family:'Archivo'; font-weight:600; font-size:13px; color:var(--faint);">No acts announced yet — usually posted the morning of the show.</div>
+                </sc-if>
+              </div>
+            </sc-if>
           </div>
         </sc-for>
       </div>
@@ -188,7 +272,44 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
+  state = { open: { 1: true } };
+
+  toggle(i) {
+    this.setState(s => {
+      const open = Object.assign({}, s.open);
+      open[i] = !open[i];
+      return { open };
+    });
+  }
+
   renderVals() {
+    const pool = [
+      ['Joe List', 'Writer & star of "Fourth of July", from The Tonight Show, Netflix special'],
+      ['Petey DeAbreu', "HBO: That Damn Michael Che Show, NPR: Wait Wait...Don't Tell Me"],
+      ['Ian Lara', 'HBO special Romantic Comedy, Comedy Central Half-Hour, The Tonight Show'],
+      ['Lucas Zelnick', 'Comedy Central, Netflix Is A Joke, Amazon Prime Moontower Fest'],
+      ['Winston Hodges', "Netflix, Don't Tell Comedy"],
+      ['Philipp Kostelecky', 'BBC, Comedy Central, Comic Relief, Funny New Faces'],
+      ['Yamaneika Saunders', 'Writers Guild Award Winner, The Tonight Show, Comedy Central Presents'],
+      ['Sam Morril', 'Netflix "Same Time Tomorrow", The Tonight Show, Half Hour'],
+      ['Sheng Wang', 'Netflix "Sweet and Juicy", Fresh Off the Boat'],
+      ['Gary Vider', 'The Tonight Show, Comedy Central, Last Comic Standing'],
+      ['Nikki Glaser', 'HBO, Comedy Central Roast, The Golden Globes'],
+      ['Colin Quinn', 'Trainwreck, SNL, HBO "Long Story Short"'],
+    ];
+    const initials = (n) => n.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    const mkComic = (idx) => {
+      const [name, credits] = pool[idx % pool.length];
+      const dark = idx % 2 === 1;
+      return {
+        name, credits, initials: initials(name),
+        avBg: dark ? '#1A1714' : '#F3C44C',
+        avInk: dark ? '#F3C44C' : '#1A1714',
+      };
+    };
+    // how many acts each show has (0 = no lineup announced)
+    const counts = [3, 6, 0, 4, 4, 6, 0, 4, 4, 5, 3, 4];
+
     const raw = [
       ['1:30','PM','Brunch Show, MacDougal St','MacDougal St',176,190],
       ['6:00','PM','Village Underground','Village Underground',223,300],
@@ -203,25 +324,32 @@ class Component extends DCLogic {
       ['10:30','PM','Fat Black Pussycat Bar','Fat Black Pussycat',21,110],
       ['11:30','PM','MacDougal St.','MacDougal St',163,180],
     ];
-    const shows = raw.map(([time, ampm, title, venue, cur, max]) => {
+    const shows = raw.map(([time, ampm, title, venue, cur, max], i) => {
       const pct = Math.round((cur / max) * 100);
       const sold = cur >= max;
       const fast = !sold && pct >= 85;
-      const left = max - cur;
+      const cnt = counts[i];
+      const lineup = [];
+      for (let k = 0; k < cnt; k++) lineup.push(mkComic(i * 3 + k));
+      const isOpen = !!this.state.open[i];
       return {
         time, ampm, title, venue,
         cap: cur + ' / ' + max,
         pct, pctStr: Math.min(pct, 100) + '%',
         sold, available: !sold, fast,
-        showSeats: fast,
-        seatsLeft: left + ' seats left',
         statusLabel: sold ? 'Sold Out' : fast ? 'Selling Fast' : 'Available',
         colA: sold ? '#C23B2E' : fast ? '#C0780F' : '#1E8E4E',
-        colB: sold ? '#FF6B5B' : fast ? '#F0B23D' : '#5BD08A',
         tintA: sold ? '#F7E4E1' : fast ? '#F8EDD9' : '#E6F1E9',
         stubBgA: sold ? '#E9E3D6' : '#F3C44C',
         stubInkA: sold ? '#A89F90' : '#1A1714',
-        timeColB: sold ? '#7A7165' : '#F3C44C',
+        lineup,
+        hasLineup: cnt > 0,
+        noLineup: cnt === 0,
+        lineupNote: cnt > 0 ? (cnt + ' comics') : 'lineup TBA',
+        lineupHeading: cnt > 0 ? ("Tonight's Lineup · " + cnt + " acts") : 'Lineup',
+        isOpen,
+        chevTransform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+        onToggle: () => this.toggle(i),
       };
     });
 
@@ -236,14 +364,16 @@ class Component extends DCLogic {
         const today = idx === 28;
         row.push({
           n, today, muted,
-          colorA: today ? '#1A1714' : muted ? '#BCB4A4' : '#26221C',
-          colorB: today ? '#161310' : muted ? '#5C544B' : '#E7E1D5',
+          colorA: today ? '#1A1714' : muted ? 'var(--faint)' : 'var(--text)',
         });
       }
       weeks.push(row);
     }
 
-    return { shows, weeks, dayNames: ['S','M','T','W','T','F','S'] };
+    return {
+      shows, weeks, dayNames: ['S','M','T','W','T','F','S'],
+      stopProp: (e) => e.stopPropagation(),
+    };
   }
 }
 </script>

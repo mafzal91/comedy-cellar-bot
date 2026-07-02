@@ -4,6 +4,7 @@ import { useEffect, useRef } from "preact/hooks";
 import PageWrapper from "../Auth/PageWrapper";
 import { ProfileSettings } from "./profileSettings";
 import { getClerk } from "../../utils/clerk";
+import { authAppearance } from "../Auth/authAppearance";
 
 import { Card, CardBody, CardHeader } from "../../components/Card";
 import { Eyebrow } from "../../components/ui/Eyebrow";
@@ -18,13 +19,13 @@ export default function Profile() {
   const profileRef = useRef();
   useEffect(() => {
     getClerk().then((clerk) => {
-      clerk.mountUserProfile(profileRef.current);
+      clerk.mountUserProfile(profileRef.current, { appearance: authAppearance });
     });
   }, []);
 
   return (
     <PageWrapper>
-      <div className="w-full max-w-[820px] px-6 pb-16">
+      <div className="w-full max-w-full px-6 pb-16">
         <PageHeader
           eyebrow="Your Account"
           title="Backstage Pass"

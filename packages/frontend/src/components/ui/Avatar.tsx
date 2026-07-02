@@ -35,18 +35,46 @@ function getInitials(name: string): string {
 
 export interface AvatarProps {
   name: string;
+  img?: string;
   size?: number;
   className?: string;
 }
 
-export function Avatar({ name, size = 42, className }: AvatarProps) {
+export function Avatar({ name, img, size = 42, className }: AvatarProps) {
   const { bg, fg } = getSwatch(name);
   const initials = getInitials(name);
+
+  if (img) {
+    return (
+      <span
+        className={clsx(
+          "group relative grid shrink-0 place-items-center overflow-hidden rounded-pill border-hair border-line",
+          className,
+        )}
+        style={{ width: size, height: size }}
+      >
+        <img
+          src={img}
+          alt={`${name}'s photo`}
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
+        {/* Translucent placeholder overlay on hover */}
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 grid place-items-center font-display leading-none opacity-0 transition-opacity duration-150 group-hover:opacity-80"
+          style={{ fontSize: size * 0.4, backgroundColor: bg, color: fg }}
+        >
+          {initials}
+        </span>
+      </span>
+    );
+  }
 
   return (
     <span
       className={clsx(
-        "grid place-items-center shrink-0 rounded-pill border-hair border-line font-display",
+        "grid place-items-center shrink-0 rounded-pill border-hair border-line font-display leading-none",
         className,
       )}
       style={{

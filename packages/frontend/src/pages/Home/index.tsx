@@ -7,7 +7,7 @@ import { EventLoader } from "../../components/EventLoader";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { SegmentedToggle } from "../../components/ui/SegmentedToggle";
 import { CompactLoader } from "./CompactLoader";
-import { CompactRow } from "./CompactRow";
+import { CompactRow, GRID } from "./CompactRow";
 import type { ViewMode } from "./types";
 import { getToday } from "../../utils/date";
 import { format, isPast } from "date-fns";
@@ -44,6 +44,11 @@ function formatEyebrowDate(date: string): string {
 export default function Home() {
   const { query, route } = useLocation();
   const [mode, setMode] = useState<ViewMode>(() => getInitialViewMode());
+  const [openShows, setOpenShows] = useState<Record<string, boolean>>({});
+
+  const toggleShow = (timestamp: string) => {
+    setOpenShows((prev) => ({ ...prev, [timestamp]: !prev[timestamp] }));
+  };
 
   const handleModeChange = (next: ViewMode) => {
     setMode(next);
@@ -160,37 +165,51 @@ export default function Home() {
                     <Event
                       show={show}
                       lineUp={
-                        (!lineUpData.isLoading &&
-                          findLineUp(show.timestamp)) ?? {
+                        findLineUp(show.timestamp) ?? {
                           reservationUrl: "",
                           timestamp: 0,
                           acts: [],
                         }
                       }
                       isLineUpLoading={lineUpData.isLoading}
+                      isOpen={!!openShows[String(show.timestamp)]}
+                      onToggle={() => toggleShow(String(show.timestamp))}
                     />
                   </li>
                 ))}
               </ol>
             ) : (
               <div>
-                <div className="grid grid-cols-[62px_minmax(0,1fr)_104px_88px_108px] items-center gap-[13px] px-[7px] pb-2 pr-3.5">
+                <div className={`grid ${GRID} items-center px-[8px] pb-2 pr-3.5`}>
                   <span />
                   <span className="font-mono text-meta uppercase tracking-wide text-faint">
                     Show
                   </span>
-                  <span className="font-mono text-meta uppercase tracking-wide text-faint">
+                  <span className="hidden font-mono text-meta uppercase tracking-wide text-faint sm:block">
                     Seats
                   </span>
-                  <span className="justify-self-center font-mono text-meta uppercase tracking-wide text-faint">
+                  <span className="hidden justify-self-center font-mono text-meta uppercase tracking-wide text-faint sm:block">
                     Status
                   </span>
+                  <span />
                   <span />
                 </div>
                 <ol className="flex flex-col gap-[9px]">
                   {shows.map((show) => (
                     <li key={show.id} data-timestamp={show.timestamp}>
-                      <CompactRow show={show} />
+                      <CompactRow
+                        show={show}
+                        lineUp={
+                          findLineUp(show.timestamp) ?? {
+                            reservationUrl: "",
+                            timestamp: 0,
+                            acts: [],
+                          }
+                        }
+                        isLineUpLoading={lineUpData.isLoading}
+                        isOpen={!!openShows[String(show.timestamp)]}
+                        onToggle={() => toggleShow(String(show.timestamp))}
+                      />
                     </li>
                   ))}
                 </ol>

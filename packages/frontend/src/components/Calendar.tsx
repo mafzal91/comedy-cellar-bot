@@ -133,7 +133,7 @@ export function Calendar({ value, onChange }) {
   const weekdayInitials = ["S", "M", "T", "W", "T", "F", "S"];
 
   return (
-    <div className="border-hair border-line rounded-panel bg-surface p-[1.125rem] shadow-block-md">
+    <div className="calendar-dark-shadow border-hair border-line rounded-panel bg-surface p-[1.125rem] shadow-block-md">
       <div className="mb-3.5 flex items-center justify-between">
         <button
           type="button"

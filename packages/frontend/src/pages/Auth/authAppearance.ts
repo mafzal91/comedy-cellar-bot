@@ -28,7 +28,7 @@ export const authAppearance = {
     header: "hidden",
     footer: "hidden",
     socialButtonsBlockButton:
-      "border-hair border-line rounded-field bg-surface hover:bg-track",
+      "border-hair border-line rounded-field bg-surface hover:bg-track text-text",
     formButtonPrimary: "rounded-pill bg-solid hover:bg-solid-hover",
     dividerLine: "bg-line",
     dividerText: "text-muted font-mono text-meta",

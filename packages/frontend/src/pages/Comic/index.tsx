@@ -51,6 +51,7 @@ export default function Comic() {
             <div className="flex items-end gap-6">
               <Avatar
                 name={comic.data.name}
+                img={comic.data.img}
                 size={132}
                 className="border-4 shadow-block"
               />

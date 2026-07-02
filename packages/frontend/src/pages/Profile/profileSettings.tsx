@@ -1,15 +1,16 @@
-import { Card, CardBody, CardHeader } from "../../components/Card";
-import { ComicNotification, Settings } from "../../types";
-import { fetchSettings, updateSettings } from "../../utils/api";
+import { Card, CardBody, CardHeader } from "@/components/Card";
+import { ComicNotification, Settings } from "@/types";
+import { fetchSettings, updateSettings } from "@/utils/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { Button } from "../../components/Button";
-import { Checkbox } from "../../components/Checkbox";
-import { Link } from "../../components/Link";
-import { PageLoader } from "../../components/PageLoader";
+import { Button } from "@/components/Button";
+import { Checkbox } from "@/components/Checkbox";
+import { Link } from "@/components/Link";
+import { PageLoader } from "@/components/PageLoader";
 
-import { Avatar } from "../../components/ui/Avatar";
-import { Pill } from "../../components/ui/Pill";
+import { Avatar } from "@/components/ui/Avatar";
+import { Badge } from "@/components/ui/Badge";
+import { BellAlertIcon, BellSlashIcon } from "@heroicons/react/20/solid";
 
 export function ProfileSettings() {
   const { data, isLoading } = useQuery<Settings>({
@@ -81,9 +82,13 @@ export function ProfileSettings() {
 
 function NotificationPill({ enabled }: { enabled: boolean }) {
   return enabled ? (
-    <Pill className="border-success bg-success-soft text-success">Enabled</Pill>
+    <Badge tone="success" icon={BellAlertIcon}>
+      Enabled
+    </Badge>
   ) : (
-    <Pill className="text-faint">Muted</Pill>
+    <Badge tone="muted" icon={BellSlashIcon}>
+      Muted
+    </Badge>
   );
 }
 
@@ -100,7 +105,7 @@ export function ComicNotificationList({
           className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0"
         >
           <div className="flex min-w-0 items-center gap-3.5">
-            <Avatar name={comicNotification.name} size={42} />
+            <Avatar name={comicNotification.name} img={comicNotification.comic} size={42} />
             <Link
               href={`/comics/${comicNotification.comicId}`}
               className="truncate text-body font-bold text-text"

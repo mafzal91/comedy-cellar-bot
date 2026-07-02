@@ -1,9 +1,9 @@
-const GRID = "grid-cols-[62px_minmax(0,1fr)_104px_88px_108px]";
+import { GRID } from "./CompactRow";
 
 function CompactRowLoader() {
   return (
     <div
-      className={`grid ${GRID} animate-pulse items-center gap-[13px] rounded-[10px] border-hair border-line bg-surface py-[7px] pl-[7px] pr-3.5 shadow-block-sm`}
+      className={`grid ${GRID} animate-pulse items-center rounded-lg border-hair border-line bg-surface py-1.75 pl-1.75 pr-3.5 shadow-block-sm`}
     >
       {/* Time stub */}
       <div className="h-11 rounded-[7px] bg-track" />
@@ -12,19 +12,24 @@ function CompactRowLoader() {
       <div className="min-w-0 space-y-1.5">
         <div className="h-4 w-44 max-w-full rounded bg-track" />
         <div className="h-3 w-32 max-w-full rounded bg-track" />
+        {/* Mobile-only availability badge */}
+        <div className="h-4 w-24 rounded-pill bg-track sm:hidden" />
       </div>
 
       {/* Seats + progress */}
-      <div className="space-y-1.5">
+      <div className="hidden space-y-1.5 sm:block">
         <div className="h-3 w-16 rounded bg-track" />
         <div className="h-1.5 rounded-pill bg-track" />
       </div>
 
       {/* Status */}
-      <div className="h-4 w-16 justify-self-center rounded-pill bg-track" />
+      <div className="hidden h-4 w-16 justify-self-center rounded-pill bg-track sm:block" />
 
       {/* Action */}
-      <div className="h-8 w-24 justify-self-end rounded-pill bg-track" />
+      <div className="h-8 w-16 justify-self-end rounded-pill bg-track sm:w-24" />
+
+      {/* Chevron */}
+      <div className="size-3 justify-self-center rounded bg-track" />
     </div>
   );
 }
@@ -36,19 +41,18 @@ function CompactRowLoader() {
 export function CompactLoader() {
   return (
     <div>
-      <div
-        className={`grid ${GRID} items-center gap-[13px] px-[7px] pb-2 pr-3.5`}
-      >
+      <div className={`grid ${GRID} items-center px-1.75 pb-2 pr-3.5`}>
         <span />
         <span className="font-mono text-meta uppercase tracking-wide text-faint">
           Show
         </span>
-        <span className="font-mono text-meta uppercase tracking-wide text-faint">
+        <span className="hidden font-mono text-meta uppercase tracking-wide text-faint sm:block">
           Seats
         </span>
-        <span className="justify-self-center font-mono text-meta uppercase tracking-wide text-faint">
+        <span className="hidden justify-self-center font-mono text-meta uppercase tracking-wide text-faint sm:block">
           Status
         </span>
+        <span />
         <span />
       </div>
       <ol className="flex flex-col gap-[9px]">

@@ -56,7 +56,7 @@ export function App() {
         >
           <div className="flex min-h-screen flex-col bg-bg text-text">
             <Header />
-            <main className="w-full flex-1 px-10 pt-[34px] pb-[60px]">
+            <main className="w-full flex-1 px-4 pt-[34px] pb-[60px]">
               <Router onRouteChange={onRouteChange}>
                 <Route path="/" component={Home} />
                 <Route
