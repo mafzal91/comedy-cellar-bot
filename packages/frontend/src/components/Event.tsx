@@ -84,6 +84,7 @@ export function Event(props: EventItemProps) {
                   target="_blank"
                   rel="noreferrer noopener"
                   aria-label="Open reservation page in a new tab"
+                  variant="plain"
                   className="grid size-8 place-items-center rounded-full border-hair border-line text-muted no-underline transition hover:bg-track hover:text-text hover:no-underline"
                 >
                   <ArrowTopRightOnSquareIcon
@@ -116,6 +117,7 @@ export function Event(props: EventItemProps) {
             {view.reservable ? (
               <Link
                 href={`/reservations/${timestamp}`}
+                variant="plain"
                 className="inline-flex shrink-0 items-center rounded-pill bg-solid px-4 py-2 font-sans text-caption font-bold text-solid-fg no-underline transition hover:bg-brand hover:text-brand-fg hover:no-underline"
               >
                 Reserve Tickets &rarr;

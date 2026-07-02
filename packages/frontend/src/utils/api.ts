@@ -1,15 +1,22 @@
 import { Comic, ListApiRes, ShowDb } from "../types";
 
-import { clerk } from "./clerk";
+import { getClerk } from "./clerk";
 import qs from "qs";
 
 const { VITE_API_URL } = import.meta.env;
 
 const withFetchErrorHandling = (fetchFunction) => {
   return async (...args) => {
-    await clerk.load();
+    // Clerk being unreachable must not block anonymous API calls — proceed
+    // without an Authorization header if it fails to load.
+    let clerk = null;
+    try {
+      clerk = await getClerk();
+    } catch (error) {
+      console.warn("Clerk failed to load; continuing unauthenticated:", error);
+    }
 
-    if (clerk.user) {
+    if (clerk?.user) {
       const token = await clerk.session.getToken();
 
       if (args && args.length) {

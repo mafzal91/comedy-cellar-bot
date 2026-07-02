@@ -35,6 +35,7 @@ export default function Comic() {
     <div className="mx-auto max-w-6xl px-6 pt-8 pb-16 sm:px-10">
       <Link
         href="/comics"
+        variant="plain"
         className="mb-4 inline-block font-mono uppercase text-label tracking-wider text-muted hover:text-text hover:no-underline"
       >
         ‹ All comics
@@ -68,6 +69,7 @@ export default function Comic() {
                   href={comic.data.website}
                   target="_blank"
                   rel="noreferrer"
+                  variant="plain"
                   className="inline-flex items-center gap-1.5 rounded-pill border-hair border-line bg-surface px-5 py-2.5 font-sans text-sm font-bold text-text shadow-block-sm transition hover:bg-brand hover:text-brand-fg hover:no-underline"
                 >
                   Website ↗

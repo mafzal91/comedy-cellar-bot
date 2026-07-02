@@ -68,17 +68,12 @@ export default function Reservation() {
   } = useRoute();
   const location = useLocation();
 
-  // Known quirk (pre-existing): route("/404") during render without returning,
-  // so the component still renders one frame against possibly-missing data.
-  // Can't early-return here without breaking the hooks below; needs a proper
-  // guard-component refactor.
-  if (
+  // Invalid or past timestamps can't be reserved — computed up front so the
+  // query never fires for them and the guard below can bail before render.
+  const invalidTimestamp =
     !timestamp ||
     timestampRegex.test(timestamp) === false ||
-    isPast(+timestamp * 1000)
-  ) {
-    location.route("/404");
-  }
+    isPast(+timestamp * 1000);
 
   const showData = useQuery<
     {
@@ -95,6 +90,7 @@ export default function Reservation() {
 
       return showData;
     },
+    enabled: !invalidTimestamp,
   });
 
   const reservationMutation = useMutation<
@@ -148,16 +144,28 @@ export default function Reservation() {
     });
   };
 
+  // All hooks are above — safe to bail out of render entirely from here on.
+  if (invalidTimestamp) {
+    location.route("/404");
+    return null;
+  }
+
   if (showData.isLoading) {
     return <PageLoader />;
   }
 
-  if (!showData.data || showData.error?.error === "Show not found") {
+  if (showData.error?.error === "Show not found") {
     location.route("/404");
+    return null;
   }
 
   if (showData.isError) {
     return <PageError />;
+  }
+
+  if (!showData.data?.show) {
+    location.route("/404");
+    return null;
   }
 
   const maxReservationSize = showData?.data?.room?.maxReservationSize ?? 4;
