@@ -17,6 +17,7 @@ export function BuyMeCoffeeButton() {
     <a
       href="https://www.buymeacoffee.com/mafzal91"
       target={"_blank"}
+      rel="noopener noreferrer"
       className={"w-40"}
     >
       <img src={url} class="w-full h-auto" />

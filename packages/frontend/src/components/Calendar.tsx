@@ -25,7 +25,7 @@ const mapToDay = (days, isCurrentMonth) => {
     return {
       date: day,
       dayOfWeek: "",
-      isCurrentMonth: isCurrentMonth,
+      isCurrentMonth,
       isToday: false,
       isSelected: false,
     };
@@ -47,7 +47,8 @@ export function Calendar({ value, onChange }) {
     return parseInt(
       new Date(today).toLocaleDateString("en-US", {
         month: "numeric",
-      })
+      }),
+      10
     );
   });
 
@@ -56,7 +57,8 @@ export function Calendar({ value, onChange }) {
     return parseInt(
       new Date(today).toLocaleDateString("en-US", {
         year: "numeric",
-      })
+      }),
+      10
     );
   });
 
@@ -86,21 +88,23 @@ export function Calendar({ value, onChange }) {
       ...mapToDay(previousMonthDatesToDisplay, false),
       ...mapToDay(currentMonthDates.datesBetweenStartAndEnd, true),
       ...mapToDay(nextMonthDatesToDisplay, false),
-    ];
-    return calendarDays as Day[];
+    ] as Day[];
+
+    // set the today date to isToday true
+    const todayIndex = calendarDays.findIndex((day) => day.date === getToday());
+    if (todayIndex !== -1) {
+      calendarDays[todayIndex].isToday = true;
+    }
+
+    const selectDateIndex = calendarDays.findIndex((day) => day.date === value);
+    if (selectDateIndex !== -1) {
+      calendarDays[selectDateIndex].isSelected = true;
+    }
+
+    return calendarDays;
   }, [selectedMonth, value]);
 
   const monthString = getMonthName(selectedMonth);
-  // set the today date to isToday true
-  const todayIndex = days.findIndex((day) => day.date === getToday());
-  if (todayIndex !== -1) {
-    days[todayIndex].isToday = true;
-  }
-
-  const selectDateIndex = days.findIndex((day) => day.date === value);
-  if (selectDateIndex !== -1) {
-    days[selectDateIndex].isSelected = true;
-  }
 
   const handlePreviousMonth = () => {
     setSelectedMonth((prev) => {

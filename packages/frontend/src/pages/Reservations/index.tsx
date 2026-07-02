@@ -68,6 +68,10 @@ export default function Reservation() {
   } = useRoute();
   const location = useLocation();
 
+  // Known quirk (pre-existing): route("/404") during render without returning,
+  // so the component still renders one frame against possibly-missing data.
+  // Can't early-return here without breaking the hooks below; needs a proper
+  // guard-component refactor.
   if (
     !timestamp ||
     timestampRegex.test(timestamp) === false ||
@@ -100,6 +104,15 @@ export default function Reservation() {
   >({
     mutationFn: createReservation,
   });
+
+  useEffect(() => {
+    if (reservationMutation.error?.error?.fieldErrors) {
+      setErrors((prevErrors) => [
+        ...prevErrors,
+        ...(reservationMutation.error?.error?.fieldErrors ?? []),
+      ]);
+    }
+  }, [reservationMutation.error]);
 
   const handleSubmit = (event: Event) => {
     event.preventDefault();
@@ -146,15 +159,6 @@ export default function Reservation() {
   if (showData.isError) {
     return <PageError />;
   }
-
-  useEffect(() => {
-    if (reservationMutation.error?.error?.fieldErrors) {
-      setErrors((prevErrors) => [
-        ...prevErrors,
-        ...(reservationMutation.error?.error?.fieldErrors ?? []),
-      ]);
-    }
-  }, [reservationMutation.error]);
 
   const maxReservationSize = showData?.data?.room?.maxReservationSize ?? 4;
 

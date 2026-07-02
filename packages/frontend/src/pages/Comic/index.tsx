@@ -1,4 +1,3 @@
-import { AlongsideComics } from "./AlongsideComics";
 import ComicBannerImage from "./ComicBannerImage";
 import ComicNotification from "./ComicNotification";
 import { Comic as ComicType } from "../../types";
@@ -89,7 +88,7 @@ export default function Comic() {
 
           <UpcomingShows comicId={comicId} />
 
-          {/* <AlongsideComics comicId={comicId} /> */}
+          {/* <AlongsideComics /> */}
         </div>
       </div>
     </div>

@@ -1,7 +1,6 @@
 import { Img } from "../../components/Image";
-import { Comic as ComicType } from "../../types";
 const comics = [];
-export function AlongsideComics({ comicId }: { comicId: string }) {
+export function AlongsideComics() {
   return (
     <div className="mt-8">
       <h2 className="mb-3 font-mono uppercase text-label tracking-wider text-faint">

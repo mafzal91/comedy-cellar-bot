@@ -38,7 +38,7 @@ export default function ComicNotification() {
         comicNotifications: [
           {
             comicId: params.id,
-            enabled: enabled,
+            enabled,
           },
         ],
       });

@@ -49,7 +49,7 @@ export function App() {
     <LocationProvider>
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary
-          onError={(error) => {
+          onError={() => {
             // Sentry.captureException(error);
             return <div>An error occurred</div>;
           }}

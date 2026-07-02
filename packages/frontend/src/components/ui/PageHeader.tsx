@@ -1,5 +1,4 @@
-import { FunctionalComponent } from "preact";
-import { ComponentChildren, JSX } from "preact";
+import { ComponentChildren, FunctionalComponent, JSX } from "preact";
 
 import clsx from "clsx";
 

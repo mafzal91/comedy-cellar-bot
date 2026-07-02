@@ -61,7 +61,7 @@ export const fetchLineUp = async ({ date }: { date: string }) => {
     const res = await customFetch(`${VITE_API_URL}/api/line-up?date=${date}`);
 
     return res;
-  } catch (error) {
+  } catch {
     return {
       date: "",
       lineUps: [],
