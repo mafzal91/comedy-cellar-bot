@@ -39,11 +39,7 @@ const padPlugin = plugin(({ matchUtilities, theme }) => {
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {
-      colors: {
-        primary: "#f6cb5c",
-      },
-    },
+    extend: {},
   },
   plugins: [require("@tailwindcss/forms"),
     padPlugin

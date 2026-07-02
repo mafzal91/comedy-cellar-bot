@@ -8,7 +8,6 @@ import { Link } from "../../components/Link";
 import { Checkbox } from "../../components/Checkbox";
 import { Spinner } from "../../components/Spinner";
 import { Perforation } from "../../components/Perforation";
-import { ThemeToggle } from "../../components/ThemeToggle";
 
 import { Eyebrow } from "../../components/ui/Eyebrow";
 import { PageHeader } from "../../components/ui/PageHeader";
@@ -72,8 +71,6 @@ export default function Gallery() {
 
   return (
     <div className="min-h-screen bg-bg text-text">
-      <ThemeToggle />
-
       <div className="mx-auto flex max-w-5xl flex-col gap-8 px-6 py-10">
         <PageHeader
           eyebrow="Design System · Wave 0B–0D"
