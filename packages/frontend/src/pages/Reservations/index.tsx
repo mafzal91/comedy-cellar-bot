@@ -52,6 +52,15 @@ const howHeardOptions = [
 
 const timestampRegex = /\b\d{10}\b/;
 
+// customFetch (utils/api.ts) throws the raw API body on 4xx, so the query/
+// mutation error is the API error shape, not a plain Error.
+type ShowQueryError = { error?: string };
+type ReservationFieldError = { field: string; message: string };
+type ReservationMutationError = {
+  error?: { fieldErrors?: ReservationFieldError[]; message?: string };
+  message?: string;
+};
+
 export default function Reservation() {
   const [errors, setErrors] = useState([]);
   const {
@@ -67,12 +76,15 @@ export default function Reservation() {
     location.route("/404");
   }
 
-  const showData = useQuery<{
-    show?: Show;
-    lineUp?: LineUp;
-    room?: Room;
-    error?: string;
-  }>({
+  const showData = useQuery<
+    {
+      show?: Show;
+      lineUp?: LineUp;
+      room?: Room;
+      error?: string;
+    },
+    ShowQueryError
+  >({
     queryKey: ["timestamp", timestamp],
     queryFn: async () => {
       const showData = await fetchShowByTimestamp({ timestamp });
@@ -81,7 +93,11 @@ export default function Reservation() {
     },
   });
 
-  const reservationMutation = useMutation({
+  const reservationMutation = useMutation<
+    Awaited<ReturnType<typeof createReservation>>,
+    ReservationMutationError,
+    Parameters<typeof createReservation>[0]
+  >({
     mutationFn: createReservation,
   });
 
@@ -135,7 +151,7 @@ export default function Reservation() {
     if (reservationMutation.error?.error?.fieldErrors) {
       setErrors((prevErrors) => [
         ...prevErrors,
-        ...reservationMutation.error.error.fieldErrors,
+        ...(reservationMutation.error?.error?.fieldErrors ?? []),
       ]);
     }
   }, [reservationMutation.error]);

@@ -13,7 +13,7 @@ import { BuyMeCoffeeButton } from "./components/BuyMeCoffee";
 import { Header } from "./components/Header";
 import { Link } from "./components/Link";
 import { Redirect } from "./components/Redirect";
-import clsx from "clsx";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { getToday } from "./utils/date";
 import { render } from "preact";
 
@@ -54,22 +54,25 @@ export function App() {
             return <div>An error occurred</div>;
           }}
         >
-          <Header />
-          <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="px-4 py-4 sm:p-6">
+          <div className="flex min-h-screen flex-col bg-bg text-text">
+            <Header />
+            <main className="w-full flex-1 px-10 pt-[34px] pb-[60px]">
               <Router onRouteChange={onRouteChange}>
-                <Home path="/" />
-                <Reservations path="/reservations/:timestamp" />
-                <NotFound path="/404" />
-                <Comics path="/comics" />
-                <Comic path="/comics/:id" />
-                <Terms path="/terms-privacy" />
-                <Updates path="/updates" />
-                <Gallery path="/gallery" />
-                <Profile path="/profile" />
-                <SignUp path="/sign-up" />
-                <SignIn path="/sign-in" />
-                <SignOut path="/sign-out" />
+                <Route path="/" component={Home} />
+                <Route
+                  path="/reservations/:timestamp"
+                  component={Reservations}
+                />
+                <Route path="/404" component={NotFound} />
+                <Route path="/comics" component={Comics} />
+                <Route path="/comics/:id" component={Comic} />
+                <Route path="/terms-privacy" component={Terms} />
+                <Route path="/updates" component={Updates} />
+                <Route path="/gallery" component={Gallery} />
+                <Route path="/profile" component={Profile} />
+                <Route path="/sign-up" component={SignUp} />
+                <Route path="/sign-in" component={SignIn} />
+                <Route path="/sign-out" component={SignOut} />
                 <Route
                   default
                   component={() => (
@@ -77,31 +80,20 @@ export function App() {
                   )}
                 />
               </Router>
-            </div>
-          </main>
-          <footer
-            className={clsx(
-              ...[
-                "flex items-center justify-center",
-                "py-4 px-4 sm:px-6 lg:px-8 gap-2",
-
-                // Desktop positioning
-                "lg:fixed lg:bottom-0 lg:left-0 lg:right-0 lg:justify-start",
-                "lg:mx-auto lg:max-w-7xl",
-                "hidden",
-              ]
-            )}
-          >
-            <div className="flex items-center justify-between py-4 px-4 sm:px-6 lg:px-8 gap-2">
-              <Link
-                href="/terms-privacy"
-                className="p-2.5 rounded-lg text-xs bg-primary text-slate-950 text-center"
-              >
-                Terms & Privacy
-              </Link>
-              <BuyMeCoffeeButton />
-            </div>
-          </footer>
+            </main>
+            <footer className="border-t-2 border-line bg-surface">
+              <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-4 px-10 py-6">
+                <Link
+                  href="/terms-privacy"
+                  className="font-mono text-meta uppercase tracking-wider text-muted no-underline hover:text-text"
+                >
+                  Terms &amp; Privacy
+                </Link>
+                <BuyMeCoffeeButton />
+              </div>
+            </footer>
+          </div>
+          <ThemeToggle />
         </ErrorBoundary>
       </QueryClientProvider>
     </LocationProvider>
