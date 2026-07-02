@@ -4,6 +4,7 @@ import { getClerk } from "../../utils/clerk";
 import { Link } from "../../components/Link";
 import PageWrapper from "./PageWrapper";
 import { authAppearance } from "./authAppearance";
+import "./Auth.css";
 
 export default function SignIn() {
   const signInRef = useRef();
@@ -17,8 +18,6 @@ export default function SignIn() {
     <PageWrapper
       eyebrow="Members' Entrance"
       title="Take Your Seat"
-      subline="Welcome back — sign in to manage your reservations."
-      footnote="Secured by Clerk"
       footer={
         <>
           New to the Cellar?{" "}

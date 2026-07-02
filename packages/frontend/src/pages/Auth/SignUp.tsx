@@ -4,6 +4,7 @@ import { getClerk } from "../../utils/clerk";
 import { Link } from "../../components/Link";
 import PageWrapper from "./PageWrapper";
 import { authAppearance } from "./authAppearance";
+import "./Auth.css";
 
 export default function SignUp() {
   const signUpRef = useRef();
@@ -15,10 +16,7 @@ export default function SignUp() {
 
   return (
     <PageWrapper
-      eyebrow="New Members"
       title="Join the Cellar"
-      subline="Create an account to book and manage your reservations."
-      footnote="Secured by Clerk"
       footer={
         <>
           Already have a seat?{" "}

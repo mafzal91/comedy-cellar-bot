@@ -1,4 +1,5 @@
 import { Comic } from "../../types";
+import { Img } from "../../components/Image";
 import { ShowCount } from "./ShowCount";
 import { getInitials, getSwatch } from "../../utils/swatches";
 
@@ -12,25 +13,57 @@ export function ComicItem({ comic }: { comic: Comic }) {
         href={`/comics/${comic.externalId}`}
         className="flex h-full flex-col overflow-hidden rounded-card border-hair border-line bg-surface shadow-block transition-all duration-150 hover:-translate-x-px hover:-translate-y-px hover:shadow-block-lg focus:outline-none focus-visible:-translate-x-px focus-visible:-translate-y-px focus-visible:shadow-block-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
-        {/* Photo placeholder — swatch bg + centered Bebas initials */}
-        <div
-          className="relative flex h-44 items-center justify-center border-b-2 border-line"
-          style={{ backgroundColor: bg }}
-          role="img"
-          aria-label={`${comic.name}'s photo`}
-        >
-          <span
-            className="font-display text-8xl leading-none tracking-[0.04em]"
-            style={{ color: fg }}
-          >
-            {initials}
-          </span>
-          <span
-            className="absolute bottom-2 right-2.5 font-mono text-[8px] uppercase tracking-wider"
-            style={{ color: fg, opacity: 0.55 }}
-          >
-            PHOTO
-          </span>
+        {/* Photo — falls back to the swatch + initials placeholder when comic.img is missing */}
+        <div className="group relative h-44 overflow-hidden border-b-2 border-line">
+          {comic.img ? (
+            <>
+              <Img
+                alt={`${comic.name}'s photo`}
+                loading="lazy"
+                src={comic.img}
+                className="h-full w-full object-cover"
+              />
+              {/* Translucent placeholder overlay on hover */}
+              <div
+                className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-150 group-hover:opacity-80"
+                style={{ backgroundColor: bg }}
+                aria-hidden="true"
+              >
+                <span
+                  className="font-display text-8xl leading-none tracking-[0.04em]"
+                  style={{ color: fg }}
+                >
+                  {initials}
+                </span>
+                <span
+                  className="absolute bottom-2 right-2.5 font-mono text-[8px] uppercase tracking-wider"
+                  style={{ color: fg, opacity: 0.55 }}
+                >
+                  PHOTO
+                </span>
+              </div>
+            </>
+          ) : (
+            <div
+              className="flex h-full items-center justify-center"
+              style={{ backgroundColor: bg }}
+              role="img"
+              aria-label={`${comic.name}'s photo`}
+            >
+              <span
+                className="font-display text-8xl leading-none tracking-[0.04em]"
+                style={{ color: fg }}
+              >
+                {initials}
+              </span>
+              <span
+                className="absolute bottom-2 right-2.5 font-mono text-[8px] uppercase tracking-wider"
+                style={{ color: fg, opacity: 0.55 }}
+              >
+                PHOTO
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Body */}

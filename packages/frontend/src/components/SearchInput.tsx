@@ -1,4 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 
 import { Spinner } from "./Spinner";
@@ -51,18 +52,13 @@ export function SearchInput({
   return (
     <div
       className={clsx(
-        "flex items-center gap-3 rounded-pill border-hair border-line bg-bg px-[1.125rem] py-3",
+        "flex items-center gap-3 rounded-pill border-hair border-line bg-bg px-4.5 py-3",
         "focus-within:shadow-[3px_3px_0_var(--color-brand)]",
         disabled && "opacity-60",
         className,
       )}
     >
-      <span
-        aria-hidden="true"
-        className="select-none font-mono text-caption leading-none text-muted"
-      >
-        ⌕
-      </span>
+      <MagnifyingGlassIcon className="size-4 select-none font-mono text-caption leading-none text-muted" />
       <input
         type="text"
         value={inputValue}

@@ -1,21 +1,23 @@
 import { useState } from "preact/hooks";
 import type { ComponentChildren } from "preact";
 
-import { Button } from "../../components/Button";
-import { Card, CardHeader, CardBody, CardFooter } from "../../components/Card";
-import { Input } from "../../components/Input";
-import { Link } from "../../components/Link";
-import { Checkbox } from "../../components/Checkbox";
-import { Spinner } from "../../components/Spinner";
-import { Perforation } from "../../components/Perforation";
+import { Button } from "@/components/Button";
+import { Card, CardHeader, CardBody, CardFooter } from "@/components/Card";
+import { Input } from "@/components/Input";
+import { Link } from "@/components/Link";
+import { Checkbox } from "@/components/Checkbox";
+import { Spinner } from "@/components/Spinner";
+import { Perforation } from "@/components/Perforation";
 
-import { Eyebrow } from "../../components/ui/Eyebrow";
-import { PageHeader } from "../../components/ui/PageHeader";
-import { Pill } from "../../components/ui/Pill";
-import { StatusPill } from "../../components/ui/StatusPill";
-import { ProgressBar } from "../../components/ui/ProgressBar";
-import { SegmentedToggle } from "../../components/ui/SegmentedToggle";
-import { Avatar } from "../../components/ui/Avatar";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Pill } from "@/components/ui/Pill";
+import { Badge } from "@/components/ui/Badge";
+import { BellAlertIcon, BellSlashIcon } from "@heroicons/react/20/solid";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { SegmentedToggle } from "@/components/ui/SegmentedToggle";
+import { Avatar } from "@/components/ui/Avatar";
 import { FlameMeter } from "../../components/ui/FlameMeter";
 import { TicketStub } from "../../components/ui/TicketStub";
 import { TicketCard } from "../../components/ui/TicketCard";
@@ -131,6 +133,18 @@ export default function Gallery() {
               <StatusPill status="available" />
               <StatusPill status="selling-fast" />
               <StatusPill status="sold-out" />
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <StatusPill status="available" withIcon />
+              <StatusPill status="selling-fast" withIcon />
+              <StatusPill status="sold-out" withIcon />
+              <StatusPill status="ended" withIcon />
+              <Badge tone="success" icon={BellAlertIcon}>
+                Enabled
+              </Badge>
+              <Badge tone="muted" icon={BellSlashIcon}>
+                Muted
+              </Badge>
             </div>
             <div className="flex w-72 flex-col gap-3">
               <ProgressBar pct={30} status="available" />

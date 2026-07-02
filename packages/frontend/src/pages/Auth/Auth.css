@@ -1,0 +1,13 @@
+/* Clerk widget dark-mode overrides */
+
+[data-theme="dark"] .cl-socialButtonsBlockButton__buttonText {
+  color: var(--text) !important;
+}
+
+[data-theme="dark"] .cl-signIn-start .cl-formFieldLabel {
+  color: var(--text) !important;
+}
+
+[data-theme="dark"] .cl-form_hasError .cl-formFieldLabel {
+  color: var(--text) !important;
+}

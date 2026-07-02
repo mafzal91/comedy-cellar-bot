@@ -32,16 +32,16 @@ export function Header() {
 
   return (
     <>
-      <header className="flex w-full items-center justify-between bg-brand px-5 py-4 sm:px-10">
+      <header className="flex w-full items-center justify-between bg-brand px-3 py-2.5 sm:px-10 sm:py-4">
         <a href="/" className="flex items-baseline">
-          <span className="font-display text-d-md leading-none tracking-tightcap text-ink">
+          <span className="font-display text-d-sm leading-none tracking-tightcap text-ink sm:text-d-md">
             COMEDY CELLAR
           </span>
-          <span className="ml-2.5 font-mono text-eyebrow tracking-mega text-ink/60">
+          <span className="ml-1.5 hidden font-mono text-eyebrow tracking-mega text-ink/60 sm:ml-2.5 sm:inline">
             EST. NYC 1981
           </span>
         </a>
-        <nav className="flex items-center gap-x-6">
+        <nav className="flex items-center gap-x-2 sm:gap-x-6">
           {navLinks.map((item, itemIdx) => {
             const isLast = itemIdx === navLinks.length - 1;
             const isAuthAction = item.name === "Sign In" || item.name === "Sign out";
@@ -52,7 +52,7 @@ export function Header() {
                   key={itemIdx}
                   href={item.href}
                   variant="plain"
-                  className="rounded-pill bg-ink px-4 py-2 font-sans text-sm font-bold text-brand hover:bg-ink/80"
+                  className="rounded-pill bg-ink px-3 py-2 font-sans text-xs font-bold text-brand hover:bg-ink/80 sm:px-4 sm:text-sm"
                 >
                   {item.name}
                 </Link>
@@ -65,7 +65,8 @@ export function Header() {
                 href={item.href}
                 variant="plain"
                 className={clsx(
-                  "font-sans text-body font-medium text-ink opacity-[.78] hover:underline"
+                  "font-sans font-medium text-ink opacity-[.78] hover:underline",
+                  "text-[11px] sm:text-body"
                 )}
               >
                 {item.name}

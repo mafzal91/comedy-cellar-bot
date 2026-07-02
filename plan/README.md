@@ -79,22 +79,42 @@ items start-aligned.
     background = brand yellow (or `#E9E3D6` stub-gray if sold out), showing time (Bebas 34px) +
     AM/PM (mono 11px). A rotated "SOLD" stamp (mono 9px, `danger` red, bordered, `rotate(-8deg)`)
     appears bottom of stub when sold out. Right side: title (Archivo 800 19px) + status pill
-    (mono 10px uppercase; color/tint per status) + venue·capacity meta (mono 12px) + a
+    (mono 10px uppercase; color/tint per status) + a **rotating chevron** (▾, 26px circle,
+    `1.5px solid var(--line)`, `transform: rotate(180deg)` when open) + venue·capacity·**lineup**
+    meta (mono 12px — third segment reads `"{n} comics"` or `"lineup TBA"`) + a
     **seat progress bar** (6px track `var(--track)`, fill colored per status, width = % full) +
     a "Reserve Tickets →" pill (`var(--solid)`/`var(--on-solid)`, hover flips to yellow/ink) or
     "Reservations closed" text.
-  - **Compact rows:** same data as a dense grid `62px minmax(0,1fr) 104px 88px 108px`, gap 13px,
-    with a column header row (Show / Seats / Status). Smaller stub (radius 7px), truncated title,
-    thin 5px progress bar, status pill, "Reserve →" / "Closed".
-- **State:** `mode: 'relaxed' | 'compact'` (local). Show records are derived (see Data below).
+  - **Compact rows:** same data as a dense grid `62px minmax(0,1fr) 104px 88px 108px 26px` (6th
+    column added for the chevron), gap 16px, with a column header row (Show / Seats / Status).
+    Smaller stub (radius 7px), truncated title, thin 5px progress bar, status pill, "Reserve →" /
+    "Closed", trailing chevron.
+  - **Lineup expand/collapse (both variants):** the row/card (excluding the Reserve pill, which
+    stops click propagation) is the toggle target — the whole thing is clickable, not just the
+    chevron. Expanding reveals the show's lineup **fused into the same card**
+    (`border-top:2px dashed var(--line)` for Relaxed / `1.5px dashed` for Compact,
+    `background:var(--bg)`, fade+slide-in `lineupIn` animation ~0.22s) — not a detached panel.
+    Heading: `"Tonight's Lineup · {n} acts"`. Relaxed lists each act as a row (46px swatch avatar
+    with initials, name, credits). Compact renders acts as wrapped **pill chips** (30px avatar +
+    name only). Empty state (no lineup announced): a dashed-circle `?` glyph + "Lineup not
+    announced yet" + "Acts are usually posted the morning of the show." Per-show open/closed
+    state is independent (multiple shows can be expanded at once).
+- **State:** `mode: 'relaxed' | 'compact'` (local); per-show `isOpen` (local, keyed by show
+  index/timestamp) drives the lineup toggle. Show records are derived (see Data below).
 - **Hover:** cards translate `(-1px,-1px)` and shadow grows to `5px 6px 0` (compact: `4px 5px 0`).
+  The clickable row also gets a subtle background tint on hover (the mock's local `--hover` var
+  isn't in `theme.css`'s token set — use the existing `hover:bg-track` utility instead).
 
-### 2. Home Redesign — `Home Redesign.dc.html`  (exploration, not a route)
+### 2. Home Redesign — `Home Redesign.dc.html`  (canvas exploration — now normative for the
+lineup interaction)
 Two alternate Home treatments shown **side by side on a pannable canvas** (uses
 `design_doc_mode=canvas`): "The Marquee — Roomy" and "The Marquee — Condensed". Same content as
 Home; the Condensed variant fits the whole night on screen using the compact table layout and a
-smaller hero. **Treat as reference for layout alternatives** — ship the chosen direction (the
-live Home above uses the Relaxed/Compact toggle, which subsumes both).
+smaller hero. **Layout direction is reference-only** — ship the chosen direction (the live Home
+above uses the Relaxed/Compact toggle, which subsumes both). **The click-to-expand lineup
+behavior specified here (chevron, fused panel, heading, empty state, pill-chip vs list act
+rendering — see section 1) is in scope and must be built on the live Home page for both view
+modes.**
 
 ### 3. Comics — `Comics.dc.html`  (route: `/comics`)
 **Purpose:** Browse/search the comic roster.
