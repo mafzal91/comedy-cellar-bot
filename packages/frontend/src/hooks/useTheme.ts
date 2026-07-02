@@ -31,7 +31,7 @@ export function useTheme() {
     }
     document.documentElement.setAttribute("data-theme", theme);
     // Sync on mount only; toggle() handles subsequent updates itself.
-    // eslint-disable-next-line preact-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggle = () => {

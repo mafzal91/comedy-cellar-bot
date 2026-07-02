@@ -19,10 +19,12 @@ export function FormSuccess({ message }: { message: string }) {
           </small>
           <div
             className="mt-2 font-sans text-caption text-success"
+            // Trusted first-party API success message that is delivered as HTML.
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{ __html: message }}
-          ></div>
+          />
           <div className="mt-4">
-            <div className="-mx-2 -my-1.5 flex"></div>
+            <div className="-mx-2 -my-1.5 flex" />
           </div>
         </div>
       </div>

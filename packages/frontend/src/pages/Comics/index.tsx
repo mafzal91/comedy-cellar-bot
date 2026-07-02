@@ -54,6 +54,10 @@ export default function Comics() {
     if (searchFromUrl !== searchTerm) {
       setSearchTerm(searchFromUrl);
     }
+    // One-way URL -> state sync: must only run when the URL changes. Adding
+    // 'searchTerm' would rerun on every keystroke and clobber in-flight input
+    // with the stale URL value before route() lands.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query.search]);
 
   useEffect(() => {

@@ -35,11 +35,7 @@ export default function Home() {
       const today = getToday();
       route(`?date=${today}`, true);
     }
-  }, [query.date]);
-
-  if (!query.date) {
-    return null;
-  }
+  }, [query.date, route]);
 
   const showData = useQuery<Show[]>({
     queryKey: ["shows", query.date],
@@ -63,6 +59,10 @@ export default function Home() {
     refetchOnWindowFocus: false,
     retry: false,
   });
+
+  if (!query.date) {
+    return null;
+  }
 
   const findLineUp = (timestamp: number) => {
     return lineUpData.data?.find((lineUp) => lineUp.timestamp === timestamp);

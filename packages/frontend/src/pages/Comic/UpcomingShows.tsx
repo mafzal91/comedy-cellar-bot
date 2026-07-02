@@ -1,4 +1,4 @@
-import { Comic as ComicType, ListApiRes, ShowDb } from "../../types";
+import { ListApiRes, ShowDb } from "../../types";
 
 import { fetchShowsNew } from "../../utils/api";
 import { useMemo } from "preact/hooks";

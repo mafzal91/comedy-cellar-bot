@@ -11,7 +11,7 @@ export const Redirect = ({
   const { route } = useLocation();
   useLayoutEffect(() => {
     route(to, replace);
-  }, [to]);
+  }, [to, replace, route]);
 
   return null;
 };
