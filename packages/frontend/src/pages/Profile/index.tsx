@@ -19,13 +19,15 @@ export default function Profile() {
   const profileRef = useRef();
   useEffect(() => {
     getClerk().then((clerk) => {
-      clerk.mountUserProfile(profileRef.current, { appearance: authAppearance });
+      clerk.mountUserProfile(profileRef.current, {
+        appearance: authAppearance,
+      });
     });
   }, []);
 
   return (
     <PageWrapper>
-      <div className="w-full max-w-full px-6 pb-16">
+      <div className="w-full max-w-225 pb-16">
         <PageHeader
           eyebrow="Your Account"
           title="Backstage Pass"

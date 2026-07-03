@@ -17,10 +17,10 @@ type PageWrapperProps = {
 };
 
 /**
- * Centered "ticket booth" wrapper for the auth screens. When any of the chrome
- * props are supplied it renders the marquee header, a bordered surface card that
- * slots the auth widget, plus the footer link + footnote. With no chrome props it
- * falls back to the original plain centered wrapper (still used by the Profile page).
+ * Centered wrapper for the auth screens. When any of the chrome props are
+ * supplied it renders the marquee header, a centered surface card that wraps
+ * the auth widget at its natural width, plus the footer link + footnote. With no chrome props it falls back to the original
+ * plain centered wrapper (still used by the Profile page).
  */
 export default function PageWrapper({
   children,
@@ -55,12 +55,16 @@ export default function PageWrapper({
           </div>
         ) : null}
 
-        <div className="rounded-2xl border-hair border-line bg-surface px-4 py-6 pb-6 shadow-block-lg sm:px-7">
-          {children}
+        <div className="flex justify-center">
+          <div className="rounded-2xl border-hair border-line bg-surface px-4 py-6 shadow-block-lg sm:px-7">
+            {children}
+          </div>
         </div>
 
         {footer ? (
-          <p className="mt-4 text-center font-sans text-body text-muted">{footer}</p>
+          <p className="mt-4 text-center font-sans text-body text-muted">
+            {footer}
+          </p>
         ) : null}
 
         {footnote ? (

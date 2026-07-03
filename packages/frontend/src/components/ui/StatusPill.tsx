@@ -17,6 +17,8 @@ type StatusPillProps = {
   status?: StatusPillStatus;
   /** Render a leading status icon (e.g. for the icon-only compact/mobile badge). */
   withIcon?: boolean;
+  /** Hide the text label visually (kept for screen readers); implies the icon. */
+  iconOnly?: boolean;
   className?: string;
 };
 
@@ -38,13 +40,18 @@ const STATUS_CONFIG: Record<
 export function StatusPill({
   status = "available",
   withIcon = false,
+  iconOnly = false,
   className,
 }: StatusPillProps) {
   const { label, tone, Icon } = STATUS_CONFIG[status];
 
   return (
-    <Badge tone={tone} icon={withIcon ? Icon : undefined} className={className}>
-      {label}
+    <Badge
+      tone={tone}
+      icon={withIcon || iconOnly ? Icon : undefined}
+      className={className}
+    >
+      {iconOnly ? <span className="sr-only">{label}</span> : label}
     </Badge>
   );
 }

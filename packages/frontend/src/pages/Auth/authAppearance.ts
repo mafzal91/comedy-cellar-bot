@@ -22,13 +22,11 @@ export const authAppearance = {
     fontFamily: "Archivo, system-ui, sans-serif",
   },
   elements: {
-    rootBox: "w-full max-w-full",
-    cardBox: "w-full border-none! bg-transparent! p-0! shadow-none!",
-    card: "border-none! bg-transparent! p-0! shadow-none!",
+    cardBox: "border-none! bg-transparent! p-0! shadow-none!",
+    card: "border-none! bg-transparent! px-2! py-0! shadow-none!",
     header: "hidden",
     footer: "hidden",
-    socialButtonsBlockButton:
-      "border-hair border-line rounded-field bg-surface hover:bg-track text-text",
+    socialButtonsBlockButton: { backgroundColor: "white" },
     formButtonPrimary: "rounded-pill bg-solid hover:bg-solid-hover",
     dividerLine: "bg-line",
     dividerText: "text-muted font-mono text-meta",

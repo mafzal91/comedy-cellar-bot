@@ -42,7 +42,7 @@ export function Badge({ tone = "neutral", icon: Icon, className, children }: Bad
   return (
     <span
       className={clsx(
-        "inline-flex items-center gap-1 rounded-pill border-hair px-2 py-0.5 font-mono text-meta uppercase tracking-wider",
+        "inline-flex items-center gap-1 whitespace-nowrap rounded-pill border-hair px-2 py-0.5 font-mono text-meta uppercase tracking-wider",
         TONE_CLASSES[tone],
         className,
       )}

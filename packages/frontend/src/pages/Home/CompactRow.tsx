@@ -90,7 +90,7 @@ export function CompactRow({
 
           {/* Mobile-only availability badge (seats bar + desktop pill are sm+) */}
           <div className="mt-1.5 sm:hidden">
-            <StatusPill status={view.status} withIcon className="py-0" />
+            <StatusPill status={view.status} iconOnly className="py-0" />
           </div>
         </div>
 
