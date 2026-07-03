@@ -6,7 +6,6 @@ import {
 
 import { Link } from "./Link";
 import { Act } from "./Act";
-import { StatusPill } from "./ui/StatusPill";
 import { ProgressBar } from "./ui/ProgressBar";
 import { Show, LineUp } from "../types";
 import { getShowView } from "../pages/Home/types";
@@ -78,7 +77,6 @@ export function Event(props: EventItemProps) {
         <div className="min-w-0 flex-1 px-5 py-4 transition-colors hover:bg-track">
           <div className="sm:flex sm:items-start sm:justify-between sm:gap-3">
             <div className="hidden shrink-0 items-center gap-2.5 sm:order-2 sm:flex">
-              <StatusPill status={view.status} className="shrink-0" />
               {view.reservable && (
                 <Link
                   href={reservationUrl}
@@ -130,12 +128,11 @@ export function Event(props: EventItemProps) {
             </p>
           </div>
 
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3.5">
-            <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-3.5">
+            <div className="hidden min-w-0 flex-1 sm:block">
               <ProgressBar pct={view.pct} status={view.status} />
             </div>
-            <div className="flex items-center justify-end gap-2">
-              <StatusPill status={view.status} className="shrink-0 sm:hidden" />
+            <div className="flex flex-1 items-center justify-end gap-2 sm:flex-none">
               {view.reservable ? (
                 <Link
                   href={`/reservations/${timestamp}`}

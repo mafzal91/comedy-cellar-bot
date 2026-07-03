@@ -6,6 +6,7 @@ import {
   getPreviousMonthsDates,
   getToday,
 } from "../utils/date";
+import { format } from "date-fns";
 import { useMemo, useState } from "preact/hooks";
 
 import { CalendarButton } from "./CalendarButton";
@@ -63,9 +64,10 @@ export function Calendar({ value, onChange }) {
   });
 
   const days = useMemo(() => {
-    const today = new Date();
-    today.setMonth(selectedMonth - 1);
-    const formatDate = today.toISOString().split("T")[0];
+    const formatDate = format(
+      new Date(selectedYear, selectedMonth - 1, 1),
+      "yyyy-MM-dd"
+    );
 
     const currentMonthDates = getDatesInMonth(formatDate);
     const nextMonthDates = getNextMonthsDates(formatDate);
@@ -102,7 +104,7 @@ export function Calendar({ value, onChange }) {
     }
 
     return calendarDays;
-  }, [selectedMonth, value]);
+  }, [selectedMonth, selectedYear, value]);
 
   const monthString = getMonthName(selectedMonth);
 
@@ -130,30 +132,49 @@ export function Calendar({ value, onChange }) {
     onChange(date);
   };
 
+  const handleGoToToday = () => {
+    const today = getToday();
+    const [year, month] = today.split("-").map((part) => parseInt(part, 10));
+    setSelectedYear(year);
+    setSelectedMonth(month);
+    onChange(today);
+  };
+
   const weekdayInitials = ["S", "M", "T", "W", "T", "F", "S"];
 
   return (
     <div className="calendar-dark-shadow border-hair border-line rounded-panel bg-surface p-[1.125rem] shadow-block-md">
-      <div className="mb-3.5 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={handlePreviousMonth}
-          className="flex size-7 items-center justify-center rounded-full border-hair border-line text-text outline-none transition hover:bg-track focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-        >
-          <span className="sr-only">Previous month</span>
-          <ChevronLeftIcon className="size-4" aria-hidden="true" />
-        </button>
-        <span className="font-display text-d-sm tracking-cap text-text">
-          {monthString} {selectedYear}
-        </span>
-        <button
-          type="button"
-          onClick={handleNextMonth}
-          className="flex size-7 items-center justify-center rounded-full border-hair border-line text-text outline-none transition hover:bg-track focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-        >
-          <span className="sr-only">Next month</span>
-          <ChevronRightIcon className="size-4" aria-hidden="true" />
-        </button>
+      <div className="mb-3.5">
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={handlePreviousMonth}
+            className="flex size-7 items-center justify-center rounded-full border-hair border-line text-text outline-none transition hover:bg-track focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            <span className="sr-only">Previous month</span>
+            <ChevronLeftIcon className="size-4" aria-hidden="true" />
+          </button>
+          <span className="font-display text-d-sm tracking-cap text-text">
+            {monthString} {selectedYear}
+          </span>
+          <button
+            type="button"
+            onClick={handleNextMonth}
+            className="flex size-7 items-center justify-center rounded-full border-hair border-line text-text outline-none transition hover:bg-track focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            <span className="sr-only">Next month</span>
+            <ChevronRightIcon className="size-4" aria-hidden="true" />
+          </button>
+        </div>
+        <div className="mt-2 flex justify-center">
+          <button
+            type="button"
+            onClick={handleGoToToday}
+            className="rounded-pill border-hair border-line px-3 py-1 font-mono text-meta uppercase tracking-wide text-muted outline-none transition hover:bg-track hover:text-text focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            Today
+          </button>
+        </div>
       </div>
       <div className="grid grid-cols-7">
         {weekdayInitials.map((name, index) => (
