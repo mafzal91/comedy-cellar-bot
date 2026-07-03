@@ -76,14 +76,8 @@ export function Event(props: EventItemProps) {
 
         {/* Body */}
         <div className="min-w-0 flex-1 px-5 py-4 transition-colors hover:bg-track">
-          <div className="flex items-start justify-between gap-3">
-            <h3
-              className="min-w-0 font-sans text-lead font-extrabold text-text"
-              title={description}
-            >
-              {view.title}
-            </h3>
-            <div className="flex shrink-0 items-center gap-2.5">
+          <div className="sm:flex sm:items-start sm:justify-between sm:gap-3">
+            <div className="hidden shrink-0 items-center gap-2.5 sm:order-2 sm:flex">
               <StatusPill status={view.status} className="shrink-0" />
               {view.reservable && (
                 <Link
@@ -121,6 +115,12 @@ export function Event(props: EventItemProps) {
                 />
               </button>
             </div>
+            <h3
+              className="min-w-0 font-sans text-lead font-extrabold text-text sm:order-1"
+              title={description}
+            >
+              {view.title}
+            </h3>
           </div>
 
           <div className="mb-3 mt-2.5 flex items-center gap-2">
@@ -130,24 +130,64 @@ export function Event(props: EventItemProps) {
             </p>
           </div>
 
-          <div className="flex items-center gap-3.5">
-            <div className="flex-1">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3.5">
+            <div className="min-w-0 flex-1">
               <ProgressBar pct={view.pct} status={view.status} />
             </div>
-            {view.reservable ? (
-              <Link
-                href={`/reservations/${timestamp}`}
-                variant="plain"
-                onClick={(e) => e.stopPropagation()}
-                className="inline-flex shrink-0 items-center rounded-pill bg-solid px-4 py-2 font-sans text-caption font-bold text-solid-fg no-underline transition hover:bg-brand hover:text-brand-fg hover:no-underline"
-              >
-                Reserve Tickets &rarr;
-              </Link>
-            ) : (
-              <span className="shrink-0 font-mono text-[11px] text-faint">
-                Reservations closed
-              </span>
-            )}
+            <div className="flex items-center justify-end gap-2">
+              <StatusPill status={view.status} className="shrink-0 sm:hidden" />
+              {view.reservable ? (
+                <Link
+                  href={`/reservations/${timestamp}`}
+                  variant="plain"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex shrink-0 items-center rounded-pill bg-solid px-4 py-2 font-sans text-caption font-bold text-solid-fg no-underline transition hover:bg-brand hover:text-brand-fg hover:no-underline"
+                >
+                  Reserve Tickets &rarr;
+                </Link>
+              ) : (
+                <span className="shrink-0 font-mono text-[11px] text-faint">
+                  Reservations closed
+                </span>
+              )}
+              <div className="flex items-center gap-2 sm:hidden">
+                {view.reservable && (
+                  <Link
+                    href={reservationUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label="Open reservation page in a new tab"
+                    variant="plain"
+                    onClick={(e) => e.stopPropagation()}
+                    className="grid size-8 place-items-center rounded-full border-hair border-line text-muted no-underline transition hover:bg-track hover:text-text hover:no-underline"
+                  >
+                    <ArrowTopRightOnSquareIcon
+                      className="size-4"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  disabled={isLineUpLoading}
+                  aria-expanded={isOpen}
+                  aria-label={isOpen ? "Hide lineup" : "Show lineup"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggle();
+                  }}
+                  className="grid size-8 place-items-center rounded-full border-hair border-line text-muted outline-none transition hover:bg-track hover:text-text disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                >
+                  <ChevronDownIcon
+                    className={clsx(
+                      "size-4 transition-transform",
+                      isOpen && "rotate-180"
+                    )}
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
