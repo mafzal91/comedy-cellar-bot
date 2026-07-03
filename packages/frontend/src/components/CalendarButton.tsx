@@ -36,7 +36,7 @@ export function CalendarButton({ day, onClick }: CalendarButtonProps) {
       <span
         aria-hidden="true"
         className={clsx(
-          "absolute size-8 rounded-full transition-colors",
+          "absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors",
           isSelected && "bg-solid",
           isToday && !isSelected && "border-2 border-solid",
           !isToday &&
@@ -47,7 +47,7 @@ export function CalendarButton({ day, onClick }: CalendarButtonProps) {
       <time
         dateTime={day.date}
         className={clsx(
-          "relative font-sans text-[13px] font-semibold",
+          "relative grid size-8 place-items-center font-sans text-[13px] font-semibold tabular-nums",
           isSelected && "text-solid-fg",
           isToday && !isSelected && "text-text",
           !isToday && !isSelected && isCurrentMonth && "text-text",

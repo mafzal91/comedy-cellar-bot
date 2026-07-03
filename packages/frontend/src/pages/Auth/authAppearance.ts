@@ -22,7 +22,7 @@ export const authAppearance = {
     fontFamily: "Archivo, system-ui, sans-serif",
   },
   elements: {
-    rootBox: "w-full",
+    rootBox: "w-full max-w-full",
     cardBox: "w-full border-none! bg-transparent! p-0! shadow-none!",
     card: "border-none! bg-transparent! p-0! shadow-none!",
     header: "hidden",

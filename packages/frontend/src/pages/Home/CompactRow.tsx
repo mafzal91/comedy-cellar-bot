@@ -54,7 +54,7 @@ export function CompactRow({
         {/* Time stub */}
         <div
           className={clsx(
-            "rounded-[8px] border-hair border-line py-[5px] text-center",
+            "flex flex-col items-center justify-center rounded-[8px] border-hair border-line py-[5px] text-center",
             view.closed ? "bg-stub" : "bg-brand"
           )}
         >

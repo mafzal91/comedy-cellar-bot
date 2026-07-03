@@ -32,8 +32,8 @@ export function Header() {
 
   return (
     <>
-      <header className="flex w-full items-center justify-between bg-brand px-3 py-2.5 sm:px-10 sm:py-4">
-        <a href="/" className="flex items-baseline">
+      <header className="flex w-full items-center justify-between gap-2 bg-brand px-3 py-2.5 sm:gap-4 sm:px-10 sm:py-4">
+        <a href="/" className="shrink-0 flex items-baseline">
           <span className="font-display text-d-sm leading-none tracking-tightcap text-ink sm:text-d-md">
             COMEDY CELLAR
           </span>
@@ -41,7 +41,7 @@ export function Header() {
             EST. NYC 1981
           </span>
         </a>
-        <nav className="flex items-center gap-x-2 sm:gap-x-6">
+        <nav className="flex min-w-0 shrink items-center gap-x-1.5 sm:gap-x-6">
           {navLinks.map((item, itemIdx) => {
             const isLast = itemIdx === navLinks.length - 1;
             const isAuthAction = item.name === "Sign In" || item.name === "Sign out";
@@ -52,7 +52,7 @@ export function Header() {
                   key={itemIdx}
                   href={item.href}
                   variant="plain"
-                  className="rounded-pill bg-ink px-3 py-2 font-sans text-xs font-bold text-brand hover:bg-ink/80 sm:px-4 sm:text-sm"
+                  className="shrink-0 rounded-pill bg-ink px-2.5 py-1.5 font-sans text-xs font-bold text-brand hover:bg-ink/80 sm:px-4 sm:py-2 sm:text-sm"
                 >
                   {item.name}
                 </Link>

@@ -16,7 +16,7 @@ export function Avatar({ name, img, size = 42, className }: AvatarProps) {
     return (
       <span
         className={clsx(
-          "group relative grid shrink-0 place-items-center overflow-hidden rounded-pill border-hair border-line",
+          "grid shrink-0 place-items-center overflow-hidden rounded-pill border-hair border-line",
           className,
         )}
         style={{ width: size, height: size }}
@@ -27,14 +27,6 @@ export function Avatar({ name, img, size = 42, className }: AvatarProps) {
           loading="lazy"
           className="h-full w-full object-cover"
         />
-        {/* Translucent placeholder overlay on hover */}
-        <span
-          aria-hidden="true"
-          className="absolute inset-0 grid place-items-center font-display leading-none opacity-0 transition-opacity duration-150 group-hover:opacity-80"
-          style={{ fontSize: size * 0.4, backgroundColor: bg, color: fg }}
-        >
-          {initials}
-        </span>
       </span>
     );
   }

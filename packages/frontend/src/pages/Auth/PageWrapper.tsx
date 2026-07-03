@@ -40,7 +40,7 @@ export default function PageWrapper({
 
   return (
     <div className="flex min-h-[calc(100vh-180px)] flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+      <div className="w-full">
         {hasHeader ? (
           <div className="mb-6 text-center">
             {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
@@ -55,7 +55,7 @@ export default function PageWrapper({
           </div>
         ) : null}
 
-        <div className="rounded-2xl border-hair border-line bg-surface px-7 pb-6 py-6 shadow-block-lg">
+        <div className="rounded-2xl border-hair border-line bg-surface px-4 py-6 pb-6 shadow-block-lg sm:px-7">
           {children}
         </div>
 
