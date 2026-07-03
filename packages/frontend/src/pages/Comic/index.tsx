@@ -46,24 +46,26 @@ export default function Comic() {
         <ComicBannerImage />
 
         <div className="relative px-6 pb-8 sm:px-10">
-          {/* Identity row — pulled up over the banner */}
-          <div className="-mt-[4.125rem] flex items-end justify-between gap-5">
-            <div className="flex items-end gap-6">
+          {/* Identity row — only the avatar overlaps the banner; name and
+              buttons always start below the banner edge so a wrapping name
+              grows downward, never up into the photo. Stacks below sm. */}
+          <div className="-mt-[4.125rem] flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:gap-6">
               <Avatar
                 name={comic.data.name}
                 img={comic.data.img}
                 size={132}
                 className="border-4 shadow-block"
               />
-              <div className="pb-2">
+              <div className="min-w-0 sm:pt-[4.625rem]">
                 <Eyebrow className="mb-1">Headliner</Eyebrow>
-                <h1 className="m-0 font-display text-d-lg tracking-tightcap text-text">
+                <h1 className="m-0 break-words font-display text-d-md tracking-tightcap text-text sm:text-d-lg">
                   {comic.data.name}
                 </h1>
               </div>
             </div>
 
-            <div className="mb-2.5 flex shrink-0 items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 sm:justify-end sm:pt-[4.75rem]">
               {user && <ComicNotification />}
               {comic.data.website && (
                 <Link
@@ -71,7 +73,7 @@ export default function Comic() {
                   target="_blank"
                   rel="noreferrer"
                   variant="plain"
-                  className="inline-flex items-center gap-1.5 rounded-pill border-hair border-line bg-surface px-5 py-2.5 font-sans text-sm font-bold text-text shadow-block-sm transition hover:bg-brand hover:text-brand-fg hover:no-underline"
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill border-hair border-line bg-surface px-5 py-2.5 font-sans text-sm font-bold text-text shadow-block-sm transition hover:bg-brand hover:text-brand-fg hover:no-underline"
                 >
                   Website ↗
                 </Link>

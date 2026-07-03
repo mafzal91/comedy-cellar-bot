@@ -111,7 +111,7 @@ function ShowItem({ show }: { show: ShowDb }) {
 
   return (
     <li className="flex items-stretch overflow-hidden rounded-card border-hair border-line bg-bg shadow-block transition hover:-translate-x-px hover:-translate-y-px hover:shadow-block-lg">
-      <div className="flex w-24 shrink-0 flex-col items-center justify-center border-r-2 border-dashed border-line bg-brand py-3.5">
+      <div className="flex w-16 shrink-0 flex-col items-center justify-center border-r-2 border-dashed border-line bg-brand py-3.5 sm:w-24">
         <span className="font-display text-d-md leading-none text-brand-fg">
           {day}
         </span>
@@ -119,16 +119,16 @@ function ShowItem({ show }: { show: ShowDb }) {
           {mon}
         </span>
       </div>
-      <div className="flex flex-1 items-center justify-between gap-4 px-5 py-3.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5">
         <div className="min-w-0">
-          <p className="font-sans text-[17px] font-extrabold text-text">
+          <p className="break-words font-sans text-[17px] font-extrabold text-text">
             {show.description}
           </p>
           <p className="mt-0.5 font-mono text-caption text-muted">{meta}</p>
         </div>
         <a
           href={`/reservations/${show.timestamp}`}
-          className="shrink-0 rounded-pill bg-solid px-4 py-2 font-sans text-caption font-bold text-solid-fg transition hover:bg-brand hover:text-brand-fg"
+          className="shrink-0 self-start rounded-pill bg-solid px-4 py-2 font-sans text-caption font-bold text-solid-fg transition hover:bg-brand hover:text-brand-fg sm:self-auto"
         >
           Reserve →
         </a>
@@ -140,7 +140,7 @@ function ShowItem({ show }: { show: ShowDb }) {
 function ShowItemSkeleton() {
   return (
     <div className="flex animate-pulse items-stretch overflow-hidden rounded-card border-hair border-line bg-bg shadow-block">
-      <div className="w-24 shrink-0 border-r-2 border-dashed border-line bg-track" />
+      <div className="w-16 shrink-0 border-r-2 border-dashed border-line bg-track sm:w-24" />
       <div className="flex flex-1 items-center px-5 py-3.5">
         <div className="h-4 w-2/3 rounded-field bg-track" />
       </div>
