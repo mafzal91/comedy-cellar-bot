@@ -83,7 +83,7 @@ All go through the shared axios client `packages/core/requester.ts` (`baseURL: h
 - **Request:** `POST /reservations/api/addReservation`, JSON body = `ApiRequest.CreateReservationRequest` (api.ts:85-126):
   - `guest`: `{ email, firstName, lastName, size, phone, howHeard, smsOk }`.
     - `phone` must be exactly 10 chars; `size` ≥ 1 (Zod, models/reservation.ts:9-10).
-    - `howHeard` is a **25-value enum** mirroring the site's marketing dropdown ("Conan O'Brien", "Howard Stern", "Zagat", "Olive Tree", …; api.ts:93-119 / reservation.ts:11-38). If CC changes that dropdown, our enum drifts.
+    - `howHeard` is a **26-value enum** mirroring the site's marketing dropdown ("Conan O'Brien", "Howard Stern", "Zagat", "Olive Tree", …; api.ts:93-119 / reservation.ts:11-38). If CC changes that dropdown, our enum drifts.
     - `smsOk`: `"Yes" | "No"`.
   - `showId` (number), `date` (`YYYY-MM-DD`), `settime` (`HH:MM:SS`).
 - **THE FENCE:** `createReservation.ts:10` — the live POST fires **only when `process.env.STAGE === "prod"`**. Only `POST /api/reservation/{timestamp}` sets `STAGE` (infra/api.ts:84-86). Every other stage returns the canned fixture and books nothing.

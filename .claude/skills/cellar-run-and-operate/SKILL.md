@@ -114,7 +114,7 @@ expressions run in **UTC**.
 
 ### SyncCron — refreshes TODAY's inventory
 - Schedule: `cron(0 0/1 * * ? *)` = hourly at :00 (infra/cron.ts:26).
-- Behavior (syncCron.ts:44-99): computes a full today→last-show date range, **then iterates only `[dates[0]]` (syncCron.ts:68) — it syncs TODAY only; the range computation is dead code** (deliberately narrowed in commit adafd66, 2024-11-24). Runs show-details + lineup fetch in parallel `Promise.allSettled`, each wrapped in `withRetry` (3 attempts, 5s/10s/15s linear delay despite the "exponential" comment, syncCron.ts:16-42), sleeps 7.5s.
+- Behavior (syncCron.ts:44-99): computes a full today→last-show date range, **then iterates only `[dates[0]]` (syncCron.ts:68) — it syncs TODAY only; the range computation is dead code** (deliberately narrowed in commit adafd66, 2024-11-24). Runs show-details + lineup fetch in parallel `Promise.allSettled`, each wrapped in `withRetry` (3 attempts; the sleep runs only `if (attempt < maxRetries)`, so inter-attempt delays are 5s then 10s and the 3rd attempt throws without sleeping — linear despite the "exponential" comment, syncCron.ts:16-42), sleeps 7.5s.
 - Emails admin ONLY on failure ("Sync Show Cron" + message + stack, syncCron.ts:90-97). **Success is silent** — no email and no dashboard; absence of failure emails is the only "healthy" signal.
 - Changing either schedule is an owner-only decision (`cellar-change-control`).
 

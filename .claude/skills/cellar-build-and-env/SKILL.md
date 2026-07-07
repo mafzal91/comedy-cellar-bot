@@ -27,7 +27,7 @@ Jargon used below:
 
 | Tool | Required | Evidence (as of 2026-07-07) |
 |---|---|---|
-| Node.js | ≥ 22 works; CI pins 24 | Sandbox runs v22.22.2 and all gates pass; CI uses node 24 (`.github/workflows/frontend-ci.yml:36`); vite 7 requires `^20.19.0 \|\| >=22.12.0` (`packages/frontend/node_modules/vite/package.json` engines) |
+| Node.js | ≥ 22 works; CI pins 24 | Sandbox runs v22.22.2 and all frontend gates pass locally (but CI is red on main — §5.2); CI uses node 24 (`.github/workflows/frontend-ci.yml:36`); vite 7 requires `^20.19.0 \|\| >=22.12.0` (`packages/frontend/node_modules/vite/package.json` engines) |
 | pnpm | 10.23.0 (pinned) | `packageManager: "pnpm@10.23.0"` in root `package.json:6` — this field is authoritative |
 | corepack | any recent (0.34.6 here) | provides the pnpm shim |
 | git | any | clone + read-only archaeology |
@@ -54,10 +54,12 @@ git clone <repo> comedy-cellar-bot && cd comedy-cellar-bot
 pnpm install --frozen-lockfile                    # install #1: repo root
 cd packages/frontend
 pnpm install --frozen-lockfile                    # install #2: frontend (separate workspace!)
-pnpm exec eslint src && pnpm exec tsc --noEmit && pnpm build   # the full CI gate trio
+pnpm exec eslint src && pnpm exec tsc --noEmit && pnpm build   # the CI gate trio (green here ≠ green in CI — §5.2)
 ```
 
-Both installs are required. Why: §3. Expected outputs: §8 checklist.
+Both installs are required. Why: §3. Expected outputs: §8 checklist. But a local
+exit-0 from that trio is NOT CI-faithful: frontend CI is red on main (phantom
+`@clerk/types`, §5.2).
 
 ## 3. THE TWO-WORKSPACE TRAP (the #1 setup gotcha)
 
@@ -171,6 +173,18 @@ bundles and fails with hundreds of errors in `dist/assets/*.js` (verified both w
 (workflow lines 50-54). Locally: run typecheck **before** build, or `rm -rf dist` first.
 Errors in `dist/assets/*.js` mean stale build output, not broken code.
 
+**Trap — a local `tsc` exit-0 is NOT CI-faithful; CI is RED on main.** With `dist/`
+absent, `tsc --noEmit` exits 0 here **only** because the repo-root install (§2 install
+#1) hoisted `@clerk/types` into root `node_modules`, where a directory walk-up resolves
+it. `@clerk/types` is a **phantom dependency**: `packages/frontend/src/hooks/useAuth.ts:2`
+imports it, yet only `@clerk/clerk-js` is declared in `packages/frontend/package.json`.
+CI installs **only inside `packages/frontend`** (§3), so the import is unresolvable there
+and tsc fails with `src/hooks/useAuth.ts(2,30): error TS2307: Cannot find module
+'@clerk/types'` (exit 2). `frontend-ci.yml` has **never passed — it is red on main for
+exactly this.** So a local two-install exit-0 does NOT mean CI will pass. Canonical home
+for this fact (and the candidate fix — do NOT apply it here) is **cellar-validation-and-qa**
+§1.
+
 There is no lint/typecheck/test script in `packages/frontend/package.json` — CI calls the
 tools directly (workflow lines 47-51); do the same. Root `pnpm test` is a failing
 placeholder (`package.json:8`) and **zero tests exist in the repo** (as of 2026-07-07) —
@@ -263,7 +277,7 @@ Run top to bottom on a fresh clone; every expectation was observed 2026-07-07:
 | 3 | `pnpm install --frozen-lockfile` | `Done in ~2-3s` (warm) + the "Ignored build scripts" warning box (§4 — normal) |
 | 4 | `cd packages/frontend && pnpm install --frozen-lockfile` | `Done in ~1-2s` (warm), no errors |
 | 5 | `cd packages/frontend && pnpm exec eslint src` | silent, exit 0 |
-| 6 | `cd packages/frontend && rm -rf dist && pnpm exec tsc --noEmit` | silent, exit 0 (dist/ present ⇒ §5.2 trap) |
+| 6 | `cd packages/frontend && rm -rf dist && pnpm exec tsc --noEmit` | silent, exit 0 **locally** (dist/ present ⇒ §5.2 trap). Local exit-0 ≠ CI: CI is red on main via phantom `@clerk/types` (§5.2, **cellar-validation-and-qa** §1) |
 | 7 | `cd packages/frontend && pnpm build` | `✓ built in ~9-10s`; `clerk-*.js` chunk ≈ 3.0 MB with a `(!) Some chunks are larger than 500 kB` warning — **normal, do not chase it** |
 | 8 | `pnpm exec tsc --noEmit` (root) | FAILS with `Cannot find name 'sst'` — expected without `.sst/` (§7) |
 | 9 | `cd packages/frontend && npx vite --port 5199` | `VITE v7.3.6 ready in ...ms`, HTTP 200 on localhost |

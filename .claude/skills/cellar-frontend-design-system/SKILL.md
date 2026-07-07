@@ -234,14 +234,26 @@ workspace root — see `cellar-build-and-env` for the two-workspace trap):
 cd /home/user/comedy-cellar-bot/packages/frontend
 pnpm install --frozen-lockfile   # only if deps changed / fresh clone
 pnpm exec eslint src             # expect: no output, exit 0
-pnpm exec tsc --noEmit           # expect: no output, exit 0
+pnpm exec tsc --noEmit           # LOCAL exit 0 only, and NOT CI-faithful — see caveats below
 pnpm build                       # vite build; succeeds ~10s; a >500kB clerk-js
                                  # chunk warning is expected and pre-existing
 ```
 
-(Commands mirror `.github/workflows/frontend-ci.yml:45-54`; verified passing locally
-2026-07-07. There are zero automated tests in this repo — CI is these three gates
-only, so the visual pass below is not optional.)
+(Commands mirror `.github/workflows/frontend-ci.yml:45-54`. **A local exit-0 on `tsc`
+is NOT proof CI is green: CI is RED on `main` and has never passed.** In CI, `tsc`
+fails with `TS2307: Cannot find module '@clerk/types'` — `useAuth.ts:2` imports
+`@clerk/types`, which is not a declared dependency in `packages/frontend/package.json`
+(only `@clerk/clerk-js` is). It only "passes" locally because a repo-root `pnpm install`
+hoists `@clerk/types` where a directory walk-up finds it — a **phantom dependency**.
+CI runs `pnpm install --frozen-lockfile` inside `packages/frontend` only, so it can't
+resolve it. Candidate fix (add `@clerk/types` to package.json) routes through
+`cellar-change-control` and is NOT yet applied. **Second `tsc` trap:** `tsconfig.json`
+has `include: ["**/*"]` + `checkJs`, so running `tsc` AFTER a `pnpm build` typechecks
+minified `dist/assets/*.js` and fails with dozens of bogus errors — always typecheck on
+a clean tree (`rm -rf dist` first) and BEFORE build. Both the CI-red fact and both traps
+are owned by **`cellar-validation-and-qa` §2** and **`cellar-build-and-env`** — defer
+there. There are zero automated tests in this repo — CI is these three gates only, so
+the visual pass below is not optional.)
 
 Visual pass (no automation exists for this):
 
@@ -272,7 +284,9 @@ claude/skill-library-continuity-4m3x56, == main + skill checkpoints) by reading:
 Avatar/Perforation/Input/Card/Button/Link/ThemeToggle/FlameMeter/ProgressBar/Event`,
 `plan/README.md`, `plan/IMPLEMENTATION_PLAN.md`, `plan/theme.css`,
 `.github/workflows/frontend-ci.yml`; commits verified via `git show --stat`
-(2fd6b30, 6192496, c8d9918, 64b3ee2, 75029b8). CI trio run locally and passing.
+(2fd6b30, 6192496, c8d9918, 64b3ee2, 75029b8). CI trio run locally and passing
+LOCALLY ONLY — CI is red on `main` (@clerk/types phantom dep; see §9 and
+`cellar-validation-and-qa`).
 
 | May drift | Re-verify with |
 |---|---|

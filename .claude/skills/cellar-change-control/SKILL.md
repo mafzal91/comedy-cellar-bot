@@ -58,7 +58,16 @@ pnpm exec tsc --noEmit      # must print nothing
 pnpm build                  # vite build; a ~3MB clerk-chunk size warning is normal
 ```
 
-All four pass on a clean checkout (verified 2026-07-07). Then, because CI runs no
+These four commands pass **locally**, but a local pass is **not** CI-faithful, and
+**CI is currently RED on main** (verified 2026-07-07). The tsc step fails: `useAuth.ts:2`
+imports `@clerk/types`, which is **not** declared in `packages/frontend/package.json`
+(only `@clerk/clerk-js` is), so a frontend-only frozen install — exactly what CI does —
+cannot resolve it and tsc exits with `TS2307: Cannot find module '@clerk/types'`. It
+resolves locally only because a prior repo-root `pnpm install` hoists the phantom dep.
+So a green local tsc does **not** mean your frontend PR will pass CI — it won't until
+that dep is declared. `cellar-validation-and-qa` §1–§2 is the canonical home for the
+current CI state, the run evidence, the candidate fix, and both local traps; treat CI as
+red until it says otherwise. Then, because CI runs no
 browser: toggle the theme (bottom-right sun/moon) on every screen you touched, and
 check a ~375px-wide viewport — mobile overflow is this repo's most recurrent bug
 class (6+ fix commits from b697c94 2024-10-11 through c8d9918 2026-07-03).
@@ -267,7 +276,9 @@ Verified 2026-07-07 against local checkout at HEAD `c8d9918f0f919d8126022d0f3757
 `infra/secrets.ts`, `infra/config.ts`, `.env.template`, `drizzle.config.ts`,
 `migrations/` listing, `packages/frontend/src/components/ui/CONTRACT.md`,
 `plan/IMPLEMENTATION_PLAN.md`, `packages/frontend/src/pages/Updates/data.ts`,
-`sst.config.ts:8`. Verified by running: the frontend CI trio (all pass);
+`sst.config.ts:8`. Verified by running: the frontend CI trio locally (all pass locally
+only via the hoisted `@clerk/types` phantom dep — CI is RED on main at the tsc step; see
+`cellar-validation-and-qa`);
 `git show 391196d 8b3b837`, `git log --first-parent` (PR-vs-direct pattern),
 grep for sleeps/retries/IS_ACTIVE in cron handlers. Pre-graft SHAs ca85460,
 348682e, 122ccf5 are NOT in the local shallow clone; they are carried from the

@@ -83,7 +83,7 @@ Because shows are announced **ahead of time** and newShowCron pushes the horizon
 | `freshness: EMPTY total=0` or `comics: EMPTY total=0` | **alarm** — either the DB was wiped, or nothing has ever scraped (bootstrap state). See cellar-data-model for seeding |
 | `health: UNREACHABLE` | API/domain/Lambda problem, not necessarily the scraper — see cellar-run-and-operate |
 
-Note: `/api/shows/new` is DB-backed (no live scrape) and inner-joins acts, so it only surfaces shows that have **at least one comic**. That makes a fresh future timestamp strong evidence that **both** `handleShowDetails` (show rows) **and** `handleLineUp` (act rows) are succeeding — but it also means actless "special" shows are invisible here and a show with N comics is counted N times in `total` (cellar-data-model §13). Treat `total` as an act-row count, not a distinct-show count.
+Note: `/api/shows/new` is DB-backed (no live scrape) and inner-joins acts, so it only surfaces shows that have **at least one comic**. That makes a fresh future timestamp strong evidence that **both** `handleShowDetails` (show rows) **and** `handleLineUp` (act rows) are succeeding — but it also means actless "special" shows are invisible here and a show with N comics is counted N times in `total` (cellar-data-model §10). Treat `total` as an act-row count, not a distinct-show count.
 
 **When a check goes red:** cellar-scraper-recovery-campaign (recovery runbook) and cellar-debugging-playbook (broader symptom triage).
 
