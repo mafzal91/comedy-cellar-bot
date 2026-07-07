@@ -149,14 +149,14 @@ The client bakes three anti-bot-relevant headers **once at module load** (i.e., 
 
 - This was **captured from a real browser session** to defeat comedycellar.com's header-based anti-bot check. It is the single most fragile thing in the scraper.
 - **Do NOT reproduce the value in any file, doc, or commit message.** Reference it by path.
-- **Decode the base64 tail to read its provenance** (read-only, safe — reads the token already in the repo, prints only the decoded tail):
+- **Decode the base64 tail to read its provenance** (read-only, safe — reads the token already in the repo; the trailing `-<IP>` is stripped so only the non-PII timestamp is printed):
 
   ```bash
   cd /home/user/comedy-cellar-bot
-  awk -F'"' '/[a-f0-9]{64}\./ {print $2}' packages/core/requester.ts | cut -d. -f2 | base64 -d; echo
+  awk -F'"' '/[a-f0-9]{64}\./ {print $2}' packages/core/requester.ts | cut -d. -f2 | base64 -d | cut -d- -f1; echo
   ```
 
-  Verified output (as of 2026-07-07): `1726188037-71.183.249.111` — i.e. Unix `1726188037` = **2024-09-13 UTC** plus a residential IPv4. That date matches when the token was committed (**122ccf5**, "fixed request headers"; recovered from history, not local) to end the first ~5-month outage. The IP is mild PII leaked in source; the timestamp shows the token is old and load-bearing.
+  Verified output (as of 2026-07-07): `1726188037` — i.e. Unix `1726188037` = **2024-09-13 UTC**. (The decoded tail also contains a trailing residential IPv4; it is mild PII, **do not reproduce it** — the `cut -d- -f1` above drops it.) That date matches when the token was committed (**122ccf5**, "fixed request headers"; recovered from history, not local) to end the first ~5-month outage; the timestamp shows the token is old and load-bearing.
 - **If the site starts rejecting requests, the token is the prime suspect.** Recapture recipe (a human with a browser must do this; the sandbox cannot reach the site):
   1. Open `https://www.comedycellar.com/line-up/` (or any lineup page) in a real browser.
   2. Open DevTools → Network tab, reload, and find the `cc_get_shows` / `getShows` XHR.
@@ -230,7 +230,7 @@ If you're ever asked to harden the CC scraper, this file is a menu of options �
 
 **Verified against (repo @ branch `claude/skill-library-continuity-4m3x56`, 2026-07-07):**
 - Files read in full: `packages/core/{requester,fetchLineUp,parseLineUp,fetchShows,createReservation,handleReservation,handleLineUp,handleShowDetails,utils}.ts`, `packages/core/models/{show,reservation,act}.ts`, `packages/functions/{reservation}.ts`, `packages/functions/cron/{newShowCron,syncCron}.ts`, `packages/functions/frontier.ts`, `packages/types/api.ts`, `packages/__fixtures__/createReservation.ts`, `infra/{api,cron}.ts`, `packages/frontend/src/pages/Terms/index.tsx`.
-- Token tail decoded via the §4.2 command → `1726188037-71.183.249.111` (2024-09-13 UTC). Verified.
+- Token tail decoded via the §4.2 command → leading timestamp `1726188037` (2024-09-13 UTC). Verified. (Trailing residential IP intentionally not reproduced here — see §4.2.)
 - Local git confirms **adafd66, f8b6976, 391196d** are checkoutable; **411fa43, 122ccf5, 6886326, 40d6024, bea2b49, ca85460** are NOT in the local shallow clone (grafted 2024-10-11) and were carried from the archaeology report's GitHub-API recovery.
 - Cross-checked leads from the four discovery reports; every fact above was re-read in source.
 
@@ -238,7 +238,7 @@ If you're ever asked to harden the CC scraper, this file is a menu of options �
 
 | Fact | Command / check |
 |---|---|
-| `x-code-localize` token still the 2024-09-13 one | `awk -F'"' '/[a-f0-9]{64}\./ {print $2}' packages/core/requester.ts \| cut -d. -f2 \| base64 -d; echo` → expect `1726188037-71.183.249.111` |
+| `x-code-localize` token still the 2024-09-13 one | `awk -F'"' '/[a-f0-9]{64}\./ {print $2}' packages/core/requester.ts \| cut -d. -f2 \| base64 -d \| cut -d- -f1; echo` → expect `1726188037` (trailing IP stripped; do not reproduce it) |
 | addReservation still prod-gated | `grep -n 'STAGE === "prod"' packages/core/createReservation.ts` |
 | Endpoint paths unchanged | `grep -rn '/lineup/api/\|/reservations/api/getShows\|/reservations/api/addReservation' packages/core` |
 | Parser still keys on these classes | `grep -n '\.no-shows\|\.lineup\|\.set-content\|\.name\|\.make-reservation' packages/core/parseLineUp.ts` |
