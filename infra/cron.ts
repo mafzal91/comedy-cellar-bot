@@ -25,3 +25,16 @@ new sst.aws.Cron("SyncCron", {
   },
   schedule: "cron(0 0/1 * * ? *)",
 });
+
+// This cron emails subscribers about batches of newly discovered shows
+new sst.aws.Cron("ShowNotificationCron", {
+  job: {
+    handler: "packages/functions/cron/showNotificationCron.handler",
+    link: [dbCreds.dbUrl, ...Object.values(emailSecrets)],
+    environment: {
+      IS_ACTIVE: $app.stage === "prod" ? "1" : "0",
+      IS_CRON: "1",
+    },
+  },
+  schedule: "cron(0/15 * * * ? *)",
+});

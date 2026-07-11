@@ -176,6 +176,13 @@ export function createShows(data: InsertShow[]) {
         max: sql.raw(`EXCLUDED."${show.max.name}"`),
         totalGuests: sql.raw(`EXCLUDED."${show.totalGuests.name}"`),
       },
+    })
+    .returning({
+      id: show.id,
+      timestamp: show.timestamp,
+      // xmax is 0 for rows created by this statement and non-zero for rows
+      // that hit the ON CONFLICT update path, so this flags brand-new shows
+      inserted: sql<boolean>`(xmax = 0)`,
     });
 }
 
