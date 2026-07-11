@@ -72,6 +72,8 @@ Ranked by value-over-effort and by how much of the groundwork already exists. Ea
 
 **Milestone:** `/api/shows/new` returns **each show exactly once** with a **correct total** (proven by a count query: `unique .id` count == `total`), **and specials are present**. Fixing `/api/shows/scan` has its own milestone: the endpoint returns non-empty data for a date range with known shows.
 
+**Executable version:** this section is the *why/what*; the decision-gated *how* — numbered phases, exact measurement commands, expected numbers at every gate, ranked fix menus, and fenced wrong paths — is `cellar-data-quality-campaign`. Data quality is the owner-designated hardest live problem (2026-07-07), so that campaign is the flagship for it.
+
 **Caution.** Comic-row merges touch the **shared** prod database — prod surgery, owner-only (`cellar-change-control` §2c, `cellar-data-model` §8). Do not `DELETE`/`UPDATE` comic rows to "clean up" without an approved plan.
 
 ### (5) Multi-venue generalization — SPECULATIVE tier

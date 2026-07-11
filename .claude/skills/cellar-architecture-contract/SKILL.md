@@ -1,6 +1,6 @@
 ---
 name: cellar-architecture-contract
-description: Entry-point system map for comedy-cellar-bot - monorepo layout, SST resource graph, data flow, load-bearing design decisions with rationale, invariants whose violation is an incident, and known weak points with file:line. Use when new to this repo, when planning any change that spans packages/ or infra/, when asking "why is it built this way", or before touching scraping, stages, the shared database, crons, or the reservation path. Also the index to the 13 sibling cellar-* skills.
+description: Entry-point system map for comedy-cellar-bot - monorepo layout, SST resource graph, data flow, load-bearing design decisions with rationale, invariants whose violation is an incident, and known weak points with file:line. Use when new to this repo, when planning any change that spans packages/ or infra/, when asking "why is it built this way", or before touching scraping, stages, the shared database, crons, or the reservation path. Also the index to the 14 sibling cellar-* skills.
 ---
 
 # Cellar Architecture Contract
@@ -25,7 +25,8 @@ comedy-cellar-bot scrapes comedycellar.com (the NYC comedy club) on a schedule, 
 | cellar-frontend-design-system | vintage-marquee tokens, CONTRACT.md rules, Tailwind v4/Preact quirks |
 | cellar-validation-and-qa | what counts as evidence, gates per change class, fixtures, adding tests |
 | cellar-diagnostics-toolkit | measure-don't-eyeball recipes and probe scripts |
-| cellar-scraper-recovery-campaign | decision-gated runbook for scraper outages (the flagship risk) |
+| cellar-scraper-recovery-campaign | decision-gated runbook for scraper outages (the flagship *risk*) |
+| cellar-data-quality-campaign | decision-gated runbook for the known data-quality defects (the hardest *live* problem, owner-designated 2026-07-07) |
 | cellar-frontier-and-method | ranked open problems, first steps, research discipline |
 
 ## 1. System map
@@ -153,8 +154,8 @@ Stated plainly so nobody rediscovers them the hard way. "Open" = known, unfixed,
 |---|---|---|---|
 | 1 | `GET /api/frontier` is an unauthenticated Frontier AIRLINES fare scraper (unrelated side project) exposed on the prod API domain - effectively an open proxy | infra/api.ts:46-48; packages/functions/frontier.ts | open |
 | 2 | `GET /sync-shows` is public and unauthenticated; anyone can trigger a live scrape + DB write in any stage (no IS_CRON guard on the HTTP path) | infra/api.ts:37-40 | open |
-| 3 | `/api/shows/new` returns N rows per show with N comics: `getShows`/`getShowsCount` inner-join act×comic with no GROUP BY/DISTINCT; shows with no acts (specials) are invisible; `total` counts act-rows | packages/core/models/show.ts:186-246 | open |
-| 4 | `GET /api/shows/scan` always returns `[]`: `handleShowList({days})` calls `getFutureDatesByDay(days)` with no `fromTimestamp` → `new Date(undefined)` = Invalid Date → date-fns v4 `eachDayOfInterval` yields `[]` | core/handleShowList.ts:11; core/getFutureDatesByDay.ts:13,21,28 | open (crons unaffected - they always pass a timestamp) |
+| 3 | `/api/shows/new` returns N rows per show with N comics: `getShows`/`getShowsCount` inner-join act×comic with no GROUP BY/DISTINCT; shows with no acts (specials) are invisible; `total` counts act-rows | packages/core/models/show.ts:186-246 | open (fix runbook: `cellar-data-quality-campaign`) |
+| 4 | `GET /api/shows/scan` always returns `[]`: `handleShowList({days})` calls `getFutureDatesByDay(days)` with no `fromTimestamp` → `new Date(undefined)` = Invalid Date → date-fns v4 `eachDayOfInterval` yields `[]` | core/handleShowList.ts:11; core/getFutureDatesByDay.ts:13,21,28 | open; fix runbook `cellar-data-quality-campaign` (crons unaffected - they always pass a timestamp) |
 | 5 | Removal-policy stage mismatch: `sst.config.ts:8` checks `stage === "production"` but the real prod stage is `"prod"` → prod resources carry the "remove" policy | sst.config.ts:8 vs. package.json `deploy:prod` (`--stage=prod`) | open, latent |
 | 6 | `infra/config.ts:17` exports `config[$app.stage]`; any stage other than `mohammadafzal`/`prod` gets `undefined` → deploy crashes at infra/api.ts:22. New dev stages need a config entry first | infra/config.ts:12-17 | open (see `cellar-config-and-secrets`) |
 | 7 | `packages/core/database.ts:5` imports ITSELF as the Drizzle schema (`import * as schema from "./database"`), so all `relations()` declarations are inert and `db.query.*` relational queries would not work. Harmless today (only the query-builder is used) - a trap for anyone reaching for `db.query` | core/database.ts:5,9 | open trap |
