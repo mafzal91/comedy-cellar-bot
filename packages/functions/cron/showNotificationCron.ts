@@ -73,7 +73,7 @@ export async function handler() {
     return {};
   }
 
-  const { subject, html, text } = renderNewShowsEmail({
+  const { subject, html, text } = await renderNewShowsEmail({
     shows: batch.map(({ show, room }) => ({
       timestamp: show.timestamp ?? 0,
       description: show.description,
