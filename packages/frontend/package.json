@@ -8,6 +8,7 @@
 	},
 	"dependencies": {
 		"@clerk/clerk-js": "^5.120.0",
+		"@clerk/types": "^4.101.25",
 		"@heroicons/react": "^2.2.0",
 		"@sentry/browser": "^10.34.0",
 		"@tanstack/react-query": "^5.90.19",
