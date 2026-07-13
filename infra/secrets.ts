@@ -1,6 +1,5 @@
 export const emailSecrets = {
-  fromEmail: new sst.Secret("FromEmail"),
-  fromEmailPw: new sst.Secret("FromEmailPw"),
+  alertEmail: new sst.Secret("AlertEmail"),
 };
 export const dbCreds = {
   dbUrl: new sst.Secret("DbUrl"),
