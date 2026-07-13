@@ -1,17 +1,9 @@
 import { Resource } from "sst";
-import nodemailer from "nodemailer";
-const FromEmail = Resource.FromEmail.value;
-const FromEmailPw = Resource.FromEmailPw.value;
+import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 
-function createTransporter() {
-  return nodemailer.createTransport({
-    service: "Gmail",
-    auth: {
-      user: FromEmail,
-      pass: FromEmailPw,
-    },
-  });
-}
+const client = new SESv2Client();
+const FromAddress = `Comedy Cellar Bot <notifications@${Resource.Email.sender}>`;
+const AlertRecipient = Resource.AlertEmail.value;
 
 export async function sendEmail({
   message,
@@ -20,14 +12,18 @@ export async function sendEmail({
   message: string;
   subject: string;
 }) {
-  const transporter = createTransporter();
-
-  await transporter.sendMail({
-    from: FromEmail,
-    to: FromEmail,
-    subject,
-    text: `Message: ${message}`,
-  });
+  await client.send(
+    new SendEmailCommand({
+      FromEmailAddress: FromAddress,
+      Destination: { ToAddresses: [AlertRecipient] },
+      Content: {
+        Simple: {
+          Subject: { Data: subject },
+          Body: { Text: { Data: `Message: ${message}` } },
+        },
+      },
+    })
+  );
 
   return;
 }
@@ -43,15 +39,21 @@ export async function sendHtmlEmail({
   html: string;
   text: string;
 }) {
-  const transporter = createTransporter();
-
-  await transporter.sendMail({
-    from: `Comedy Cellar Bot <${FromEmail}>`,
-    to,
-    subject,
-    html,
-    text,
-  });
+  await client.send(
+    new SendEmailCommand({
+      FromEmailAddress: FromAddress,
+      Destination: { ToAddresses: [to] },
+      Content: {
+        Simple: {
+          Subject: { Data: subject },
+          Body: {
+            Html: { Data: html },
+            Text: { Data: text },
+          },
+        },
+      },
+    })
+  );
 
   return;
 }

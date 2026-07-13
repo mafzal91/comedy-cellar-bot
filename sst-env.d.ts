@@ -22,17 +22,18 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "AlertEmail": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "DbUrl": {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "FromEmail": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "FromEmailPw": {
-      "type": "sst.sst.Secret"
-      "value": string
+    "Email": {
+      "type": "sst.aws.Email"
+      "configSet": string
+      "sender": string
     }
     "Frontend": {
       "type": "sst.aws.StaticSite"

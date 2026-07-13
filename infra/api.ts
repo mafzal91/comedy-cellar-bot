@@ -1,4 +1,5 @@
 import { clerkCreds, dbCreds, emailSecrets } from "./secrets";
+import { email } from "./email";
 
 import config from "./config";
 const functionDir = `packages/functions`;
@@ -36,7 +37,7 @@ api.route("GET /", {
 
 api.route("GET /sync-shows", {
   handler: `${functionDir}/cron/syncCron.handler`,
-  link: [dbCreds.dbUrl, ...Object.values(emailSecrets)],
+  link: [dbCreds.dbUrl, ...Object.values(emailSecrets), email],
 });
 
 api.route("GET /api/health", {
@@ -79,7 +80,7 @@ api.route("GET /api/line-up", {
 // ---- Reservations -----
 
 api.route("POST /api/reservation/{timestamp}", {
-  link: [dbCreds.dbUrl, ...Object.values(emailSecrets)],
+  link: [dbCreds.dbUrl, ...Object.values(emailSecrets), email],
   handler: `${functionDir}/reservation.create`,
   environment: {
     STAGE: $app.stage,
