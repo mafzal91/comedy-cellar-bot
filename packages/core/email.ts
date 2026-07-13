@@ -2,7 +2,7 @@ import { Resource } from "sst";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 
 const client = new SESv2Client();
-const FromAddress = `Comedy Cellar Bot <notifications@${Resource.Email.sender}>`;
+const FromAddress = `Comedy Cellar Calendar <notifications@${Resource.Email.sender}>`;
 const AlertRecipient = Resource.AlertEmail.value;
 
 export async function sendEmail({

@@ -271,7 +271,7 @@ export function NewShowsEmail({
                 letterSpacing: "3px",
               }}
             >
-              COMEDY CELLAR BOT
+              COMEDY CELLAR CALENDAR
             </Text>
             <Text
               style={{
