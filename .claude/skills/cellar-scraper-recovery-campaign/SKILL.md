@@ -34,7 +34,9 @@ client `requester.ts`). *SST* = the infra-as-code framework; a *stage* is a name
 scheduled Lambda (`infra/cron.ts`). *The token* = the hardcoded `x-code-localize` header value
 (a captured anti-bot credential — never copy it anywhere except `requester.ts`). *Fixture* = a
 captured real response stored in the repo. *Admin email telemetry* = the project's only
-alerting: the crons email the owner's own Gmail (`core/email.ts:23` sends to-self).
+alerting: the crons email the owner (`sendEmail`, `core/email.ts:8-29`, sends via AWS SES from
+`notifications@mail.comedycellar.mafz.al` to the owner's `AlertEmail` address — `Resource.AlertEmail.value`
+at `email.ts:6`, applied as the `to` at `email.ts:18`). Watch that inbox during an outage.
 
 ## Campaign ground rules (hold for every phase)
 

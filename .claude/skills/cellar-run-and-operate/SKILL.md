@@ -39,7 +39,7 @@ What actually happens:
 | Crons | **Deployed to your stage too** (infra/cron.ts creates them unconditionally) but scheduled runs no-op outside prod: handlers get `IS_ACTIVE = ($app.stage === "prod" ? "1" : "0")` and `IS_CRON = "1"` (infra/cron.ts:8-11,21-24) and return early when `!IS_ACTIVE && IS_CRON` (newShowCron.ts:14-16, syncCron.ts:45-47). |
 | Frontend (StaticSite) | NOT deployed. `sst dev` instead runs the site's dev script — `packages/frontend/package.json:5` is `"dev": "sst dev vite"` — starting vite locally with `VITE_API_URL` etc. injected from your stage (infra/frontend.ts:18-24). |
 | Output | A terminal multiplexer: panes for function logs (streamed live), the vite dev server, and deploy status. |
-| Secrets | Your stage needs its own copies: `sst secret set DbUrl <value>` etc. (six secrets, infra/secrets.ts; list in root `.env.template`). Missing secrets → linked Lambdas fail at `Resource.X.value`. |
+| Secrets | Your stage needs its own copies: `sst secret set DbUrl <value>` etc. (five secrets — `AlertEmail`, `DbUrl`, `ClerkSigningSecret`, `ClerkSecretKey`, `ClerkPublishableKey` — infra/secrets.ts; list in root `.env.template`). Missing secrets → linked Lambdas fail at `Resource.X.value`. |
 
 To run the frontend WITHOUT SST/AWS at all:
 `cd packages/frontend && cp .env.template .env.local` (fill in values, e.g.
@@ -77,6 +77,14 @@ Pre-deploy checklist (gates detail in `cellar-validation-and-qa`):
 - [ ] No pending migration you haven't already applied (deploy does NOT run migrations — `cellar-data-model`).
 - [ ] You did not touch cron schedules, secrets, or createReservation.ts without owner sign-off.
 
+**SES sandbox caveat (new stage / fresh AWS account):** the `Email` identity is
+declared in infra/email.ts and SST writes its DKIM/verification DNS to Cloudflare
+on deploy, but a fresh AWS account keeps SES in **sandbox** mode — it can only
+send to *verified* addresses. Until a one-time SES production-access request is
+granted, `sendHtmlEmail` to arbitrary subscribers (and even `sendEmail` to
+`AlertEmail` if that address is unverified) will be rejected. Verify the identity
+and, for prod, request production access before relying on either channel.
+
 ### `pnpm remove:prod` — DANGEROUS, effectively never run this
 
 `pnpm remove:prod` = `sst remove --stage=prod` (package.json:11): tears down
@@ -96,8 +104,8 @@ a written reason.
 | API | https://comedycellar-api.mafz.al | infra/api.ts:8 (prod only) |
 | Clerk (auth) issuer | https://clerk.comedycellar.mafz.al | infra/config.ts:9 |
 | DNS | Cloudflare zone `b94d6748e8554bed2a3eae31cc65c81b` | infra/api.ts:10, infra/frontend.ts:8 |
-| Database | Supabase Postgres, connection string in the `DbUrl` SST secret; ONE database shared by all stages | infra/secrets.ts:6; `cellar-data-model` |
-| Email | Gmail SMTP, creds in `FromEmail`/`FromEmailPw` secrets; TWO channels (as of 2026-07-13): `sendEmail` admin-to-self ops/telemetry AND `sendHtmlEmail` branded user-facing "new shows" mail to show-notification subscribers | packages/core/email.ts (`sendEmail`:16-33, `sendHtmlEmail`:35-57) |
+| Database | Supabase Postgres, connection string in the `DbUrl` SST secret; ONE database shared by all stages | infra/secrets.ts:5; `cellar-data-model` |
+| Email | AWS SES via `@aws-sdk/client-sesv2`; sends from `notifications@mail.comedycellar.mafz.al` (domain identity in infra/email.ts), recipient for ops/telemetry in the `AlertEmail` secret; TWO channels: `sendEmail` ops/telemetry to the owner's `AlertEmail` AND `sendHtmlEmail` branded user-facing "new shows" mail to show-notification subscribers | packages/core/email.ts (`sendEmail`:8-29, `sendHtmlEmail`:31-59) |
 | Compute | One Lambda per API route + three cron Lambdas (as of 2026-07-13); API Gateway V2 | infra/api.ts, infra/cron.ts |
 | Non-prod stages | Same resources minus custom domains (auto-generated API GW URL), crons no-op'd | infra/api.ts:16, infra/frontend.ts:25 |
 
@@ -154,11 +162,12 @@ claim that look sound but are untested in the wild.
 There is no monitoring stack (Sentry was removed 2024-10-14, commit 56afdca).
 There are now (as of 2026-07-13) TWO email channels — do not conflate them:
 
-- **Ops/telemetry — `sendEmail`, admin-to-self.** Sends from AND to `FromEmail`
-  (packages/core/email.ts:16-33). This is the "email is the dashboard" channel —
-  four subjects, decoded below.
+- **Ops/telemetry — `sendEmail`.** Sends from `notifications@mail.comedycellar.mafz.al`
+  to the owner's `AlertEmail` address (packages/core/email.ts:8-29). This is the
+  "email is the dashboard" channel — four subjects, decoded below.
 - **User-facing — `sendHtmlEmail`, to real subscribers.** `from: "Comedy Cellar
-  Bot <FromEmail>"`, `to: <subscriber>` (packages/core/email.ts:35-57); a branded
+  Bot <notifications@mail.comedycellar.mafz.al>"`, `to: <subscriber>`
+  (packages/core/email.ts:31-59); a branded
   "new shows" email rendered from a react-email template
   (packages/core/emails/newShowsEmail.tsx), sent by ShowNotificationCron (§4) to
   users who opted into SHOW notifications. So the old "end users have NEVER been
@@ -166,7 +175,7 @@ There are now (as of 2026-07-13) TWO email channels — do not conflate them:
   notifications still fire nothing (`cellar-frontier-and-method`). This channel is
   brand-new and untested.
 
-The `sendEmail` (admin-to-self) subjects:
+The `sendEmail` (ops/telemetry, to the owner's `AlertEmail`) subjects:
 
 | Subject | Meaning | Body | Caveats |
 |---|---|---|---|
@@ -175,7 +184,7 @@ The `sendEmail` (admin-to-self) subjects:
 | `Comedy Cellar: new reservation!` | Someone submitted POST /api/reservation/{ts} successfully | **Full guest PII** (name, email, phone, party size) as JSON (functions/reservation.ts:91-94) | Fires from ANY stage (route deploys everywhere); only prod actually booked a real seat — dev stages returned the fixture. Email failure is swallowed, so no email ≠ no reservation. |
 | `Show Notification Cron` (as of 2026-07-13) | ShowNotificationCron (§4) FAILED to send one or more subscriber emails | Count + list of `recipient: reason` failures (showNotificationCron.ts:108-115) | Sent on partial/total send failure only; a successful announcement is silent (console.log count). Does NOT indicate the *user* email that succeeded — that goes out via `sendHtmlEmail`, which has no telemetry echo. |
 
-These are the four `sendEmail` (admin-to-self) call sites — reservation.ts:91,
+These are the four `sendEmail` (ops/telemetry) call sites — reservation.ts:91,
 syncCron.ts:93, newShowCron.ts:43, showNotificationCron.ts:109 (verified by grep
 as of 2026-07-13). All *other* outbound mail is the user-facing `sendHtmlEmail`
 above.
@@ -242,7 +251,8 @@ a personal-project site; the 15-minute ShowNotificationCron mostly early-returns
 or holds its batch, so its invocation cost is trivial).
 Expectation, unverified: Lambda, API Gateway, EventBridge, and CloudWatch all
 sit inside or near AWS free tiers; Supabase on its free tier; Cloudflare DNS
-free; Gmail free; the paid-ish items would be Route-less custom-domain
+free; AWS SES at ~$0.10 per 1,000 emails (pennies/month at this volume); the
+paid-ish items would be Route-less custom-domain
 certs (free via ACM) and S3/CloudFront pennies. If a bill spikes, first
 suspects: someone hammering the public `GET /sync-shows` or
 `GET /api/frontier` routes (both unauthenticated and expensive per hit) —
@@ -287,7 +297,7 @@ show-notification feature is shipped-but-unproven.
 | Prod domains + Cloudflare zone | `grep -rn 'mafz.al\|zone:' infra/` |
 | Removal-policy mismatch | `grep -n removal sst.config.ts` (fixed when it checks `"prod"`) |
 | /sync-shows still public/env-less | `grep -n -A3 'sync-shows' infra/api.ts` |
-| Email subjects + recipient (both channels) | `grep -rn 'subject:' packages/functions/ packages/core/` and `grep -n 'to:' packages/core/email.ts` (expect `to: FromEmail` for `sendEmail` AND `to,` for `sendHtmlEmail`) |
+| Email subjects + recipient (both channels) | `grep -rn 'subject:' packages/functions/ packages/core/` and `grep -n 'SendEmailCommand\|ToAddresses\|AlertRecipient' packages/core/email.ts` (expect `@aws-sdk/client-sesv2` + `SendEmailCommand`, `ToAddresses: [AlertRecipient]` for `sendEmail` AND `ToAddresses: [to]` for `sendHtmlEmail`; NO nodemailer, no `to: FromEmail`) |
 | syncCron still today-only | `grep -n 'dates\[0\]' packages/functions/cron/syncCron.ts` |
 | SST version | `grep '"sst"' package.json` |
 | Migration count (expect FOUR, 0000-0003) | `ls migrations/*.sql` |

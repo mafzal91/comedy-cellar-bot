@@ -172,7 +172,7 @@ aws logs tail /aws/lambda/<function-name> --since 1h --follow
 aws lambda list-functions --query "Functions[?contains(FunctionName, 'comedy-cellar')].FunctionName"
 ```
 
-**Interpret:** for exactly which log groups exist, how SST names the cron/API Lambdas, and how to read the admin self-emails that double as telemetry, see **cellar-run-and-operate** (the operations home for logs). This repo has **no structured logging or monitoring** beyond raw `console.log(error)` and admin-to-self emails (the `sendEmail` channel, `to: FromEmail`), so expect large raw axios error dumps. Note (as of 2026-07-13): a **separate** user-facing email channel now exists — `sendHtmlEmail` mails show-notification announcements to opted-in *users* (recipe 2's `ShowNotificationCron`). That is a product feature, not monitoring; ops/telemetry alerts (including `ShowNotificationCron`'s own failure email) still go admin-to-self.
+**Interpret:** for exactly which log groups exist, how SST names the cron/API Lambdas, and how to read the owner-alert emails that double as telemetry, see **cellar-run-and-operate** (the operations home for logs). This repo has **no structured logging or monitoring** beyond raw `console.log(error)` and owner-alert emails (the `sendEmail` channel: an AWS SES send from `notifications@mail.comedycellar.mafz.al` to the owner's `AlertEmail` address), so expect large raw axios error dumps. Note: a **separate** user-facing email channel exists — `sendHtmlEmail` mails show-notification announcements to opted-in *users* (recipe 2's `ShowNotificationCron`). That is a product feature, not monitoring; ops/telemetry alerts (including `ShowNotificationCron`'s own failure email) still go to the owner's `AlertEmail` address.
 
 ---
 
@@ -220,7 +220,7 @@ grep -c "x-code-localize" packages/core/requester.ts   # expect 1
 
 **Authored/verified 2026-07-07** against repo at branch `claude/skill-library-continuity-4m3x56` (== main).
 
-**Reconciled 2026-07-13** against main at commit `5ceaf98`. Changes since 2026-07-07: a **third** cron shipped (`ShowNotificationCron`, `cron(0/15 * * * ? *)`, PR #62) — so recipe 2's interpretation guide and the cron-cadence re-verify row below now list three crons (freshness still keys off the two scraping crons only). A new user-facing email channel `sendHtmlEmail` now coexists with the admin-to-self `sendEmail` ops channel (recipe 6). This skill's probes and recipes were otherwise re-confirmed unchanged — none of them touch the notification path (that's cellar-run-and-operate / cellar-data-model / cellar-validation-and-qa).
+**Reconciled 2026-07-13** against main at commit `5ceaf98`. Changes since 2026-07-07: a **third** cron shipped (`ShowNotificationCron`, `cron(0/15 * * * ? *)`, PR #62) — so recipe 2's interpretation guide and the cron-cadence re-verify row below now list three crons (freshness still keys off the two scraping crons only). A new user-facing email channel `sendHtmlEmail` now coexists with the owner-alert `sendEmail` ops channel (recipe 6). This skill's probes and recipes were otherwise re-confirmed unchanged — none of them touch the notification path (that's cellar-run-and-operate / cellar-data-model / cellar-validation-and-qa).
 
 Verified by running here (node v22.22.2, pnpm 10.23.0, root deps installed):
 - `token-age.sh` -> exact output pasted in recipe 1 (662 days / ~22 months / standing order triggered).

@@ -111,7 +111,7 @@ Root `pnpm exec tsc --noEmit` needs generated types in `.sst/platform`, created 
 The single most recurring frontend bug class — six incidents across the project's life: b697c94 (2024-10-11, comic list/header), 7ea6a4b (2024-10-26, footer), 9ce39a1 (2024-11-03, spacing), 2fd6b30 (2026-07-02, PR #60, show cards + auth/header), 6192496 (2026-07-03, badge wrapping "Selling Fast"), c8d9918 (2026-07-03, comic-page identity row pulled −66px over the banner). The 2026 redesign needed three mobile-fix rounds within 24h of landing. Triage: reproduce at a narrow viewport (~375px) FIRST; suspect flex rows with fixed negative margins and long unwrappable text. Token/styling rules live in **cellar-frontend-design-system** (defer to packages/frontend/src/components/ui/CONTRACT.md); evidence standards for layout fixes in **cellar-validation-and-qa**.
 
 ### 12. Admin email flood or silence (email IS the telemetry)
-There is no monitoring stack (Sentry was removed in 56afdca, 2024-10-14); the production TELEMETRY channel is still Gmail self-email — `sendEmail` hardcodes `from`/`to: FromEmail` (packages/core/email.ts:16-33, the `to:` at :27). That ops channel is now separate from user-facing mail: as of 2026-07-13 (#62) a SECOND helper `sendHtmlEmail` (email.ts:35-57, `from: "Comedy Cellar Bot <FromEmail>"`, `to:` the recipient) DOES email real opted-in users about newly-discovered SHOWS (ShowNotificationCron reads `show_notification` — Symptom 2). SHOW notifications are shipped but UNPROVEN (zero tests, no production track record); COMIC notifications are still NOT shipped — nothing reads `comic_notification` (open ambition — see cellar-frontier-and-method). Read the self-email inbox as a log stream:
+There is no monitoring stack (Sentry was removed in 56afdca, 2024-10-14); the production TELEMETRY channel is email. `sendEmail` (email.ts:8-29) sends FROM `notifications@mail.comedycellar.mafz.al` (the `FromAddress` const, email.ts:5) TO the owner's `AlertEmail` address (the `AlertRecipient` const, email.ts:6, applied at email.ts:18). That ops channel is separate from user-facing mail: as of 2026-07-13 (#62) a SECOND helper `sendHtmlEmail` (email.ts:31-59, `from:` the same `FromAddress` label "Comedy Cellar Bot <notifications@mail.comedycellar.mafz.al>", `to:` the recipient) DOES email real opted-in users about newly-discovered SHOWS (ShowNotificationCron reads `show_notification` — Symptom 2). SHOW notifications are shipped but UNPROVEN (zero tests, no production track record); COMIC notifications are still NOT shipped — nothing reads `comic_notification` (open ambition — see cellar-frontier-and-method). Read the AlertEmail inbox as a log stream:
 
 | Signal | Meaning |
 |---|---|
@@ -120,7 +120,7 @@ There is no monitoring stack (Sentry was removed in 56afdca, 2024-10-14); the pr
 | "Sync Show Cron" | syncCron FAILURE with message+stack (syncCron.ts:90-97); success is silent |
 | "Show Notification Cron" | showNotificationCron FAILURE sending user emails (falls back to `sendEmail`); success is silent — the actual user mail goes out via `sendHtmlEmail`, not to this inbox |
 | "Comedy Cellar: new reservation!" | Real reservation attempt (contains guest PII — handle accordingly) |
-| Total silence | Ambiguous: healthy, or crons dead (Symptom 2), or Gmail creds rotated (`FromEmail`/`FromEmailPw` secrets — cellar-config-and-secrets) |
+| Total silence | Ambiguous: healthy, or crons dead (Symptom 2), or an SES send-path failure — SES sending paused/suspended, the `AlertEmail` secret wrong or unset, SES still in sandbox mode (blocks sending to an unverified `AlertEmail`), or the `Email` resource unlinked from the Lambda (missing SES IAM permission) — cellar-config-and-secrets |
 
 Story: even the telemetry had a bug — until 953e0ef (2024-10-29) the syncCron failure email carried the WRONG subject ("New Show Cron") and a static message with no error detail, so failures were misattributed. Verify: `git show 953e0ef`.
 
@@ -171,6 +171,6 @@ Verified 2026-07-07 against the working tree at commit c8d9918 (branch claude/sk
 | roomDictionary contents | `sed -n '27,32p' packages/core/models/show.ts` |
 | settings user-row guard still absent | `sed -n '30,52p' packages/functions/settings/index.ts` |
 | Stage→Clerk issuer map entries | `cat infra/config.ts` |
-| Two email channels: ops `sendEmail` (`to: FromEmail`) + user `sendHtmlEmail` (`to:` recipient) | `grep -n "sendHtmlEmail\|to: FromEmail" packages/core/email.ts` (expect BOTH) |
+| Two email channels: ops `sendEmail` (`to: AlertRecipient`, the AlertEmail secret) + user `sendHtmlEmail` (`to:` recipient); both send via SES `SendEmailCommand` | `grep -n "sendHtmlEmail\|AlertRecipient\|SendEmailCommand" packages/core/email.ts` (expect all three; both functions call `SendEmailCommand`) |
 | CI still installs inside packages/frontend | `sed -n '40,45p' .github/workflows/frontend-ci.yml` |
 | Prod API domain | `sed -n '6,13p' infra/api.ts` |

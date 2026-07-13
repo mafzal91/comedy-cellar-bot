@@ -1,6 +1,6 @@
 ---
 name: cellar-config-and-secrets
-description: Catalog of every configuration axis in comedy-cellar-bot - the six SST secrets (and the load-bearing clertPublishableKey typo), root .env, the Lambda env flags IS_ACTIVE/IS_CRON/STAGE, the per-stage map in infra/config.ts, the frontend VITE_ env chain and generated sst-env.d.ts files, localStorage flags, and cron schedules as config. Use when adding or rotating a secret, adding an env var or a new stage, wiring config into a Lambda or the frontend, or when a deploy crashes at infra/api.ts:22, a cron runs (or refuses to run) in the wrong stage, or import.meta.env comes back undefined.
+description: Catalog of every configuration axis in comedy-cellar-bot - the five SST secrets (and the load-bearing clertPublishableKey typo), the SES Email identity resource, root .env, the Lambda env flags IS_ACTIVE/IS_CRON/STAGE, the per-stage map in infra/config.ts, the frontend VITE_ env chain and generated sst-env.d.ts files, localStorage flags, and cron schedules as config. Use when adding or rotating a secret, adding an env var or a new stage, wiring config into a Lambda or the frontend, or when a deploy crashes at infra/api.ts:23, a cron runs (or refuses to run) in the wrong stage, or import.meta.env comes back undefined.
 ---
 
 # Config and secrets — comedy-cellar-bot
@@ -33,23 +33,32 @@ Jargon (defined once, used throughout):
 
 | # | Axis | Set where | Read where | Approver (per cellar-change-control) |
 |---|---|---|---|---|
-| 1 | 6 SST secrets | `sst secret set` (SSM, per stage) | `Resource.X.value` in `packages/core/*`, `infra/frontend.ts:21`, `drizzle.config.ts:9` | **Owner only** |
+| 1 | 5 SST secrets | `sst secret set` (SSM, per stage) | `Resource.X.value` in `packages/core/*`, `infra/frontend.ts:21`, `drizzle.config.ts:9` | **Owner only** |
+| 1b | SES Email identity (non-secret resource) | `infra/email.ts` (`sst.aws.Email`, domain `mail.comedycellar.mafz.al`) | `Resource.Email.sender` in `packages/core/email.ts:5` | **Owner only** (infra class) |
 | 2 | Root `.env` | file at repo root (untracked) | `sst.config.ts:12-13` (Cloudflare provider) | **Owner only** (it holds his Cloudflare creds) |
-| 3 | Lambda env flags `IS_ACTIVE` / `IS_CRON` / `STAGE` | `environment:` blocks in `infra/cron.ts:8-11,21-24,34-37` and `infra/api.ts:84-86` | `packages/functions/cron/*.ts:10-12`, `packages/core/createReservation.ts:10` | **Owner only** (infra class) |
-| 4 | Per-stage map | `infra/config.ts` | `infra/api.ts:22` (Clerk JWT issuer) | **Owner only** (infra class) |
+| 3 | Lambda env flags `IS_ACTIVE` / `IS_CRON` / `STAGE` | `environment:` blocks in `infra/cron.ts:9-12,22-25,35-38` and `infra/api.ts:85-87` | `packages/functions/cron/*.ts:10-12`, `packages/core/createReservation.ts:10` | **Owner only** (infra class) |
+| 4 | Per-stage map | `infra/config.ts` | `infra/api.ts:23` (Clerk JWT issuer) | **Owner only** (infra class) |
 | 5 | Frontend env chain (`VITE_*`) | `infra/frontend.ts:18-24`; `.env.local` for standalone vite | `src/utils/api.ts:6`, `src/utils/clerk.ts:8` | **Owner only** (values come from infra/secrets) |
 | 6 | Frontend runtime flags & constants | `localStorage`, `src/utils/constants.ts`, `index.html:18-28` | browser | any maintainer, frontend gates |
-| 7 | Cron schedules | `infra/cron.ts:13,26,39` | AWS EventBridge | **Owner only** |
+| 7 | Cron schedules | `infra/cron.ts:14,27,40` | AWS EventBridge | **Owner only** |
 
-## 1. SST secrets (exactly six, as of 2026-07-07)
+## 1. SST secrets (exactly five, as of 2026-07-13)
 
-Declared in `infra/secrets.ts` (12 lines, read it). Grouped exports: `emailSecrets`
-(FromEmail, FromEmailPw), `dbCreds` (DbUrl), `clerkCreds` (the three Clerk ones).
+Declared in `infra/secrets.ts` (11 lines, read it). Grouped exports: `emailSecrets`
+(AlertEmail), `dbCreds` (DbUrl), `clerkCreds` (the three Clerk ones).
+
+> **Email sends through AWS SES** (`@aws-sdk/client-sesv2`) from a **domain identity**
+> (`mail.comedycellar.mafz.al`, declared in `infra/email.ts` as `sst.aws.Email`,
+> DKIM/verification records managed via the Cloudflare DNS adapter). The sending
+> address is a code constant, not a secret: `notifications@mail.comedycellar.mafz.al`
+> (`email.ts:5`, from `Resource.Email.sender`). The only email *secret* is `AlertEmail`
+> — the **recipient** address for ops alerts. IAM permission to call SES comes from
+> linking the `Email` resource (axis 1b), not from a credential. See §1c below and
+> `cellar-run-and-operate`.
 
 | Secret | Consumed at | What it is | Prod vs dev |
 |---|---|---|---|
-| `FromEmail` | `packages/core/email.ts:3` — powers **two** send paths off the one secret: `sendEmail` (ops/telemetry self-mail, `to: FromEmail`, `email.ts:27`) AND the new `sendHtmlEmail` (`email.ts:35-57`, `from: "Comedy Cellar Bot <FromEmail>"`, `to:` a real recipient) that ships show-notification emails to opted-in users (shipped #62, as of 2026-07-13). No longer admin-to-self only — real users are now emailed; both channels coexist. | Gmail address used for both admin and user notifications | Same mechanism per stage; value is owner's |
-| `FromEmailPw` | `packages/core/email.ts:4` (Gmail SMTP auth via nodemailer, `email.ts:13-19`) | Gmail app password | ditto |
+| `AlertEmail` | `packages/core/email.ts:6` (`Resource.AlertEmail.value`, const `AlertRecipient`) — the **recipient** of `sendEmail` ops/telemetry alerts (`email.ts:18`, New/Sync/Show-Notification cron mails + `new reservation!`). Not the *sender* — SES sends from the domain identity. | Owner's inbox address for ops alerts | Same mechanism per stage; value is owner's |
 | `DbUrl` | `packages/core/database.ts:6`, `drizzle.config.ts:9` | Supabase Postgres connection string. Per-stage secret but **historically the same DB for all stages** (commit 741ca41, 2024-10-14: "Added stage field to users since db is shared across envs" — verified in local history). Treat destructive DB work as prod surgery → `cellar-data-model`. | Possibly identical values — never assume dev DB is disposable |
 | `ClerkSigningSecret` | `packages/core/verifyClerkWebhook.ts:13` (svix webhook signature check) | Clerk webhook signing secret | Per-Clerk-instance (prod vs dev Clerk app) |
 | `ClerkSecretKey` | `packages/core/clerk.ts:5`, `packages/functions/webhooks/clerk.ts:34` | Clerk backend API key (`sk_…`) | Per-Clerk-instance |
@@ -57,7 +66,7 @@ Declared in `infra/secrets.ts` (12 lines, read it). Grouped exports: `emailSecre
 
 ### The load-bearing typo
 
-`infra/secrets.ts:11` names the *TypeScript key* with a typo:
+`infra/secrets.ts:10` names the *TypeScript key* with a typo:
 
 ```ts
 clertPublishableKey: new sst.Secret("ClerkPublishableKey"),
@@ -71,7 +80,7 @@ copy the typo faithfully wherever you touch it.
 
 ### Set / rotate / list
 
-Documented in root `.env.template:11-19` (authoritative — defer to it). Run from
+Documented in root `.env.template:11-18` (authoritative — defer to it). Run from
 the repo root on a machine with AWS credentials (not possible in restricted
 sandboxes — see `cellar-build-and-env`):
 
@@ -87,7 +96,24 @@ After rotating a secret, affected functions need a redeploy of that stage to pic
 up the new value. Rotation is explicitly on the owner-only list in
 `cellar-change-control` ("infra / cron / secrets / prod deploy" row).
 
-### Adding a seventh secret — see checklist §9a.
+### Adding a sixth secret — see checklist §9a.
+
+### 1c. The SES Email identity (non-secret infra resource)
+
+Not a secret, but a config axis: `infra/email.ts` declares
+`new sst.aws.Email("Email", { sender: "mail.comedycellar.mafz.al", dns: sst.cloudflare.dns({ zone: "b94d6748e8554bed2a3eae31cc65c81b" }) })`.
+On deploy, SST verifies the domain and writes DKIM/verification records into the
+Cloudflare zone automatically (same zone id as the app domains). The `email` export
+is added to the `link:` array of the three crons (`infra/cron.ts`) and the two
+mail-sending API routes (`/sync-shows` and the reservation route, `infra/api.ts`);
+linking is what grants each Lambda IAM permission to call SES. Code reads
+`Resource.Email.sender` (the verified domain) and prepends `notifications@`
+(`packages/core/email.ts:5`).
+
+**Sandbox caveat:** a fresh AWS account's SES is in *sandbox* mode (can only send to
+verified addresses). Sending to arbitrary subscribers — and even to `AlertEmail` if
+it isn't separately verified — requires requesting SES production access once per
+account. See `cellar-run-and-operate`.
 
 ## 2. Root `.env` (SST CLI environment)
 
@@ -102,7 +128,7 @@ CLOUDFLARE_EMAIL=       # sst.config.ts:13
 - Template: root `.env.template` (comments there rule; it says "Do NOT commit .env").
 - Needed only for SST CLI operations that touch DNS (deploys of prod domains); the
   Cloudflare zone id `b94d6748e8554bed2a3eae31cc65c81b` is hardcoded (non-secret)
-  in `infra/api.ts:10` and `infra/frontend.ts:8`.
+  in `infra/api.ts:11` and `infra/frontend.ts:8`.
 - **AWS credentials never go in `.env`** — SST reads them from the standard AWS SDK
   chain (`~/.aws/credentials` or `AWS_*` env vars), per `.env.template:4-5`.
 
@@ -124,9 +150,9 @@ Three variables, set only in `infra/` `environment:` blocks. Exact semantics:
 
 | Var | Value | Set where | Meaning |
 |---|---|---|---|
-| `IS_ACTIVE` | `"1"` iff `$app.stage === "prod"`, else `"0"` | `infra/cron.ts:9,22,35` (all three crons) | "this stage's crons should really run" |
-| `IS_CRON` | `"1"` | `infra/cron.ts:10,23,36` (all three crons) | "this invocation came from a scheduled cron deployment" |
-| `STAGE` | `$app.stage` (literal stage name) | `infra/api.ts:85` — **the reservation route only** | gates REAL seat booking |
+| `IS_ACTIVE` | `"1"` iff `$app.stage === "prod"`, else `"0"` | `infra/cron.ts:10,23,36` (all three crons) | "this stage's crons should really run" |
+| `IS_CRON` | `"1"` | `infra/cron.ts:11,24,37` (all three crons) | "this invocation came from a scheduled cron deployment" |
+| `STAGE` | `$app.stage` (literal stage name) | `infra/api.ts:86` — **the reservation route only** | gates REAL seat booking |
 
 ### The cron guard (quoted from source)
 
@@ -148,7 +174,7 @@ Consequences:
   `infra/cron.ts`, but only prod acts). Symptom "my dev cron does nothing" is this
   guard working — see `cellar-debugging-playbook`.
 - **Loophole:** the same `syncCron.handler` is also routed as public
-  `GET /sync-shows` (`infra/api.ts:37-40`) with NO `environment:` block, so
+  `GET /sync-shows` (`infra/api.ts:38-41`) with NO `environment:` block, so
   `IS_CRON` is unset → the guard passes → an HTTP hit runs a full scrape-and-sync
   in ANY stage, unauthenticated. This is how you manually trigger a sync, and also
   why dev stages can still write scraped rows into the shared DB.
@@ -188,7 +214,7 @@ Clerk JWT issuer URL for that stage's Clerk instance):
 | `prod` | `https://clerk.comedycellar.mafz.al` |
 
 `infra/config.ts:17` exports `config[$app.stage]`. **For any stage name not in the
-map this is `undefined`, and the deploy crashes at `infra/api.ts:22`
+map this is `undefined`, and the deploy crashes at `infra/api.ts:23`
 (`issuer: config.clerkFrontendApi` → TypeError reading property of undefined).**
 So a new engineer running `sst dev` (default stage = their username) cannot deploy
 until their stage is added — checklist §9d.
@@ -222,7 +248,7 @@ not edit"); they regenerate on `sst dev`/`sst deploy`/`sst install`:
 
 | File | Contains |
 |---|---|
-| `/sst-env.d.ts` (root) | `Resource` types: Api, Frontend, the 6 secrets |
+| `/sst-env.d.ts` (root) | `Resource` types: Api, Frontend, Email (SES identity — has `.sender`/`.configSet`), the 5 secrets |
 | `/packages/frontend/sst-env.d.ts` | just a reference to the root file |
 | `/packages/frontend/src/sst-env.d.ts` | `ImportMetaEnv` with exactly the 5 keys above (eslint-ignored) |
 
@@ -254,9 +280,9 @@ ONLY when running vite without SST (`cp .env.template .env.local`, fill values,
 
 | Cron | Handler | Schedule | Meaning |
 |---|---|---|---|
-| `Cron` | `newShowCron.handler` | `cron(0 0/6 * * ? *)` (`infra/cron.ts:13`) | every 6 hours — discover new shows |
-| `SyncCron` | `syncCron.handler` | `cron(0 0/1 * * ? *)` (`infra/cron.ts:26`) | hourly — refresh today's inventory |
-| `ShowNotificationCron` | `showNotificationCron.handler` | `cron(0/15 * * * ? *)` (`infra/cron.ts:39`) | every 15 min — email opted-in users about batches of newly discovered shows (shipped #62, as of 2026-07-13; operational anatomy in `cellar-run-and-operate`) |
+| `Cron` | `newShowCron.handler` | `cron(0 0/6 * * ? *)` (`infra/cron.ts:14`) | every 6 hours — discover new shows |
+| `SyncCron` | `syncCron.handler` | `cron(0 0/1 * * ? *)` (`infra/cron.ts:27`) | hourly — refresh today's inventory |
+| `ShowNotificationCron` | `showNotificationCron.handler` | `cron(0/15 * * * ? *)` (`infra/cron.ts:40`) | every 15 min — email opted-in users about batches of newly discovered shows (shipped #62, as of 2026-07-13; operational anatomy in `cellar-run-and-operate`) |
 
 Schedule frequency is the site-politeness dial (house rule #2): tightening it
 increases load on comedycellar.com, whose anti-bot response once cost a 5-month
@@ -298,7 +324,7 @@ operational anatomy (what fires, logs, no-op behavior) lives in
 ### 9b. Add an env var to a Lambda
 
 1. Add to the `environment:` block of that function in `infra/*.ts`. If creating a
-   new cron, copy the full `IS_ACTIVE`/`IS_CRON` block from `infra/cron.ts:8-11`
+   new cron, copy the full `IS_ACTIVE`/`IS_CRON` block from `infra/cron.ts:9-12`
    verbatim — shipping without it repeats incident 70baa86 (§3).
 2. Read via `process.env.X` with an explicit comparison (`=== "1"`), matching the
    existing guards.
@@ -322,8 +348,8 @@ operational anatomy (what fires, logs, no-op behavior) lives in
 
 1. Add a key to `infra/config.ts` named exactly after the stage, with a
    `clerkFrontendApi` (a dev Clerk instance's frontend API URL) — without it,
-   deploy crashes at `infra/api.ts:22` (§4).
-2. Set all six secrets for the stage (§1); for `DbUrl` read
+   deploy crashes at `infra/api.ts:23` (§4).
+2. Set all five secrets for the stage (§1); for `DbUrl` read
    `cellar-data-model` first — the DB is shared, a new stage does NOT get a fresh
    database by default.
 3. Crons will deploy but no-op (`IS_ACTIVE="0"`, §3) — correct, leave it.
@@ -365,7 +391,7 @@ Verified 2026-07-07 against the working tree at commit `0f277a2` (branch
 `index.html`, `vite.config.ts`, `vitePluginEjs.ts`, both `.gitignore`s; commands:
 `git check-ignore -v .env` (exit 1 → not ignored), `git show 70baa86`, `git show
 741ca41`, greps below. `sst secret list` could not be run here (no AWS creds /
-network); those commands are carried from `.env.template:11-19`.
+network); those commands are carried from `.env.template:11-18`.
 
 Reconciled 2026-07-13 against commit `5ceaf98` (main). Config-relevant deltas:
 #62 added a third cron `ShowNotificationCron` (`infra/cron.ts:30-40`, schedule
@@ -382,13 +408,15 @@ Re-verification one-liners (run from repo root):
 
 | Claim | Command | Expect |
 |---|---|---|
-| Still exactly 6 secrets, typo intact | `grep -n "sst.Secret\|clertPublishableKey" infra/secrets.ts infra/frontend.ts` | 6 `new sst.Secret` lines; `clert` at secrets.ts:11 + frontend.ts:21 |
+| Still exactly 5 secrets, typo intact | `grep -n "sst.Secret\|clertPublishableKey" infra/secrets.ts infra/frontend.ts` | 5 `new sst.Secret` lines; `clert` at secrets.ts:10 + frontend.ts:21 |
+| Email is SES, not Gmail/nodemailer | `grep -rn "nodemailer\|SESv2\|sst.aws.Email" packages/core/email.ts infra/email.ts package.json` | zero `nodemailer`; `SESv2` in email.ts; `sst.aws.Email` in infra/email.ts |
+| SES identity linked to senders | `grep -n "email" infra/cron.ts infra/api.ts` | `import { email }` + `email` in each mail-sending `link:` array |
 | Stage list | `grep -n "clerkFrontendApi" infra/config.ts` | one line per stage (2 as of 2026-07-07) |
 | Cron schedules | `grep -n "schedule:" infra/cron.ts` | three lines: `cron(0 0/6 * * ? *)`, `cron(0 0/1 * * ? *)`, `cron(0/15 * * * ? *)` (as of 2026-07-13) |
 | Env-flag surface | `grep -rn "process.env" packages/ --include='*.ts' \| grep -v node_modules` | 7 lines: IS_ACTIVE/IS_CRON across all three cron files + STAGE (createReservation.ts:10) (as of 2026-07-13) |
 | Guard code verbatim | `sed -n '10,16p' packages/functions/cron/newShowCron.ts` | the §3 quote |
 | STAGE gate verbatim | `sed -n '10,17p' packages/core/createReservation.ts` | the §3 quote |
-| /sync-shows still lacks env block | `sed -n '37,40p' infra/api.ts` | route with `link:` but no `environment:` |
+| /sync-shows still lacks env block | `sed -n '38,41p' infra/api.ts` | route with `link:` but no `environment:` |
 | Unused frontend keys still unused | `grep -rn "VITE_REGION\|CLERK_SIGN" packages/frontend/src --include='*.ts*' \| grep -v sst-env.d.ts` | no output |
 | removal-policy mismatch still open | `grep -n "production" sst.config.ts` | line 8 ternary still says `"production"` |
 | Root .env still unignored | `git check-ignore .env; echo $?` | `1` |
