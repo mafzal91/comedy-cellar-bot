@@ -6,6 +6,10 @@
 
 declare module "sst" {
   export interface Resource {
+    "AlertEmail": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "Api": {
       "type": "sst.aws.ApiGatewayV2"
       "url": string
@@ -22,18 +26,14 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "AlertEmail": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
     "DbUrl": {
       "type": "sst.sst.Secret"
       "value": string
     }
     "Email": {
-      "type": "sst.aws.Email"
       "configSet": string
       "sender": string
+      "type": "sst.aws.Email"
     }
     "Frontend": {
       "type": "sst.aws.StaticSite"

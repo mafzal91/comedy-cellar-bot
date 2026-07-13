@@ -77,13 +77,18 @@ Pre-deploy checklist (gates detail in `cellar-validation-and-qa`):
 - [ ] No pending migration you haven't already applied (deploy does NOT run migrations — `cellar-data-model`).
 - [ ] You did not touch cron schedules, secrets, or createReservation.ts without owner sign-off.
 
-**SES sandbox caveat (new stage / fresh AWS account):** the `Email` identity is
-declared in infra/email.ts and SST writes its DKIM/verification DNS to Cloudflare
-on deploy, but a fresh AWS account keeps SES in **sandbox** mode — it can only
-send to *verified* addresses. Until a one-time SES production-access request is
-granted, `sendHtmlEmail` to arbitrary subscribers (and even `sendEmail` to
-`AlertEmail` if that address is unverified) will be rejected. Verify the identity
-and, for prod, request production access before relying on either channel.
+**SES caveats (new stage / fresh AWS account):** the `Email` identity in
+infra/email.ts is stage-conditional (2026-07-13): only stage `mohammadafzal`
+creates it (and SST writes its DKIM/verification DNS to
+Cloudflare on that stage's deploy); every other stage, prod included, adopts the
+existing identity via `sst.aws.Email.get`. So (1) deploying prod or any new stage
+into an account where the `mohammadafzal` stage never created the identity fails at
+`.get()` — deploy the dev stage (or create the identity) first; (2) a fresh AWS
+account keeps SES in **sandbox** mode — it can only send to *verified* addresses.
+Until a one-time SES production-access request is granted, `sendHtmlEmail` to
+arbitrary subscribers (and even `sendEmail` to `AlertEmail` if that address is
+unverified) will be rejected. Verify the identity and, for prod, request
+production access before relying on either channel.
 
 ### `pnpm remove:prod` — DANGEROUS, effectively never run this
 
