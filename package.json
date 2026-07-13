@@ -10,7 +10,8 @@
     "deploy:prod": "sst deploy --stage=prod",
     "remove:prod": "sst remove --stage=prod",
     "db": "sst shell drizzle-kit",
-    "db:studio": "sst shell drizzle-kit studio"
+    "db:studio": "sst shell drizzle-kit studio",
+    "test:email": "sst shell node scripts/test-email.mjs"
   },
   "keywords": [],
   "author": "",
