@@ -7,6 +7,11 @@ export interface Update {
 export const updates: Update[] = [
   {
     date: "July 2026",
+    title: "New Show Email Notifications",
+    text: "You can now get emailed when new shows are added! Subscribers receive an email digest whenever fresh shows hit the calendar. Turn it on with the show notification toggle in your profile settings.",
+  },
+  {
+    date: "July 2026",
     title: "Redesign",
     text: "We've given the whole site a fresh look! New vintage marquee styling, equal-height comic cards, dark mode, and other polish across every page.",
   },
