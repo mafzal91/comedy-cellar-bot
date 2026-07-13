@@ -55,9 +55,11 @@ api.route("GET /api/shows/scan", {
   link: [dbCreds.dbUrl],
 });
 
+// handleShowDetails sends per-new-show alert emails, so every route whose
+// handler ingests shows needs the email identity + AlertEmail linked
 api.route("GET /api/shows", {
   handler: `${functionDir}/shows/index.listShows`,
-  link: [dbCreds.dbUrl],
+  link: [dbCreds.dbUrl, ...Object.values(emailSecrets), email],
 });
 
 api.route("GET /api/shows/new", {
@@ -67,7 +69,7 @@ api.route("GET /api/shows/new", {
 
 api.route("GET /api/shows/{timestamp}", {
   handler: `${functionDir}/shows/index.getShow`,
-  link: [dbCreds.dbUrl],
+  link: [dbCreds.dbUrl, ...Object.values(emailSecrets), email],
 });
 
 // ---- Line Ups -----

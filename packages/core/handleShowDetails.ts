@@ -2,6 +2,7 @@ import { fetchShows } from "./fetchShows";
 import { createRooms } from "./models/room";
 import { createShows, Show } from "./models/show";
 import { enqueueNewShows } from "./models/newShowQueue";
+import { sendEmail } from "./email";
 
 export const handleShowDetails = async ({ date }: { date: string }) => {
   const showsData = await fetchShows(date);
@@ -32,6 +33,28 @@ export const handleShowDetails = async ({ date }: { date: string }) => {
           .map((row) => row.id);
 
         await enqueueNewShows(newUpcomingShowIds);
+
+        // Subscribers get the batched digest above; AlertEmail gets one
+        // email per brand-new show, unbatched
+        const insertedIds = new Set(
+          createShowsResult.value
+            .filter((row) => row.inserted)
+            .map((row) => row.id)
+        );
+        await Promise.allSettled(
+          shows
+            .filter((show) => insertedIds.has(show.id))
+            .map((show) =>
+              sendEmail({
+                subject: `new show! ${show.roomName ?? ""} ${show.time}`.trim(),
+                message: JSON.stringify(
+                  { date, roomName: show.roomName, ...show },
+                  null,
+                  2
+                ),
+              })
+            )
+        );
       }
     }
   } catch (e) {
