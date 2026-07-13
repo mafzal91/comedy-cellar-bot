@@ -34,7 +34,7 @@ Jargon (defined once, used throughout):
 | # | Axis | Set where | Read where | Approver (per cellar-change-control) |
 |---|---|---|---|---|
 | 1 | 5 SST secrets | `sst secret set` (SSM, per stage) | `Resource.X.value` in `packages/core/*`, `infra/frontend.ts:21`, `drizzle.config.ts:9` | **Owner only** |
-| 1b | SES Email identity (non-secret resource) | `infra/email.ts` (`sst.aws.Email`, domain `mail.comedycellar.mafz.al`) | `Resource.Email.sender` in `packages/core/email.ts:5` | **Owner only** (infra class) |
+| 1b | SES Email identity (non-secret resource) | `infra/email.ts` — `new sst.aws.Email` in stage `mohammadafzal` ONLY; every other stage adopts via `sst.aws.Email.get` (domain `mail.comedycellar.mafz.al`) | `Resource.Email.sender` in `packages/core/email.ts:5` | **Owner only** (infra class) |
 | 2 | Root `.env` | file at repo root (untracked) | `sst.config.ts:12-13` (Cloudflare provider) | **Owner only** (it holds his Cloudflare creds) |
 | 3 | Lambda env flags `IS_ACTIVE` / `IS_CRON` / `STAGE` | `environment:` blocks in `infra/cron.ts:9-12,22-25,35-38` and `infra/api.ts:85-87` | `packages/functions/cron/*.ts:10-12`, `packages/core/createReservation.ts:10` | **Owner only** (infra class) |
 | 4 | Per-stage map | `infra/config.ts` | `infra/api.ts:23` (Clerk JWT issuer) | **Owner only** (infra class) |
@@ -100,10 +100,30 @@ up the new value. Rotation is explicitly on the owner-only list in
 
 ### 1c. The SES Email identity (non-secret infra resource)
 
-Not a secret, but a config axis: `infra/email.ts` declares
-`new sst.aws.Email("Email", { sender: "mail.comedycellar.mafz.al", dns: sst.cloudflare.dns({ zone: "b94d6748e8554bed2a3eae31cc65c81b" }) })`.
-On deploy, SST verifies the domain and writes DKIM/verification records into the
-Cloudflare zone automatically (same zone id as the app domains). The `email` export
+Not a secret, but a config axis: `infra/email.ts` is **stage-conditional** (as of
+2026-07-13, working-tree change after #65):
+
+```ts
+export const email =
+  $app.stage === "mohammadafzal"
+    ? new sst.aws.Email("Email", {
+        sender: "mail.comedycellar.mafz.al",
+        dns: sst.cloudflare.dns({ zone: "b94d6748e8554bed2a3eae31cc65c81b" }),
+      })
+    : sst.aws.Email.get("Email", "mail.comedycellar.mafz.al");
+```
+
+Only the owner's dev stage `mohammadafzal` CREATES the identity — on deploy of that
+stage, SST verifies the domain and writes DKIM/verification records into the
+Cloudflare zone automatically (same zone id as the app domains). Every other stage
+(prod included) ADOPTS the already-existing identity via `.get()` — no DNS writes,
+no create. Why: an SES domain identity is an account-level singleton; two stages
+both running `new sst.aws.Email` on the same domain collide with "already exists"
+at deploy. Two consequences (also weak point 13 in `cellar-architecture-contract`):
+a stage other than `mohammadafzal` deployed into an account where the identity was
+never created fails at `.get()`; and removing the `mohammadafzal` stage deletes the
+identity + DKIM DNS that prod sends through (it carries the "remove" policy,
+sst.config.ts:8). The `email` export
 is added to the `link:` array of the three crons (`infra/cron.ts`) and the two
 mail-sending API routes (`/sync-shows` and the reservation route, `infra/api.ts`);
 linking is what grants each Lambda IAM permission to call SES. Code reads
@@ -409,7 +429,7 @@ Re-verification one-liners (run from repo root):
 | Claim | Command | Expect |
 |---|---|---|
 | Still exactly 5 secrets, typo intact | `grep -n "sst.Secret\|clertPublishableKey" infra/secrets.ts infra/frontend.ts` | 5 `new sst.Secret` lines; `clert` at secrets.ts:10 + frontend.ts:21 |
-| Email is SES, not Gmail/nodemailer | `grep -rn "nodemailer\|SESv2\|sst.aws.Email" packages/core/email.ts infra/email.ts package.json` | zero `nodemailer`; `SESv2` in email.ts; `sst.aws.Email` in infra/email.ts |
+| Email is SES, not Gmail/nodemailer | `grep -rn "nodemailer\|SESv2\|sst.aws.Email" packages/core/email.ts infra/email.ts package.json` | zero `nodemailer`; `SESv2` in email.ts; BOTH `new sst.aws.Email` and `sst.aws.Email.get` in infra/email.ts (stage-conditional since 2026-07-13) |
 | SES identity linked to senders | `grep -n "email" infra/cron.ts infra/api.ts` | `import { email }` + `email` in each mail-sending `link:` array |
 | Stage list | `grep -n "clerkFrontendApi" infra/config.ts` | one line per stage (2 as of 2026-07-07) |
 | Cron schedules | `grep -n "schedule:" infra/cron.ts` | three lines: `cron(0 0/6 * * ? *)`, `cron(0 0/1 * * ? *)`, `cron(0/15 * * * ? *)` (as of 2026-07-13) |
