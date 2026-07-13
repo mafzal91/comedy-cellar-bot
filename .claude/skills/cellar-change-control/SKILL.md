@@ -58,16 +58,18 @@ pnpm exec tsc --noEmit      # must print nothing
 pnpm build                  # vite build; a ~3MB clerk-chunk size warning is normal
 ```
 
-These four commands pass **locally**, but a local pass is **not** CI-faithful, and
-**CI is currently RED on main** (verified 2026-07-07). The tsc step fails: `useAuth.ts:2`
-imports `@clerk/types`, which is **not** declared in `packages/frontend/package.json`
-(only `@clerk/clerk-js` is), so a frontend-only frozen install — exactly what CI does —
-cannot resolve it and tsc exits with `TS2307: Cannot find module '@clerk/types'`. It
-resolves locally only because a prior repo-root `pnpm install` hoists the phantom dep.
-So a green local tsc does **not** mean your frontend PR will pass CI — it won't until
-that dep is declared. `cellar-validation-and-qa` §1–§2 is the canonical home for the
-current CI state, the run evidence, the candidate fix, and both local traps; treat CI as
-red until it says otherwise. Then, because CI runs no
+These four commands pass **locally**, but a local pass is **not** CI-faithful. **CI is
+now GREEN on main** (as of 2026-07-13): PR #63 (commit `1fea669`, merged 2026-07-12)
+declared `@clerk/types` in `packages/frontend/package.json`, so the frontend-only frozen
+install CI runs can finally resolve it and the tsc step passes. Historically (through
+`c8d9918`) CI was RED on every run: `useAuth.ts:2` imports `@clerk/types`, which was
+**not** declared then (only `@clerk/clerk-js` was), so CI's frozen install could not
+resolve it and tsc exited with `TS2307: Cannot find module '@clerk/types'`; it resolved
+locally only because a prior repo-root `pnpm install` hoisted the phantom dep. That half
+is now fixed — but a green local tsc is still **not** proof, because the OTHER trap is
+unchanged: a stale `dist/` contaminates local `tsc` (tsconfig `include: ["**/*"]` +
+checkJs). `cellar-validation-and-qa` §1–§2 is the canonical home for the current CI
+state, the run evidence, and both local traps. Then, because CI runs no
 browser: toggle the theme (bottom-right sun/moon) on every screen you touched, and
 check a ~375px-wide viewport — mobile overflow is this repo's most recurrent bug
 class (6+ fix commits from b697c94 2024-10-11 through c8d9918 2026-07-03).
@@ -143,11 +145,15 @@ destructive DB operation is prod surgery**, no matter which stage you think you
 are in.
 
 Incident: the Feb-2025 migration squash — 8b3b837 (PR #40, 2025-02-05, verified
-locally) deleted all 18 accumulated migrations and re-baselined to the 3 that
-exist today (`migrations/0000_closed_mattie_franklin.sql` … `0002_light_miss_america.sql`),
+locally) deleted all 18 accumulated migrations and re-baselined to 3 baseline
+migrations (`migrations/0000_closed_mattie_franklin.sql` … `0002_light_miss_america.sql`),
 which required manually reconciling the prod database's migration state. It
 worked, once, for the person who held all the context. Never repeat it casually;
-a history reset is owner-only and needs a written reconciliation plan first.
+a history reset is owner-only and needs a written reconciliation plan first. The
+discipline has held since: migration `0003_dizzy_lady_ursula.sql` (the
+show-notification outbox, added 2026-07-13 by #62) was a normal **append**, not
+another squash — exactly how a schema change should land here. So migrations are
+now 0000–0003 (four) as of 2026-07-13.
 
 All schema changes go through the migration workflow in `cellar-data-model`
 (`pnpm db` = `sst shell drizzle-kit`, `package.json:12`). No `DROP`, `TRUNCATE`,
@@ -164,8 +170,11 @@ All schema changes go through the migration workflow in `cellar-data-model`
   prod` (documented in `.env.template:11-19`; the six names are in
   `infra/secrets.ts`). Never run `sst secret set`, never echo secret values, never
   commit them. Full axis map: `cellar-config-and-secrets`.
-- Cron schedules (`infra/cron.ts:13,26`) are a politeness control (§2b), so
-  changing them is doubly owner-gated.
+- The two scraping crons' schedules (`infra/cron.ts:13,26`) are a politeness
+  control (§2b), so changing them is doubly owner-gated. (A third cron,
+  `ShowNotificationCron` at `:39`, added by #62, emails opted-in users and does
+  NOT touch comedycellar.com — owner-gated as infra, but outside this politeness
+  envelope.)
 - `pnpm remove:prod` exists (`package.json:11`). Never run it. Note also the
   latent removal-policy bug (`sst.config.ts:8` checks stage `"production"` but the
   real stage is `"prod"`) documented in `cellar-architecture-contract` — one more
@@ -190,10 +199,14 @@ change, add an entry in the same PR.
 
 Write entries about what **shipped**, not what is coming: the existing entries
 promising notifications ("You'll soon be able to receive notifications…",
-`data.ts:31`; similar at `data.ts:46,51`, dated Nov 2024/Feb 2025) were never
-fulfilled — user notifications have NEVER been sent (no code even reads the
-notification tables to send anything). Those entries are now archaeology of an
-unshipped ambition. Do not add more like them.
+`data.ts:31`; similar at `data.ts:46,51`, dated Nov 2024/Feb 2025) sat unfulfilled
+for ~1.5 years. **SHOW** notifications only actually shipped 2026-07-13 (#62: a
+`new_show_queue` outbox + `ShowNotificationCron` + `sendHtmlEmail` now email
+opted-in users), and that path is brand-new and **unproven** (zero tests, no track
+record). **COMIC** notifications still have NOT shipped — nothing reads
+`comic_notification`. A promise left dangling that long is exactly why you write
+entries about what shipped, not what's coming. Do not add speculative "coming
+soon" entries.
 
 ## 3. Parallel-agent file ownership (standing rule)
 
@@ -237,7 +250,7 @@ Before doing any of the following, stop and get an explicit yes from the owner:
 
 - [ ] Deploying to prod (`pnpm deploy:prod`) or removing any stage (`pnpm remove:prod`)
 - [ ] Setting or rotating any secret (`sst secret set …`, any stage)
-- [ ] Changing either cron schedule or adding a new cron (`infra/cron.ts`)
+- [ ] Changing any cron schedule or adding a new cron (`infra/cron.ts` — now three)
 - [ ] Any edit to `packages/core/requester.ts` (headers, UA, token)
 - [ ] Changing scrape pacing: sleeps, retries, dates-per-run, parallelism
 - [ ] Any edit to `packages/core/createReservation.ts` or the STAGE gate
@@ -265,6 +278,7 @@ If a task seems to require one of these, the deliverable is a written proposal
 | cellar-debugging-playbook / cellar-failure-archaeology | diagnosis; any resulting fix re-enters §1 |
 | cellar-diagnostics-toolkit | read-only probes are gate-exempt UNLESS they hit comedycellar.com (then §2b) or write the DB (then §2c) |
 | cellar-scraper-recovery-campaign | its decision gates are owner checkpoints; every recovery change is class scraping-behavior |
+| cellar-data-quality-campaign | its decision gates are checkpoints; each data-quality fix re-enters §1 (backend-logic or DB-schema class) |
 | cellar-frontier-and-method | open problems become proposals that enter §1/§5, never bypass them |
 
 ## Provenance and maintenance
@@ -276,8 +290,8 @@ Verified 2026-07-07 against local checkout at HEAD `c8d9918f0f919d8126022d0f3757
 `infra/secrets.ts`, `infra/config.ts`, `.env.template`, `drizzle.config.ts`,
 `migrations/` listing, `packages/frontend/src/components/ui/CONTRACT.md`,
 `plan/IMPLEMENTATION_PLAN.md`, `packages/frontend/src/pages/Updates/data.ts`,
-`sst.config.ts:8`. Verified by running: the frontend CI trio locally (all pass locally
-only via the hoisted `@clerk/types` phantom dep — CI is RED on main at the tsc step; see
+`sst.config.ts:8`. Verified by running: the frontend CI trio locally (all pass; the `@clerk/types`
+phantom dep was declared by #63, so CI is now GREEN on main — see
 `cellar-validation-and-qa`);
 `git show 391196d 8b3b837`, `git log --first-parent` (PR-vs-direct pattern),
 grep for sleeps/retries/IS_ACTIVE in cron handlers. Pre-graft SHAs ca85460,
@@ -285,16 +299,27 @@ grep for sleeps/retries/IS_ACTIVE in cron handlers. Pre-graft SHAs ca85460,
 2026-07-07 git-archaeology discovery (recovered via GitHub API) and labeled as
 such above.
 
+Reconciled 2026-07-13 against new main commit `5ceaf98`. Two facts changed since the
+2026-07-07 baseline: (1) CI is now GREEN — PR #63 (`1fea669`, merged 2026-07-12)
+declared `@clerk/types`, fixing the phantom-dep tsc failure (the frontend trio is still
+the only CI; the `dist/` local-tsc trap is unchanged). (2) SHOW notifications now ship
+to opted-in users — PR #62 (`5ceaf98`, 2026-07-13) added the `new_show_queue` outbox
+(migration `0003`, so migrations are 0000–0003), a third cron `ShowNotificationCron`
+(every 15 min), and `sendHtmlEmail` (the old admin-self `sendEmail` still coexists for
+ops/telemetry). COMIC notifications remain unshipped (nothing reads `comic_notification`),
+and the show path is unproven (zero tests). Backend still has no CI and no tests.
+
 Re-verify before trusting, when time has passed:
 
 | Volatile fact | One-line check |
 |---|---|
 | CI trio still the whole gate | `ls .github/workflows/ && grep -n "run:" .github/workflows/frontend-ci.yml` |
+| CI green (dep declared) | `grep -n "@clerk/types" packages/frontend/package.json` (expect present; its absence was the old red-CI cause) |
 | Still zero tests | `grep -n '"test"' package.json` (placeholder) and `find . -name "*.test.ts" -not -path "*/node_modules/*"` (empty) |
 | STAGE gate intact | `grep -n 'STAGE === "prod"' packages/core/createReservation.ts` |
-| Cron schedules unchanged | `grep -n "schedule" infra/cron.ts` |
+| Crons: three, schedules unchanged | `grep -n "schedule" infra/cron.ts` (expect 3: Cron 6h, SyncCron 1h, ShowNotificationCron 15m) |
 | Sleeps intact | `grep -n "sleep(" packages/functions/cron/*.ts` |
-| Migrations still 3 | `ls migrations/*.sql \| wc -l` |
+| Migrations 0000–0003 (four) | `ls migrations/*.sql \| wc -l` (expect 4) |
 | Stage list | `grep -n "const config" -A4 infra/config.ts` |
 | Changelog current | `head -15 packages/frontend/src/pages/Updates/data.ts` |
 | Deploy still manual | `grep -rn "sst deploy" .github/ package.json` (only package.json should hit) |

@@ -71,7 +71,7 @@ Nothing to do with Comedy Cellar — a personal waitlist sniper deployed on this
 
 - **Evidence:** added `a5093ee` 2024-02-20 (PR #4) [GitHub-only]. "Removed" by `56afdca` 2024-10-14 14:14 — which actually just **commented out** the frontend `Sentry.init` block. The commented block (with DSN) is still at `packages/frontend/src/index.tsx:20-26`, a commented `Sentry.captureException` at `:53`, and `@sentry/browser` is **still a dependency** (`^10.34.0`, `packages/frontend/package.json`, as of 2026-07-07).
 - **Root cause:** zero-ceremony abandonment; no replacement chosen.
-- **Consequence:** since 2024-10-14 the only telemetry is admin self-email (`packages/core/email.ts` sends to `FromEmail` itself; users are never emailed). The error channel then grew its own bug tail:
+- **Consequence:** since 2024-10-14 the only *error/telemetry* channel is admin self-email (`packages/core/email.ts` `sendEmail` → `to: FromEmail`, admin-to-self — still unchanged as of 2026-07-13). ("Users are never emailed" was true through `c8d9918` but is no longer universally true: a separate user-facing channel `sendHtmlEmail` shipped 2026-07-13 for SHOW notifications only — entry 10 — and carries no error/telemetry.) The error channel then grew its own bug tail:
   - `953e0ef` 2024-10-29 "fixed error in email" — the syncCron failure email had the wrong subject ("New Show Cron") and no error detail; fix added message+stack and subject "Sync Show Cron". Same commit cut sync chunking from 10 dates to 1.
   - `5e92e5f` 2024-11-24 "Only send email if there are shows" — noise reduction.
   - `8af1a1c` (PR #21) [GitHub-only] — throttled cron email to 6-hourly.
@@ -79,10 +79,10 @@ Nothing to do with Comedy Cellar — a personal waitlist sniper deployed on this
 
 ## Entry 5 — Feb-2025 migration squash (one-way door)
 
-- **What happened:** `8b3b837` 2025-02-05 23:55 (PR #40) deleted all 18 accumulated Drizzle migrations (`0000_nostalgic_the_fallen` … `0017_rich_sebastian_shaw`, plus meta snapshots) and re-baselined to exactly 3: `0000_closed_mattie_franklin`, `0001_pale_nighthawk`, `0002_light_miss_america` (verified via `git show --stat 8b3b837`; `ls migrations/*.sql` still shows exactly those 3, as of 2026-07-07).
+- **What happened:** `8b3b837` 2025-02-05 23:55 (PR #40) deleted all 18 accumulated Drizzle migrations (`0000_nostalgic_the_fallen` … `0017_rich_sebastian_shaw`, plus meta snapshots) and re-baselined to exactly 3: `0000_closed_mattie_franklin`, `0001_pale_nighthawk`, `0002_light_miss_america` (verified via `git show --stat 8b3b837`). A fourth migration `0003_dizzy_lady_ursula` was later **appended** (PR #62, 2026-07-13, the `new_show_queue` outbox table — entry 10), so `ls migrations/*.sql` now shows four (0000–0003, as of 2026-07-13).
 - **Implication:** the prod database's drizzle migration journal was manually reconciled to the new baseline — a risky, undocumented operation against the **single Supabase DB shared by all stages**. Anything assuming the old migration chain is wrong.
 - **Root cause (motivation):** 18 migrations of churn from the Oct-2024 schema burst; PR #40 was a model refactor.
-- **Status:** DONE — zero schema changes since 2025-02-05 (as of 2026-07-07). Never repeat casually: migration work follows `cellar-data-model` workflow, and journal surgery on the shared DB is prod surgery → `cellar-change-control`.
+- **Status:** DONE — the squash held with zero schema changes from 2025-02-05 until 2026-07-13, when migration `0003` was added (PR #62). Crucially `0003` was a **proper append**, not another squash — it *vindicates* the append-only migration rule rather than repeating this incident. Never re-baseline casually: migration work follows `cellar-data-model` workflow, and journal surgery on the shared DB is prod surgery → `cellar-change-control`.
 
 ## Entry 6 — The pagination/infinite-scroll saga (4 commits, 4 months)
 
@@ -119,12 +119,13 @@ Nothing to do with Comedy Cellar — a personal waitlist sniper deployed on this
 - **Side effect to remember:** comic identity is exact/case-insensitive name-string equality; accent or typo variants still create new rows → `cellar-data-model`.
 - **Status:** FIXED.
 
-## Entry 10 — PR #44 and the never-shipped notifications (OPEN)
+## Entry 10 — PR #44 and the notification ambition (SHOW notifications shipped 2026-07-13; COMIC notifications still OPEN)
 
-- **Fact (do not oversell anywhere):** **user notifications have never been sent, ever.** Notification tables and the settings UI exist (`cellar-data-model`), but no code reads those tables to send anything; the only email path is admin-to-self (`packages/core/email.ts:23` sends to `FromEmail`).
+- **Fact (do not oversell in either direction):** through `c8d9918`, **user notifications had never been sent, ever** — notification tables and the settings UI existed (`cellar-data-model`) but nothing read them to send. That changed on **2026-07-13**: SHOW notifications now ship end-to-end (see UPDATE below). COMIC notifications — the actual PR #44 goal — are **still not shipped**: nothing reads `comic_notification` to send anything (it is read only by the settings API, `packages/functions/settings/index.ts`, for preference read/write). The old admin-to-self path also still exists (`packages/core/email.ts` `sendEmail` → `to: FromEmail`) as the ops/telemetry channel.
 - **The promises:** the public Updates page committed to them twice — `packages/frontend/src/pages/Updates/data.ts:29-32` (Feb 2025, "You'll soon be able to receive notifications…") and `:44-52` (Nov 2024, "Phase 1" ×2). Verified 2026-07-07.
-- **The one attempt:** PR #44 "wip new comic email" (branch `feature/new-comic-email`, created 2026-01-19, closed unmerged) — the only dead PR in project history. [GitHub-only: the branch is no longer on the remote; `git branch -r` shows only `main` and one claude branch.]
-- **Status:** OPEN — the project's largest unshipped ambition. First steps and falsifiable milestones: `cellar-frontier-and-method`. Shipping it is a behavior change with real user impact → `cellar-change-control`.
+- **The one attempt (comic email):** PR #44 "wip new comic email" (branch `feature/new-comic-email`, created 2026-01-19, closed unmerged) — the only dead PR in project history. [GitHub-only: the branch is no longer on the remote; `git branch -r` shows only `main` and one claude branch.] Its goal — notify when a followed comic is booked — remains unbuilt.
+- **UPDATE (2026-07-13, PR #62, commit `5ceaf98`):** SHOW notifications shipped — the first user-facing email the project has ever sent. Plumbing: a `new_show_queue` outbox table (migration `0003`, entry 5), enqueued from every ingestion path (`handleShowDetails.ts` via `createShows`'s new `inserted` flag → `enqueueNewShows`); a **third** cron `ShowNotificationCron` (every 15 min, `packages/functions/cron/showNotificationCron.ts`) that holds a 60-min batch window, atomically claims rows (`claimPendingNewShows` — the double-send guard), renders a react-email template (`packages/core/emails/newShowsEmail.tsx`), and sends to opted-in users via the new user-facing channel `sendHtmlEmail` (`packages/core/email.ts`). Recipients = `show_notification.enabled = true AND user.stage = SST_STAGE` (`getShowNotificationRecipients`, reads `show_notification` only). **Unproven:** zero automated tests, no production track record — idempotency rests on the outbox + atomic claim + `queue_show_unique` unique index; the design looks sound but is untested in the wild. Say "shipped, unproven," not "solved."
+- **Status:** SHOW notifications DONE-but-UNPROVEN (2026-07-13); COMIC notifications OPEN — still the project's largest unshipped notification ambition. First steps and falsifiable milestones: `cellar-frontier-and-method`. Shipping the comic path — or hardening the new show path — is a behavior change with real user impact → `cellar-change-control`.
 
 ## Entry 11 — Redesign polish tail: 4 fix rounds in 10 hours
 
@@ -150,7 +151,7 @@ Nothing to do with Comedy Cellar — a personal waitlist sniper deployed on this
 | 3 | 2025-09-14 → 2026-01-18 | 126 days | `72b2eaf` Tailwind v4 + dep updates + Frontier proxy — a **new itch** | local log gap |
 | 4 | 2026-01-24 → 2026-06-29 | 156 days | `66ce813` design handoff (PR #50) — the AI-agent redesign | local log gap |
 
-- **Operational meaning:** prod runs unattended for months; the crons and the captured token keep working with nobody watching; failures during dormancy are discovered late (entry 1's outage lasted up to 5 months). The only failure signal is admin self-email (entry 4). Anything you build must survive a 6-month dormancy → design reviews should ask "what happens when nobody looks at this until next year?"
+- **Operational meaning:** prod runs unattended for months; the crons and the captured token keep working with nobody watching; failures during dormancy are discovered late (entry 1's outage lasted up to 5 months). The only *failure* signal is still admin self-email (entry 4) — the user-facing `sendHtmlEmail` channel added 2026-07-13 only announces new shows to subscribers (entry 10) and carries no failure telemetry. Anything you build must survive a 6-month dormancy → design reviews should ask "what happens when nobody looks at this until next year?"
 
 ## Entry 13 — Environment/config drift class (recurring)
 
@@ -199,16 +200,16 @@ git show --stat <sha> | head -20
 
 ## Provenance and maintenance
 
-Verified 2026-07-07 against the working tree at branch `claude/skill-library-continuity-4m3x56` (== `main`, HEAD `c8d9918`). All post-2024-10-11 SHAs re-verified with `git log -1` / `git show` locally; pre-graft SHAs (`122ccf5`, `7de294d`, `a5093ee`, `1fcff16`, `6886326`, `8af1a1c`, `411fa43`, `4e21da9`, `c43a806`, `97ac795`, `35dc6cb`) and PR #44 metadata come from GitHub via the project's discovery notes and are marked [GitHub-only]. Current-state claims checked by reading `packages/core/requester.ts`, `packages/core/slack.ts` (existence/exports/importers only), `packages/core/parseLineUp.ts`, `packages/core/models/comic.ts`, `packages/functions/cron/syncCron.ts`, `packages/frontend/src/index.tsx`, `packages/frontend/src/pages/Comics/index.tsx`, `packages/frontend/src/pages/Updates/data.ts`, `infra/api.ts`, `migrations/`.
+Reconciled 2026-07-13 against `main` at commit `5ceaf98` (PR #62, the show-notification system; the sibling PR #63 `@clerk/types` CI fix is not referenced in this file). Entries 4, 5, 10, 12 and the re-verify table below were updated for that reconciliation; every other fact retains its original 2026-07-07 verification. Originally verified 2026-07-07 against the working tree at branch `claude/skill-library-continuity-4m3x56` (== `main`, HEAD `c8d9918`). All post-2024-10-11 SHAs re-verified with `git log -1` / `git show` locally; pre-graft SHAs (`122ccf5`, `7de294d`, `a5093ee`, `1fcff16`, `6886326`, `8af1a1c`, `411fa43`, `4e21da9`, `c43a806`, `97ac795`, `35dc6cb`) and PR #44 metadata come from GitHub via the project's discovery notes and are marked [GitHub-only]. Current-state claims checked by reading `packages/core/requester.ts`, `packages/core/slack.ts` (existence/exports/importers only), `packages/core/parseLineUp.ts`, `packages/core/models/comic.ts`, `packages/functions/cron/syncCron.ts`, `packages/frontend/src/index.tsx`, `packages/frontend/src/pages/Comics/index.tsx`, `packages/frontend/src/pages/Updates/data.ts`, `infra/api.ts`, `migrations/`.
 
 | Claim that may drift | Re-verify with |
 |---|---|
 | Token still in requester.ts | `grep -n "x-code-localize" packages/core/requester.ts` |
 | slack.ts still orphaned | `grep -rn "core/slack" packages/ infra/ --include='*.ts' \| grep -v node_modules` |
 | frontier.ts still routed | `grep -n "frontier" infra/api.ts` |
-| Still exactly 3 migrations | `ls migrations/*.sql` |
+| Now exactly 4 migrations (0000–0003; `0003` appended 2026-07-13) | `ls migrations/*.sql` |
 | Sentry still commented out, still a dep | `grep -n -i sentry packages/frontend/src/index.tsx packages/frontend/package.json` |
 | Infinite-scroll guard still present | `grep -n -A5 getNextPageParam packages/frontend/src/pages/Comics/index.tsx` |
-| Notifications still unshipped | `grep -rn "sendEmail\|notification" packages/functions/cron/ packages/core/email.ts` — confirm no send path reads notification tables |
+| SHOW notifications shipped (2026-07-13), COMIC notifications still unshipped | `grep -rn "getShowNotificationRecipients\|comic_notification\|comicNotification" packages/functions/cron/ packages/core/models/` — a send path reads `show_notification` (via `ShowNotificationCron` → `getShowNotificationRecipients`); confirm nothing reads `comic_notification` to send |
 | No new dead PRs / branches | `git branch -r` and GitHub PR list |
 | Local graft boundary unchanged | `cat .git/shallow` |

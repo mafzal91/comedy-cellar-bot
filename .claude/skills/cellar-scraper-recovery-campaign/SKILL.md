@@ -119,9 +119,12 @@ details landed but lineups didn't"; discriminate in Phase 1 by probing both CC e
 **Decide the scope:**
 
 - 0.1 fails → API/ops problem, not the scraper. → **cellar-run-and-operate**, **cellar-debugging-playbook**.
-- All queries return `total: 0` (DB empty) → bootstrap problem; note both crons crash on an
-  empty show table (`getLastShow` destructure, newShowCron.ts:17-20, syncCron.ts:52-56). Seed
-  first → **cellar-data-model**.
+- All queries return `total: 0` (DB empty) → bootstrap problem; note the two *scraping* crons
+  crash on an empty show table (`getLastShow` destructure, newShowCron.ts:17-20,
+  syncCron.ts:52-56). (As of 2026-07-13 there is a third cron, `ShowNotificationCron`, which
+  does NOT crash on an empty DB — `getPendingNewShows` returns `[]` and it early-returns,
+  showNotificationCron.ts:27-29; it also never touches comedycellar.com, so it's irrelevant to
+  a scraper outage.) Seed first → **cellar-data-model**.
 - 0.2 and 0.3 healthy → not a scraper outage. Re-triage the original symptom → **cellar-debugging-playbook**.
 - Data stale / today empty / failure mails → scraper outage confirmed. Also remember crons
   only run in prod (`IS_ACTIVE` gate, infra/cron.ts:9,22; guards newShowCron.ts:14-16,
@@ -381,10 +384,19 @@ and the token-tail decode (timestamp only). NOT verifiable from this sandbox: an
 comedycellar.com responses, prod API output, pre-2024-10-11 SHAs (`122ccf5`, `f8b6976` is
 local; `122ccf5` recovered from GitHub history), and the live lineup page URL.
 
+Reconciled against main at commit `5ceaf98` on 2026-07-13. Two upstream changes were checked
+for impact and neither touches the fetch/parse/persist path this runbook covers: PR #62 added a
+third cron (`ShowNotificationCron`, every 15 min) plus migration 0003 (the `new_show_queue`
+outbox) and a user-facing show-notification email — a non-scraping feature; PR #63 turned the
+frontend CI green. Effect on this skill: the Phase 0 empty-DB note now names the *two scraping*
+crons (the new cron doesn't crash empty), and the cron re-verify row below now expects three
+schedules. All scraper contracts, probes, branch playbooks, and the token doctrine are
+unchanged.
+
 | May drift | Re-verify with |
 |---|---|
 | Prod API domain | `grep -n 'comedycellar-api' infra/api.ts` |
-| Cron schedules (owner-only to change) | `grep -n 'cron(' infra/cron.ts` → `0 0/6` and `0 0/1` |
+| Cron schedules (owner-only to change) | `grep -n 'cron(' infra/cron.ts` → three schedules `0 0/6`, `0 0/1`, `0/15` (as of 2026-07-13; the two scraping crons at `0 0/6`+`0 0/1` are the ones this runbook cares about — `0/15` is `ShowNotificationCron`, non-scraping) |
 | Token age / presence | `.claude/skills/cellar-scraper-recovery-campaign/scripts/token-age.sh` |
 | Parse selectors | `grep -n 'no-shows\|\.lineup\|set-content\|make-reservation\|showid' packages/core/parseLineUp.ts` |
 | STAGE gate on real bookings | `grep -n 'STAGE' packages/core/createReservation.ts` → `=== "prod"` at line 10 |

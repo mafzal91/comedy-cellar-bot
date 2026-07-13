@@ -1,12 +1,15 @@
 ---
 name: cellar-run-and-operate
-description: Operations runbook for comedy-cellar-bot - what sst dev / pnpm deploy:prod actually do, the prod topology (comedycellar.mafz.al domains, crons, Supabase), the two cron jobs' real behavior, the admin-email telemetry decoder, log access, DB ops commands, and health checks. Use when running the app locally with sst dev, deploying or removing a stage, interpreting a "New Show Cron" / "Sync Show Cron" / "new reservation!" email, wondering whether a cron actually ran, triggering a manual sync, or looking for logs of a deployed Lambda.
+description: Operations runbook for comedy-cellar-bot - what sst dev / pnpm deploy:prod actually do, the prod topology (comedycellar.mafz.al domains, crons, Supabase), the three cron jobs' real behavior, the admin-email telemetry decoder, log access, DB ops commands, and health checks. Use when running the app locally with sst dev, deploying or removing a stage, interpreting a "New Show Cron" / "Sync Show Cron" / "new reservation!" / "Show Notification Cron" email, wondering whether a cron actually ran, triggering a manual sync, or looking for logs of a deployed Lambda.
 ---
 
 # Running and operating comedy-cellar-bot
 
 Imperative runbook for a deployed system you did not build. Everything here was
-re-verified against the repo on 2026-07-07 (HEAD 0f277a2).
+re-verified against the repo on 2026-07-07 (HEAD 0f277a2), then reconciled on
+2026-07-13 against commit 5ceaf98 for the shipped SHOW-notification cron and its
+user-facing email channel (facts touched then are stamped "(as of 2026-07-13)";
+details in Provenance).
 
 **When NOT to use this skill:** setting up a fresh machine/sandbox (node, pnpm,
 the two-workspace trap) → `cellar-build-and-env`. Diagnosing a live misbehavior
@@ -65,7 +68,7 @@ pnpm deploy:prod        # = sst deploy --stage=prod   (package.json:10)
 What it does, in order:
 1. Bundles each `packages/functions/` handler with esbuild into its own Lambda (backend dirs are plain folders, not workspace packages — `cellar-build-and-env`).
 2. Builds the frontend: runs `npm run build` in packages/frontend with `VITE_API_URL`, `VITE_CLERK_PUBLISHABLE_KEY`, `VITE_REGION` injected (infra/frontend.ts:12-24), output `dist/`, uploaded as the StaticSite.
-3. Creates/updates API Gateway routes (infra/api.ts), the two crons (infra/cron.ts), the Clerk JWT authorizer.
+3. Creates/updates API Gateway routes (infra/api.ts), the three crons (infra/cron.ts), the Clerk JWT authorizer.
 4. Syncs Cloudflare DNS for the prod custom domains (zone id in infra/api.ts:10 and infra/frontend.ts:8; creds from root `.env` CLOUDFLARE_API_TOKEN/CLOUDFLARE_EMAIL, sst.config.ts:11-14).
 
 Pre-deploy checklist (gates detail in `cellar-validation-and-qa`):
@@ -94,16 +97,16 @@ a written reason.
 | Clerk (auth) issuer | https://clerk.comedycellar.mafz.al | infra/config.ts:9 |
 | DNS | Cloudflare zone `b94d6748e8554bed2a3eae31cc65c81b` | infra/api.ts:10, infra/frontend.ts:8 |
 | Database | Supabase Postgres, connection string in the `DbUrl` SST secret; ONE database shared by all stages | infra/secrets.ts:6; `cellar-data-model` |
-| Email | Gmail SMTP, creds in `FromEmail`/`FromEmailPw` secrets; all mail is admin-to-self | packages/core/email.ts:13-26 |
-| Compute | One Lambda per API route + two cron Lambdas; API Gateway V2 | infra/api.ts, infra/cron.ts |
+| Email | Gmail SMTP, creds in `FromEmail`/`FromEmailPw` secrets; TWO channels (as of 2026-07-13): `sendEmail` admin-to-self ops/telemetry AND `sendHtmlEmail` branded user-facing "new shows" mail to show-notification subscribers | packages/core/email.ts (`sendEmail`:16-33, `sendHtmlEmail`:35-57) |
+| Compute | One Lambda per API route + three cron Lambdas (as of 2026-07-13); API Gateway V2 | infra/api.ts, infra/cron.ts |
 | Non-prod stages | Same resources minus custom domains (auto-generated API GW URL), crons no-op'd | infra/api.ts:16, infra/frontend.ts:25 |
 
 Full route table and auth surface live in `cellar-architecture-contract`; do
 not duplicate it here.
 
-## 4. The crons, operationally (schedules as of 2026-07-07)
+## 4. The crons, operationally (schedules as of 2026-07-07; ShowNotificationCron added 2026-07-13)
 
-Both defined in infra/cron.ts; both link DbUrl + email secrets. AWS cron
+All three defined in infra/cron.ts; each links DbUrl + email secrets. AWS cron
 expressions run in **UTC**.
 
 ### Cron ("newShowCron") — discovers future shows
@@ -135,21 +138,47 @@ prove the *cron* ran. Locking this route down is a known open item
 (`cellar-frontier-and-method`); doing so is a behavior change → gates in
 `cellar-change-control`.
 
+### ShowNotificationCron — emails subscribers about batches of new shows (as of 2026-07-13)
+Shipped by PR #62 (2026-07-13); this is the first cron that emails END USERS,
+not the admin. **Brand-new and unproven** — zero automated tests, no production
+track record; its no-double-send guarantee rests on an outbox table + atomic
+claim that look sound but are untested in the wild.
+- Handler `packages/functions/cron/showNotificationCron.handler`; schedule `cron(0/15 * * * ? *)` = every 15 minutes (infra/cron.ts:39). Same `IS_ACTIVE`/`IS_CRON` prod-only gating as the other two (early-returns when `!IS_ACTIVE && IS_CRON`, showNotificationCron.ts:11-23) — no-op outside prod.
+- Behavior (showNotificationCron.ts:20-118): reads the `new_show_queue` outbox via `getPendingNewShows()`; if empty, returns. **Holds the batch** until the oldest queued show is `BATCH_WINDOW_MINUTES` (60) old (showNotificationCron.ts:17,38-43) — new shows post over ~an hour, so it waits so they ride in one email. Once ripe it `claimPendingNewShows(...)` atomically (showNotificationCron.ts:46-53); an empty claim means an overlapping run already took the batch → return. It then filters to still-upcoming shows, loads recipients via `getShowNotificationRecipients()` (users with `showNotification.enabled = true` AND `user.stage = SST_STAGE`, showNotification.ts:35-42), renders the branded email, and sends to each subscriber via `sendHtmlEmail` in chunks of `SEND_CHUNK_SIZE` (25), `Promise.allSettled` per chunk.
+- **On send failures** it emails the admin `sendEmail({subject: "Show Notification Cron", ...})` with the failed recipients (showNotificationCron.ts:108-115) — the ONE admin-facing subject this cron produces; success is otherwise silent (a `console.log` count only).
+- The queue is populated on ingestion, not here: `handleShowDetails` enqueues brand-new upcoming shows via `enqueueNewShows`, so BOTH scraping crons AND the API cache-through feed this outbox (`cellar-data-model` for the outbox schema/model). SHOW notifications are shipped; COMIC notifications are NOT — nothing reads `comic_notification` (`cellar-frontier-and-method`).
+- Changing this schedule is an owner-only decision (`cellar-change-control`).
+
 ## 5. Email-as-telemetry decoder
 
 There is no monitoring stack (Sentry was removed 2024-10-14, commit 56afdca).
-Telemetry = self-addressed Gmail: `sendEmail` sends from AND to `FromEmail`
-(packages/core/email.ts:21-26). End users have NEVER been emailed — the
-notification tables exist but nothing fires them (`cellar-architecture-contract`).
+There are now (as of 2026-07-13) TWO email channels — do not conflate them:
+
+- **Ops/telemetry — `sendEmail`, admin-to-self.** Sends from AND to `FromEmail`
+  (packages/core/email.ts:16-33). This is the "email is the dashboard" channel —
+  four subjects, decoded below.
+- **User-facing — `sendHtmlEmail`, to real subscribers.** `from: "Comedy Cellar
+  Bot <FromEmail>"`, `to: <subscriber>` (packages/core/email.ts:35-57); a branded
+  "new shows" email rendered from a react-email template
+  (packages/core/emails/newShowsEmail.tsx), sent by ShowNotificationCron (§4) to
+  users who opted into SHOW notifications. So the old "end users have NEVER been
+  emailed" is FALSE as of 2026-07-13 — but only for SHOW subscribers; COMIC
+  notifications still fire nothing (`cellar-frontier-and-method`). This channel is
+  brand-new and untested.
+
+The `sendEmail` (admin-to-self) subjects:
 
 | Subject | Meaning | Body | Caveats |
 |---|---|---|---|
 | `New Show Cron` | newShowCron found a day (beyond the previous horizon) that has shows | Execution time + that day's shows as pretty-printed JSON (newShowCron.ts:43-54) | One email per newly discovered day, every 6h run. If the DB write silently failed (handleShowDetails.ts:25-28 swallows), the SAME day re-emails every 6 hours — a repeating identical email is a symptom, see `cellar-debugging-playbook`. |
 | `Sync Show Cron` | A sync FAILED (all 3 retries exhausted on either fetch) | Error message + stack trace (syncCron.ts:90-96) | Sent on failure only. Could be the hourly cron OR anyone hitting public GET /sync-shows. Silence = success (or the cron is dead — discriminate via logs, §6). |
 | `Comedy Cellar: new reservation!` | Someone submitted POST /api/reservation/{ts} successfully | **Full guest PII** (name, email, phone, party size) as JSON (functions/reservation.ts:91-94) | Fires from ANY stage (route deploys everywhere); only prod actually booked a real seat — dev stages returned the fixture. Email failure is swallowed, so no email ≠ no reservation. |
+| `Show Notification Cron` (as of 2026-07-13) | ShowNotificationCron (§4) FAILED to send one or more subscriber emails | Count + list of `recipient: reason` failures (showNotificationCron.ts:108-115) | Sent on partial/total send failure only; a successful announcement is silent (console.log count). Does NOT indicate the *user* email that succeeded — that goes out via `sendHtmlEmail`, which has no telemetry echo. |
 
-No other emails exist in the codebase (the only `sendEmail` call sites are the
-three above, verified by grep on 2026-07-07).
+These are the four `sendEmail` (admin-to-self) call sites — reservation.ts:91,
+syncCron.ts:93, newShowCron.ts:43, showNotificationCron.ts:109 (verified by grep
+as of 2026-07-13). All *other* outbound mail is the user-facing `sendHtmlEmail`
+above.
 
 ## 6. Logs
 
@@ -202,13 +231,15 @@ that scraping or the DB works. For a deeper probe use
 |---|---|---|
 | `.sst/` | Generated, gitignored (.gitignore:5) | Platform types + state; created by any sst command; cannot be generated in sandboxes that block the pulumi download (`cellar-build-and-env`) |
 | `packages/frontend/dist/` | Generated, gitignored (packages/frontend/.gitignore) | vite build output; what StaticSite uploads |
-| `migrations/` | **Committed** (0000-0002 as of 2026-07-07) | Never hand-edit; workflow in `cellar-data-model` |
+| `migrations/` | **Committed** (0000-0003 as of 2026-07-13; 0003 added the `new_show_queue` outbox — a proper APPEND, not a squash) | Never hand-edit; workflow in `cellar-data-model` |
 | Root `.env` | Local-only, never committed | Cloudflare creds only; template committed as `.env.template` |
 | `packages/frontend/src/sst-env.d.ts` | Generated by SST, committed, eslint-ignored | Types the 5 injected VITE_/CLERK_ env keys |
 
 ## 10. Cost surface (UNVERIFIED estimates — no billing access from this repo)
 
-Traffic is tiny (one hourly + one 6-hourly cron, a personal-project site).
+Traffic is tiny (one 15-minute + one hourly + one 6-hourly cron as of 2026-07-13,
+a personal-project site; the 15-minute ShowNotificationCron mostly early-returns
+or holds its batch, so its invocation cost is trivial).
 Expectation, unverified: Lambda, API Gateway, EventBridge, and CloudWatch all
 sit inside or near AWS free tiers; Supabase on its free tier; Cloudflare DNS
 free; Gmail free; the paid-ish items would be Route-less custom-domain
@@ -236,15 +267,27 @@ executed in this sandbox (no AWS creds; pulumi download blocked); those flows ar
 labeled by source above. Discovery-report claims were independently re-read in the
 files cited.
 
+**Reconciled 2026-07-13 against commit `5ceaf98`** for two upstream changes:
+PR #62 shipped SHOW notifications (new `ShowNotificationCron` — §4, the
+`new_show_queue` outbox migration 0003, `sendHtmlEmail` user channel, react-email
+template) and PR #63 turned frontend CI green (out of this skill's scope — see
+`cellar-validation-and-qa` / `cellar-build-and-env`). Re-read for this pass:
+infra/cron.ts, packages/functions/cron/showNotificationCron.ts, packages/core/email.ts,
+packages/core/models/{newShowQueue,showNotification}.ts, migrations/ listing. Facts
+touched in this pass are stamped "(as of 2026-07-13)"; everything else keeps its
+2026-07-07 stamp. There is still NO backend CI and ZERO automated tests, and the
+show-notification feature is shipped-but-unproven.
+
 | Volatile fact | Re-verify with |
 |---|---|
 | Root scripts (dev/deploy/remove/db) | `grep -A8 '"scripts"' package.json` |
-| Cron schedules | `grep schedule: infra/cron.ts` |
+| Cron schedules (expect THREE: Cron 0/6h, SyncCron hourly, ShowNotificationCron 0/15m) | `grep schedule: infra/cron.ts` |
+| Cron count (expect three) | `grep -c 'new sst.aws.Cron(' infra/cron.ts` → `3` |
 | IS_ACTIVE/IS_CRON wiring | `grep -n 'IS_' infra/cron.ts packages/functions/cron/*.ts` |
 | Prod domains + Cloudflare zone | `grep -rn 'mafz.al\|zone:' infra/` |
 | Removal-policy mismatch | `grep -n removal sst.config.ts` (fixed when it checks `"prod"`) |
 | /sync-shows still public/env-less | `grep -n -A3 'sync-shows' infra/api.ts` |
-| Email subjects + recipient | `grep -rn 'subject:' packages/functions/ packages/core/` and `grep -n 'to:' packages/core/email.ts` |
+| Email subjects + recipient (both channels) | `grep -rn 'subject:' packages/functions/ packages/core/` and `grep -n 'to:' packages/core/email.ts` (expect `to: FromEmail` for `sendEmail` AND `to,` for `sendHtmlEmail`) |
 | syncCron still today-only | `grep -n 'dates\[0\]' packages/functions/cron/syncCron.ts` |
 | SST version | `grep '"sst"' package.json` |
-| Migration count | `ls migrations/*.sql` |
+| Migration count (expect FOUR, 0000-0003) | `ls migrations/*.sql` |

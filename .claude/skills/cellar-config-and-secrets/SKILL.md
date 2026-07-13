@@ -35,11 +35,11 @@ Jargon (defined once, used throughout):
 |---|---|---|---|---|
 | 1 | 6 SST secrets | `sst secret set` (SSM, per stage) | `Resource.X.value` in `packages/core/*`, `infra/frontend.ts:21`, `drizzle.config.ts:9` | **Owner only** |
 | 2 | Root `.env` | file at repo root (untracked) | `sst.config.ts:12-13` (Cloudflare provider) | **Owner only** (it holds his Cloudflare creds) |
-| 3 | Lambda env flags `IS_ACTIVE` / `IS_CRON` / `STAGE` | `environment:` blocks in `infra/cron.ts:8-11,21-24` and `infra/api.ts:84-86` | `packages/functions/cron/*.ts:10-12`, `packages/core/createReservation.ts:10` | **Owner only** (infra class) |
+| 3 | Lambda env flags `IS_ACTIVE` / `IS_CRON` / `STAGE` | `environment:` blocks in `infra/cron.ts:8-11,21-24,34-37` and `infra/api.ts:84-86` | `packages/functions/cron/*.ts:10-12`, `packages/core/createReservation.ts:10` | **Owner only** (infra class) |
 | 4 | Per-stage map | `infra/config.ts` | `infra/api.ts:22` (Clerk JWT issuer) | **Owner only** (infra class) |
 | 5 | Frontend env chain (`VITE_*`) | `infra/frontend.ts:18-24`; `.env.local` for standalone vite | `src/utils/api.ts:6`, `src/utils/clerk.ts:8` | **Owner only** (values come from infra/secrets) |
 | 6 | Frontend runtime flags & constants | `localStorage`, `src/utils/constants.ts`, `index.html:18-28` | browser | any maintainer, frontend gates |
-| 7 | Cron schedules | `infra/cron.ts:13,26` | AWS EventBridge | **Owner only** |
+| 7 | Cron schedules | `infra/cron.ts:13,26,39` | AWS EventBridge | **Owner only** |
 
 ## 1. SST secrets (exactly six, as of 2026-07-07)
 
@@ -48,7 +48,7 @@ Declared in `infra/secrets.ts` (12 lines, read it). Grouped exports: `emailSecre
 
 | Secret | Consumed at | What it is | Prod vs dev |
 |---|---|---|---|
-| `FromEmail` | `packages/core/email.ts:3` — also the **recipient**: `to: FromEmail` (`email.ts:23`). All email is admin-to-self; users are never emailed. | Gmail address used for admin notifications | Same mechanism per stage; value is owner's |
+| `FromEmail` | `packages/core/email.ts:3` — powers **two** send paths off the one secret: `sendEmail` (ops/telemetry self-mail, `to: FromEmail`, `email.ts:27`) AND the new `sendHtmlEmail` (`email.ts:35-57`, `from: "Comedy Cellar Bot <FromEmail>"`, `to:` a real recipient) that ships show-notification emails to opted-in users (shipped #62, as of 2026-07-13). No longer admin-to-self only — real users are now emailed; both channels coexist. | Gmail address used for both admin and user notifications | Same mechanism per stage; value is owner's |
 | `FromEmailPw` | `packages/core/email.ts:4` (Gmail SMTP auth via nodemailer, `email.ts:13-19`) | Gmail app password | ditto |
 | `DbUrl` | `packages/core/database.ts:6`, `drizzle.config.ts:9` | Supabase Postgres connection string. Per-stage secret but **historically the same DB for all stages** (commit 741ca41, 2024-10-14: "Added stage field to users since db is shared across envs" — verified in local history). Treat destructive DB work as prod surgery → `cellar-data-model`. | Possibly identical values — never assume dev DB is disposable |
 | `ClerkSigningSecret` | `packages/core/verifyClerkWebhook.ts:13` (svix webhook signature check) | Clerk webhook signing secret | Per-Clerk-instance (prod vs dev Clerk app) |
@@ -124,14 +124,14 @@ Three variables, set only in `infra/` `environment:` blocks. Exact semantics:
 
 | Var | Value | Set where | Meaning |
 |---|---|---|---|
-| `IS_ACTIVE` | `"1"` iff `$app.stage === "prod"`, else `"0"` | `infra/cron.ts:9,22` (both crons) | "this stage's crons should really run" |
-| `IS_CRON` | `"1"` | `infra/cron.ts:10,23` (both crons) | "this invocation came from a scheduled cron deployment" |
+| `IS_ACTIVE` | `"1"` iff `$app.stage === "prod"`, else `"0"` | `infra/cron.ts:9,22,35` (all three crons) | "this stage's crons should really run" |
+| `IS_CRON` | `"1"` | `infra/cron.ts:10,23,36` (all three crons) | "this invocation came from a scheduled cron deployment" |
 | `STAGE` | `$app.stage` (literal stage name) | `infra/api.ts:85` — **the reservation route only** | gates REAL seat booking |
 
 ### The cron guard (quoted from source)
 
 ```ts
-// packages/functions/cron/newShowCron.ts:10-16 (syncCron.ts:11-12,45-47 identical)
+// packages/functions/cron/newShowCron.ts:10-16 (syncCron.ts:11-12,45-47 and showNotificationCron.ts:11-12,20-23 identical)
 const IS_ACTIVE = process.env.IS_ACTIVE === "1";
 const IS_CRON = process.env.IS_CRON === "1";
 
@@ -250,12 +250,13 @@ ONLY when running vite without SST (`cp .env.template .env.local`, fill values,
 
 ## 7. Cron schedules as config (owner-gated)
 
-`infra/cron.ts` (as of 2026-07-07):
+`infra/cron.ts` (three crons; first two as of 2026-07-07, third added 2026-07-13):
 
 | Cron | Handler | Schedule | Meaning |
 |---|---|---|---|
 | `Cron` | `newShowCron.handler` | `cron(0 0/6 * * ? *)` (`infra/cron.ts:13`) | every 6 hours — discover new shows |
 | `SyncCron` | `syncCron.handler` | `cron(0 0/1 * * ? *)` (`infra/cron.ts:26`) | hourly — refresh today's inventory |
+| `ShowNotificationCron` | `showNotificationCron.handler` | `cron(0/15 * * * ? *)` (`infra/cron.ts:39`) | every 15 min — email opted-in users about batches of newly discovered shows (shipped #62, as of 2026-07-13; operational anatomy in `cellar-run-and-operate`) |
 
 Schedule frequency is the site-politeness dial (house rule #2): tightening it
 increases load on comedycellar.com, whose anti-bot response once cost a 5-month
@@ -358,7 +359,7 @@ Verified 2026-07-07 against the working tree at commit `0f277a2` (branch
 `infra/frontend.ts`, `infra/config.ts`, `infra/cron.ts`, `infra/api.ts`,
 `sst.config.ts`, `.env.template`, `packages/frontend/.env.template`,
 `packages/core/{createReservation,email,requester,database,clerk,verifyClerkWebhook}.ts`,
-`packages/core/models/user.ts`, `packages/functions/cron/{newShowCron,syncCron}.ts`,
+`packages/core/models/user.ts`, `packages/functions/cron/{newShowCron,syncCron,showNotificationCron}.ts`,
 `packages/functions/webhooks/clerk.ts`, `drizzle.config.ts`, root + frontend
 `package.json`, all three `sst-env.d.ts`, `packages/frontend/src/{utils/{api,clerk,constants}.ts,hooks/useTheme.ts,pages/Home/index.tsx}`,
 `index.html`, `vite.config.ts`, `vitePluginEjs.ts`, both `.gitignore`s; commands:
@@ -366,14 +367,25 @@ Verified 2026-07-07 against the working tree at commit `0f277a2` (branch
 741ca41`, greps below. `sst secret list` could not be run here (no AWS creds /
 network); those commands are carried from `.env.template:11-19`.
 
+Reconciled 2026-07-13 against commit `5ceaf98` (main). Config-relevant deltas:
+#62 added a third cron `ShowNotificationCron` (`infra/cron.ts:30-40`, schedule
+`cron(0/15 * * * ? *)`, same `IS_ACTIVE`/`IS_CRON` block) and `sendHtmlEmail`
+(`packages/core/email.ts:35-57`) — the **first user-facing email channel**, sending
+show-notification mail from `"Comedy Cellar Bot <FromEmail>"` to opted-in users off
+the same `FromEmail`/`FromEmailPw` secrets; the old `sendEmail` admin-self telemetry
+channel is unchanged. #63 (merged 2026-07-12) declared `@clerk/types` and turned the
+frontend CI trio green (no config surface here). No secret was added or rotated —
+still exactly six. Re-read at reconcile: `infra/cron.ts`, `packages/core/email.ts`,
+`packages/functions/cron/showNotificationCron.ts`.
+
 Re-verification one-liners (run from repo root):
 
 | Claim | Command | Expect |
 |---|---|---|
 | Still exactly 6 secrets, typo intact | `grep -n "sst.Secret\|clertPublishableKey" infra/secrets.ts infra/frontend.ts` | 6 `new sst.Secret` lines; `clert` at secrets.ts:11 + frontend.ts:21 |
 | Stage list | `grep -n "clerkFrontendApi" infra/config.ts` | one line per stage (2 as of 2026-07-07) |
-| Cron schedules | `grep -n "schedule:" infra/cron.ts` | `cron(0 0/6 * * ? *)` and `cron(0 0/1 * * ? *)` |
-| Env-flag surface unchanged | `grep -rn "process.env" packages/ --include='*.ts' \| grep -v node_modules` | exactly 5 lines: IS_ACTIVE/IS_CRON (both cron files) + STAGE (createReservation.ts:10) |
+| Cron schedules | `grep -n "schedule:" infra/cron.ts` | three lines: `cron(0 0/6 * * ? *)`, `cron(0 0/1 * * ? *)`, `cron(0/15 * * * ? *)` (as of 2026-07-13) |
+| Env-flag surface | `grep -rn "process.env" packages/ --include='*.ts' \| grep -v node_modules` | 7 lines: IS_ACTIVE/IS_CRON across all three cron files + STAGE (createReservation.ts:10) (as of 2026-07-13) |
 | Guard code verbatim | `sed -n '10,16p' packages/functions/cron/newShowCron.ts` | the §3 quote |
 | STAGE gate verbatim | `sed -n '10,17p' packages/core/createReservation.ts` | the §3 quote |
 | /sync-shows still lacks env block | `sed -n '37,40p' infra/api.ts` | route with `link:` but no `environment:` |

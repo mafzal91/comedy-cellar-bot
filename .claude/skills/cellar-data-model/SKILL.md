@@ -11,13 +11,13 @@ The backend stores scraped comedycellar.com ("CC") data and user preferences in 
 
 ## 0. Mental model (60 seconds)
 
-- 8 tables. Scrape-populated: `show`, `room`, `comic`, `act` (show↔comic join). User-populated: `user`, `show_notification`, `comic_notification`, `comic_to_user`.
+- 9 tables. Scrape-populated: `show`, `room`, `comic`, `act` (show↔comic join). User-populated: `user`, `show_notification`, `comic_notification`, `comic_to_user`. Outbox: `new_show_queue` (written by ingestion, drained by the show-notification cron — §1, added 2026-07-13 #62).
 - **All SST stages (prod + dev) share this one database.** Only `user` rows are stage-partitioned. Destructive DB work from ANY stage is prod surgery. See §8.
 - Show identity = CC's own numeric show id (used as our primary key). Comic identity = the exact name string CC prints. Both have sharp edges (§3).
-- Notification tables exist and are user-editable via `/api/settings`, but **nothing has ever sent a user notification** — no code reads them to fire anything. They are storage for an unshipped feature (open problem: `cellar-frontier-and-method`).
+- Notification tables are user-editable via `/api/settings`. As of 2026-07-13 (#62), **`show_notification` IS now read and fires real user emails**: `getShowNotificationRecipients` (models/showNotification.ts:35-43) feeds `ShowNotificationCron`, which drains the `new_show_queue` outbox and emails opted-in users. Shipped but **unproven** — zero tests, no production track record. **`comic_notification` is still never read** — nothing sends "a comic I follow was booked", so that half remains the flagship unshipped feature (open problem: `cellar-frontier-and-method`).
 - `comic_to_user` (likes) is schema-only: no model file, no code reads or writes it anywhere in `packages/` (verified by grep, 2026-07-07).
 
-## 1. Schema reference (as of 2026-07-07; migrations 0000–0002, no schema change since 2025-02-05)
+## 1. Schema reference (as of 2026-07-13; migrations 0000–0003 — `new_show_queue` added by 0003, 2026-07-13 #62; the 0000–0002 core was unchanged since 2025-02-05)
 
 Every table except `comic_to_user` has: `id serial PRIMARY KEY`, `externalId varchar(128) NOT NULL UNIQUE` (app-generated, §2), `createdAt timestamp DEFAULT now()`. Columns below are the rest.
 
@@ -31,6 +31,7 @@ Every table except `comic_to_user` has: `id serial PRIMARY KEY`, `externalId var
 | `show_notification` | sql/showNotification.sql.ts:18-35 | userId int NOT NULL → user.id CASCADE, enabled bool NOT NULL DEFAULT false | unique `user_show_unique` on **userId alone** (added in migration 0002) — one global on/off row per user, not per-show |
 | `comic_notification` | sql/comicNotification.sql.ts:18-41 | userId → user.id CASCADE, comicId → comic.id CASCADE, enabled bool NOT NULL DEFAULT false | unique `user_comic_unique (userId, comicId)` |
 | `comic_to_user` | sql/comicToUser.sql.ts:17-36 | userId → user.id CASCADE, comicId → comic.id CASCADE, isLiked bool NOT NULL DEFAULT false | unique `user_comic_unique1 (userId, comicId)`; **deliberately no externalId** (comment at comicToUser.sql.ts:16) |
+| `new_show_queue` | sql/newShowQueue.sql.ts:19-36 | showId int NOT NULL → show.id **CASCADE**, notifiedAt timestamp (NULL = pending, set once announced) | unique index `queue_show_unique` on **showId alone** (a show is queued at most once). **OUTBOX** (added 2026-07-13 #62): a row is written when a show is first inserted (§4 / handleShowDetails), and `notifiedAt` is set once `ShowNotificationCron` has announced it. HAS an `externalId` (prefix `nsq`), unlike comic_to_user |
 
 Cascade map (what deletes take with them):
 
@@ -38,7 +39,7 @@ Cascade map (what deletes take with them):
 |---|---|---|
 | user | show_notification, comic_notification, comic_to_user | — |
 | comic | act, comic_notification, comic_to_user | — |
-| show | act | — |
+| show | act, new_show_queue | — |
 | room | nothing | any `show.roomId` referencing it (FK is NO ACTION → delete fails) |
 
 Drizzle `relations()` are declared in every sql.ts file but are **inert**: `packages/core/database.ts:5` does `import * as schema from "./database"` — it imports **itself**, so the drizzle instance's schema is `{ db }` and the relational API (`db.query.*`) does not work. All real code uses the query builder (`db.select()...`). Don't "fix" this casually (behavior change → `cellar-change-control`); don't write new code that relies on `db.query.*` until it is fixed.
@@ -50,7 +51,7 @@ Two ids per row:
 1. `id serial` — internal integer PK, used for FKs. **Exception that bites**: `show.id` is NOT locally generated; it is CC's own numeric show id, inserted verbatim (§3).
 2. `externalId` — API-facing opaque id, `"<prefix>_<cuid2>"`, generated app-side by `createExternalId(PREFIX)` (packages/core/common/createExternalId.ts:3-9; cuid2 = collision-resistant random string, lowercase alphanumeric).
 
-Prefixes (packages/core/common/constants.ts:1-7):
+Prefixes (packages/core/common/constants.ts:1-8):
 
 | Constant | Value | Example externalId |
 |---|---|---|
@@ -61,6 +62,7 @@ Prefixes (packages/core/common/constants.ts:1-7):
 | ACT_PREFIX | `act` | `act_…` |
 | SHOW_NOTIFICATION_PREFIX | `show_notif` | `show_notif_…` |
 | COMIC_NOTIFICATION_PREFIX | `comic_notif` | `comic_notif_…` |
+| NEW_SHOW_QUEUE_PREFIX | `nsq` | `nsq_…` |
 
 **Trap — the guards are UNANCHORED substring regexes.** Every "is this a valid X id" check is `externalId.match(new RegExp(PREFIX))`:
 `isComicExternalId` models/comic.ts:32-34, `isShowExternalId` models/show.ts:161-163, `isRoomExternalId` models/room.ts:7-9, `isUser` sql/user.sql.ts:51-58, and models/user.ts:13-15 (which is ALSO named `isRoomExternalId` — copy-paste misnomer; it checks USER_PREFIX).
@@ -73,7 +75,7 @@ Consequences:
 
 **Show identity = CC's numeric show id.** `handleShowDetails` (packages/core/handleShowDetails.ts:13,22) inserts the RAW CC API objects, so their `id` field becomes our `show.id` serial PK. Two consequences:
 - **Sequence desync (latent)**: explicit-id inserts never advance Postgres's serial sequence. Nothing currently inserts a show without an id, but any future code relying on the serial default will start at ~1 and eventually collide with CC ids. Never insert a show row without an explicit id.
-- `show.timestamp` (unix seconds of showtime; it is also the `showid=` in CC reservation URLs) is used as the lookup key by the lineup pipeline — `getShowByTimestamp` (models/show.ts:254-256) — **but has no unique index** (§1). handleLineUp only creates acts when EXACTLY one show matches the timestamp (handleLineUp.ts:34: `if (show.length === 1 && show[0].id)`); duplicates make acts silently stop being created for that show.
+- `show.timestamp` (unix seconds of showtime; it is also the `showid=` in CC reservation URLs) is used as the lookup key by the lineup pipeline — `getShowByTimestamp` (models/show.ts:261-263) — **but has no unique index** (§1). handleLineUp only creates acts when EXACTLY one show matches the timestamp (handleLineUp.ts:34: `if (show.length === 1 && show[0].id)`); duplicates make acts silently stop being created for that show.
 
 **Comic identity = exact name string.** Dedup within a scrape batch is a `Set` of names (handleLineUp.ts:16-21); DB dedup is the `name` unique + `lower(name)` unique index. Accent, spelling, or punctuation variants of the same person ("Dave Attell" vs "Dave Attel") fork separate rows forever. There is no merge tooling; merging rows is prod surgery (§8).
 
@@ -83,7 +85,7 @@ Consequences:
 
 | Entity | Function | Conflict target | On conflict |
 |---|---|---|---|
-| show | `createShows` models/show.ts:165-180 | `show.id` | **DO UPDATE**, refreshes ONLY: description, cover, note, roomId, max, totalGuests (via `EXCLUDED.*`). **Never refreshed: soldout, available, timestamp, time, special, mint, weekday, venueMin/venueMax, forwardUrl** — those stay at first-insert values |
+| show | `createShows` models/show.ts:165-187 | `show.id` | **DO UPDATE**, refreshes ONLY: description, cover, note, roomId, max, totalGuests (via `EXCLUDED.*`). **Never refreshed: soldout, available, timestamp, time, special, mint, weekday, venueMin/venueMax, forwardUrl** — those stay at first-insert values. As of 2026-07-13 (#62) it also has `.returning({ id, timestamp, inserted })` where `inserted` is the SQL boolean expression `xmax = 0` — true for a brand-new insert, false for a row that took the ON CONFLICT update path; `handleShowDetails` uses this flag to enqueue only brand-new upcoming shows into `new_show_queue` |
 | room | `createRooms` models/room.ts:11-13 | `room.id` | DO NOTHING — name and maxReservationSize never updated by scraping |
 | comic | `createComics` models/comic.ts:36-38 | none (any unique) | DO NOTHING — img/description/website never refreshed after first sighting |
 | act | `createActs` models/act.ts:44-51 | `(showId, comicId)` | DO NOTHING |
@@ -91,6 +93,7 @@ Consequences:
 | show_notification | `upsertShowNotification` models/showNotification.ts:9-19 | `userId` | DO UPDATE `enabled` |
 | comic_notification | `upsertComicNotification` models/comicNotification.ts:21-55 | `(userId, comicId)` | DO UPDATE `enabled = excluded.enabled`. Trap: unknown external comicId maps to `undefined` → NOT NULL violation → unhandled 500 (comicNotification.ts:39-43) |
 | comic_to_user | none exists | — | schema-only table |
+| new_show_queue | `enqueueNewShows` models/newShowQueue.ts:17-24 | `newShowQueue.showId` | DO NOTHING — an already-queued show is not re-queued (idempotent enqueue). Drained by `claimPendingNewShows` (models/newShowQueue.ts:43-54): atomic `UPDATE … SET notifiedAt=now WHERE id IN (…) AND notifiedAt IS NULL RETURNING`, the guard that stops overlapping cron runs double-announcing |
 
 Why "stale soldout" confuses people twice: the stored `soldout` column is never refreshed (above), AND the API doesn't even use it — `Show.toJSON()` computes soldout as `totalGuests >= max` because "soldout from comedy cellar api is not accurate" (models/show.ts:83-85,103-104). `totalGuests`/`max` ARE refreshed on conflict, so live-scraped availability is current even though the column is stale.
 
@@ -149,7 +152,7 @@ Subcommand names verified against `pnpm exec drizzle-kit --help` (2026-07-07): `
 
 ## 7. The Feb-2025 squash, and the append-only rule
 
-Commit `8b3b837` (2025-02-05, "Refactor database models…") deleted all 18 accumulated migrations (0000–0017) and re-baselined the history to today's three files: `0000_closed_mattie_franklin.sql`, `0001_pale_nighthawk.sql`, `0002_light_miss_america.sql` (journal timestamps 2025-02-05/06, migrations/meta/_journal.json). This only works if the live database's drizzle migration ledger is manually reconciled to match the rewritten history — a one-time, risky, owner-executed event on the shared prod DB.
+Commit `8b3b837` (2025-02-05, "Refactor database models…") deleted all 18 accumulated migrations (0000–0017) and re-baselined the history to three files: `0000_closed_mattie_franklin.sql`, `0001_pale_nighthawk.sql`, `0002_light_miss_america.sql` (journal timestamps 2025-02-05/06, migrations/meta/_journal.json). This only works if the live database's drizzle migration ledger is manually reconciled to match the rewritten history — a one-time, risky, owner-executed event on the shared prod DB. **`0003_dizzy_lady_ursula.sql` (2026-07-13, #62, adds `new_show_queue`) was added the right way — a plain `pnpm db generate` append with no re-baseline and no squash — which vindicates the append-only rule below.**
 
 Rules derived from it:
 - **Treat `migrations/` as append-only.** Never edit, rename, renumber, or delete a migration that may have been applied anywhere; `migrations/meta/` moves only via `pnpm db generate`.
@@ -197,13 +200,13 @@ Order matters: line-up before shows writes comics but zero acts (no show row mat
 
 | Issue | Evidence | Status |
 |---|---|---|
-| `/api/shows/new` returns a show once per comic on its lineup ("N-plicated"), and `total` counts act-rows: `getShows`/`getShowsCount` inner-join show→act→comic with no GROUP BY/DISTINCT | models/show.ts:186-246 | open |
+| `/api/shows/new` returns a show once per comic on its lineup ("N-plicated"), and `total` counts act-rows: `getShows`/`getShowsCount` inner-join show→act→comic with no GROUP BY/DISTINCT | models/show.ts:193-253 | open |
 | Shows with zero acts (typically `special` shows) are invisible in `/api/shows/new` (inner join drops them) | same join | open |
 | Comic duplicates from name variants; no merge tooling | §3 | open |
 | Stored `show.soldout`/`available`/`timestamp` never refreshed after first insert | §4 | open (API computes soldout instead) |
 | `maxReservationSize` stuck at default 4 for all rooms | §5 | open |
 | `database.ts` self-import leaves `relations()`/`db.query.*` inert | database.ts:5 | open trap |
-| Notification tables written but never read to notify anyone | §0 | open — flagship gap, see `cellar-frontier-and-method` |
+| `comic_notification` written but never read to notify anyone (`show_notification` IS now read, shipped 2026-07-13 #62 but unproven) | §0 | open — comic-follow notifications remain unshipped, see `cellar-frontier-and-method` |
 
 ## Add-a-table / add-a-column checklist
 
@@ -218,14 +221,16 @@ Order matters: line-up before shows writes comics but zero acts (no show row mat
 
 Verified 2026-07-07 against working tree at commit `c8d9918` (branch == main) by reading: all 8 `packages/core/sql/*.sql.ts`; `packages/core/models/{show,comic,room,act,user,showNotification,comicNotification}.ts`; `packages/core/{handleLineUp,handleShowDetails,database}.ts`; `packages/functions/cron/{newShowCron,syncCron}.ts`; `packages/functions/{lineUp.ts,shows/index.ts}`; `infra/{cron,config}.ts`; `drizzle.config.ts`; root `package.json`; `.env.template`; `migrations/*` incl. `meta/_journal.json`. Commands run: `pnpm exec drizzle-kit --help` and `--version` (v0.31.10); grep for `comic_to_user`/`isLiked` usage. Git evidence: `git show 8b3b837 --stat` (18→3 migration squash), `git show 56581a9` (onConflict target removal diff), `git log` for `741ca41` (shared-DB commit message). Not verifiable here: anything requiring a live DB connection or AWS creds (`pnpm db *`, actual DbUrl values, whether stages' DbUrls are literally identical today — stated as historical/assumed above).
 
+**Reconciled 2026-07-13 against commit `5ceaf98` (new main).** #62 added migration `0003_dizzy_lady_ursula` and table `new_show_queue`, taking tables to 9, `packages/core/sql/*.sql.ts` to 9 files, and migrations to 4 (0000–0003). Re-read: `packages/core/sql/newShowQueue.sql.ts`; `packages/core/models/newShowQueue.ts`; `packages/core/models/showNotification.ts` (new `getShowNotificationRecipients`); `packages/core/handleShowDetails.ts` (now enqueues via `enqueueNewShows`); `packages/core/models/show.ts` (`createShows` `.returning` add, which shifted `getShows`/`getShowsCount`/`getShowByTimestamp` line numbers ~+7); `infra/cron.ts` (third cron `ShowNotificationCron`); `packages/core/common/constants.ts` (`NEW_SHOW_QUEUE_PREFIX = "nsq"`). Net for this skill: `show_notification` notifications now ship to users but are unproven (zero tests, no track record); `comic_notification` is still unshipped.
+
 | May drift | Re-verify with |
 |---|---|
 | Table/column/constraint set | `cat migrations/*.sql` and `ls packages/core/sql/` |
-| No new migrations since 0002 | `cat migrations/meta/_journal.json` |
+| No new migrations since 0003 (0003 = `new_show_queue`, 2026-07-13) | `cat migrations/meta/_journal.json` |
 | drizzle-kit subcommands/version | `pnpm exec drizzle-kit --help && pnpm exec drizzle-kit --version` |
 | `pnpm db` script wiring | `grep '"db' package.json` |
 | roomDictionary contents | `sed -n '27,32p' packages/core/models/show.ts` |
-| createShows refreshed-column list | `sed -n '165,180p' packages/core/models/show.ts` |
+| createShows refreshed-column list + `.returning` | `sed -n '165,187p' packages/core/models/show.ts` |
 | Stage-filter pattern intact | `sed -n '7,11p' packages/core/models/user.ts` |
 | comic_to_user still unused | `grep -rn isLiked packages/ --include='*.ts' \| grep -v sql/` |
 | Prefix list | `cat packages/core/common/constants.ts` |

@@ -27,7 +27,7 @@ Jargon used below:
 
 | Tool | Required | Evidence (as of 2026-07-07) |
 |---|---|---|
-| Node.js | ≥ 22 works; CI pins 24 | Sandbox runs v22.22.2 and all frontend gates pass locally (but CI is red on main — §5.2); CI uses node 24 (`.github/workflows/frontend-ci.yml:36`); vite 7 requires `^20.19.0 \|\| >=22.12.0` (`packages/frontend/node_modules/vite/package.json` engines) |
+| Node.js | ≥ 22 works; CI pins 24 | Sandbox runs v22.22.2 and all frontend gates pass locally, and frontend CI is now green (§5.2, as of 2026-07-13); CI uses node 24 (`.github/workflows/frontend-ci.yml:36`); vite 7 requires `^20.19.0 \|\| >=22.12.0` (`packages/frontend/node_modules/vite/package.json` engines) |
 | pnpm | 10.23.0 (pinned) | `packageManager: "pnpm@10.23.0"` in root `package.json:6` — this field is authoritative |
 | corepack | any recent (0.34.6 here) | provides the pnpm shim |
 | git | any | clone + read-only archaeology |
@@ -54,12 +54,12 @@ git clone <repo> comedy-cellar-bot && cd comedy-cellar-bot
 pnpm install --frozen-lockfile                    # install #1: repo root
 cd packages/frontend
 pnpm install --frozen-lockfile                    # install #2: frontend (separate workspace!)
-pnpm exec eslint src && pnpm exec tsc --noEmit && pnpm build   # the CI gate trio (green here ≠ green in CI — §5.2)
+pnpm exec eslint src && pnpm exec tsc --noEmit && pnpm build   # the CI gate trio (§5.2 — CI green since #63; clear stale dist/ first)
 ```
 
-Both installs are required. Why: §3. Expected outputs: §8 checklist. But a local
-exit-0 from that trio is NOT CI-faithful: frontend CI is red on main (phantom
-`@clerk/types`, §5.2).
+Both installs are required. Why: §3. Expected outputs: §8 checklist. As of 2026-07-13 a
+local two-install exit-0 IS CI-faithful again: frontend CI went green once #63 declared the
+once-phantom `@clerk/types` (§5.2) — just clear stale `dist/` first (the §5.2 dist trap).
 
 ## 3. THE TWO-WORKSPACE TRAP (the #1 setup gotcha)
 
@@ -173,17 +173,21 @@ bundles and fails with hundreds of errors in `dist/assets/*.js` (verified both w
 (workflow lines 50-54). Locally: run typecheck **before** build, or `rm -rf dist` first.
 Errors in `dist/assets/*.js` mean stale build output, not broken code.
 
-**Trap — a local `tsc` exit-0 is NOT CI-faithful; CI is RED on main.** With `dist/`
-absent, `tsc --noEmit` exits 0 here **only** because the repo-root install (§2 install
-#1) hoisted `@clerk/types` into root `node_modules`, where a directory walk-up resolves
-it. `@clerk/types` is a **phantom dependency**: `packages/frontend/src/hooks/useAuth.ts:2`
-imports it, yet only `@clerk/clerk-js` is declared in `packages/frontend/package.json`.
-CI installs **only inside `packages/frontend`** (§3), so the import is unresolvable there
-and tsc fails with `src/hooks/useAuth.ts(2,30): error TS2307: Cannot find module
-'@clerk/types'` (exit 2). `frontend-ci.yml` has **never passed — it is red on main for
-exactly this.** So a local two-install exit-0 does NOT mean CI will pass. Canonical home
-for this fact (and the candidate fix — do NOT apply it here) is **cellar-validation-and-qa**
-§1.
+**Resolved trap (historical) — the phantom `@clerk/types` that kept CI red until #63.**
+`packages/frontend/src/hooks/useAuth.ts:2` imports `@clerk/types`. Through the base commit
+`c8d9918` that package was NOT declared in `packages/frontend/package.json` (only
+`@clerk/clerk-js` was), so it resolved locally **only** because the repo-root install (§2
+install #1) hoisted it into root `node_modules`, where a directory walk-up finds it. CI
+installs **only inside `packages/frontend`** (§3), so the import was unresolvable there and
+tsc failed with `src/hooks/useAuth.ts(2,30): error TS2307: Cannot find module
+'@clerk/types'` (exit 2) — `frontend-ci.yml` was red on **every** run for exactly this.
+**PR #63 fixed it (merged 2026-07-12): `@clerk/types` is now declared in
+`packages/frontend/package.json:11`, and frontend CI is green as of 2026-07-13.** A
+CI-faithful frontend-only install now resolves the import and `tsc --noEmit` passes, so a
+local two-install exit-0 once again matches CI. The lesson still stands: a frontend
+dependency must be declared in `packages/frontend/package.json`, never leaned on via the
+root hoist — the two-workspace split (§3) is exactly what surfaces such phantoms. Canonical
+home for the CI-status history (and the fix that landed) is **cellar-validation-and-qa** §1.
 
 There is no lint/typecheck/test script in `packages/frontend/package.json` — CI calls the
 tools directly (workflow lines 47-51); do the same. Root `pnpm test` is a failing
@@ -277,7 +281,7 @@ Run top to bottom on a fresh clone; every expectation was observed 2026-07-07:
 | 3 | `pnpm install --frozen-lockfile` | `Done in ~2-3s` (warm) + the "Ignored build scripts" warning box (§4 — normal) |
 | 4 | `cd packages/frontend && pnpm install --frozen-lockfile` | `Done in ~1-2s` (warm), no errors |
 | 5 | `cd packages/frontend && pnpm exec eslint src` | silent, exit 0 |
-| 6 | `cd packages/frontend && rm -rf dist && pnpm exec tsc --noEmit` | silent, exit 0 **locally** (dist/ present ⇒ §5.2 trap). Local exit-0 ≠ CI: CI is red on main via phantom `@clerk/types` (§5.2, **cellar-validation-and-qa** §1) |
+| 6 | `cd packages/frontend && rm -rf dist && pnpm exec tsc --noEmit` | silent, exit 0 (dist/ present ⇒ §5.2 dist trap). Now CI-faithful — frontend CI is green as of 2026-07-13 (#63 declared `@clerk/types`; §5.2, **cellar-validation-and-qa** §1) |
 | 7 | `cd packages/frontend && pnpm build` | `✓ built in ~9-10s`; `clerk-*.js` chunk ≈ 3.0 MB with a `(!) Some chunks are larger than 500 kB` warning — **normal, do not chase it** |
 | 8 | `pnpm exec tsc --noEmit` (root) | FAILS with `Cannot find name 'sst'` — expected without `.sst/` (§7) |
 | 9 | `cd packages/frontend && npx vite --port 5199` | `VITE v7.3.6 ready in ...ms`, HTTP 200 on localhost |
@@ -304,12 +308,24 @@ version reads of installed sst/esbuild/vite. Carried over from the lead session'
 notes (same date), not re-runnable offline: `pnpm exec sst install` → "Could not install
 pulumi: HTTP status 403" in proxied sandboxes.
 
+**Reconciled against commit `5ceaf98` (2026-07-13).** One build/env fact changed since
+2026-07-07: frontend CI flipped red→green after PR #63 (merged 2026-07-12) declared the
+previously-phantom `@clerk/types` in `packages/frontend/package.json:11` — the §5.2
+phantom-dep trap is now historical. Everything else here holds: the stale-`dist/` tsc trap
+and the two-workspace split are unchanged and still live, backend still has NO CI and ZERO
+automated tests, and root `tsc` still needs `.sst` types. The show-notification feature
+shipped in the same window (#62) added `@react-email/*` deps to root `package.json` (deps
+block now ends ~line 38) and a third cron (`ShowNotificationCron`), but those are
+runtime/ops/schema surfaces, not environment setup — see **cellar-run-and-operate**,
+**cellar-data-model**, and **cellar-config-and-secrets**.
+
 Re-verification one-liners for facts most likely to drift:
 
 | Fact | Re-verify with |
 |---|---|
 | pnpm pin | `grep packageManager package.json` |
 | CI node version + canonical workspace comment | `grep -n "node-version\|workspace root" .github/workflows/frontend-ci.yml` |
+| `@clerk/types` declared (CI-green fix #63) | `grep -n "@clerk/types" packages/frontend/package.json` (present since #63 ⇒ frontend CI green; absent ⇒ regression, CI red again) |
 | Two workspace roots still separate | `ls packages/frontend/pnpm-workspace.yaml packages/frontend/pnpm-lock.yaml` |
 | Root lockfile still carries frontend importer | `grep -n "packages/frontend:" pnpm-lock.yaml` |
 | shamefully-hoist still set | `cat .npmrc` |

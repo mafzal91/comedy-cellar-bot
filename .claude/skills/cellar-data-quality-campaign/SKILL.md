@@ -45,17 +45,17 @@ stage-partitioned; `show`/`comic`/`act`/`room` are not — **cellar-data-model**
 | Every behavior-changing fix here is class **backend-logic** and/or **DB-schema**. It ships through **cellar-change-control** (owner sign-off for DB-schema; prod deploy is owner-only). Nothing routes around those gates. | **cellar-change-control** §1. A wrong query returning right-shaped JSON is still a behavior change. |
 | Stay polite to CC. Measurement here probes **our** API (`https://comedycellar-api.mafz.al`), never CC directly. If a probe must hit CC, it obeys the serial + sleeps doctrine. | **cellar-diagnostics-toolkit** house rule; **cellar-scraping-reference**. |
 | Never book a real reservation to "test" data (unrelated path, but the standing rule). | `createReservation.ts:10` gates live booking to `STAGE === "prod"`; **cellar-change-control** §2a. |
-| `migrations/` is **append-only**. A dedupe/normalization migration adds a new file; never edit, renumber, or re-baseline applied migrations. | The Feb-2025 squash lesson: `8b3b837`; **cellar-data-model** §7. |
+| `migrations/` is **append-only**. A dedupe/normalization migration adds a new file; never edit, renumber, or re-baseline applied migrations. | The Feb-2025 squash lesson: `8b3b837`; **cellar-data-model** §7. Reaffirmed by migration `0003_dizzy_lady_ursula.sql` (2026-07-13, the new-show outbox) — a clean append, not another squash; there are 4 migrations now (0000–0003). |
 | Never reproduce secrets (the `x-code-localize` token in `requester.ts:12-13`, Slack fragments in `slack.ts:3-9`, `.env`). Reference by path only. | Committed-credential discipline; discovery SEED-4. |
 
-## The four defects at a glance (re-verified 2026-07-07 — line numbers are current)
+## The four defects at a glance (re-verified 2026-07-07; `show.ts` line numbers re-anchored 2026-07-13 after PR #62)
 
 | # | Defect | Symptom | Evidence (path:line) |
 |---|---|---|---|
-| 1 | **N-plication + wrong `total` + specials invisible** in `/api/shows/new` | a show appears once per comic; `total` counts act-rows; act-less specials never appear | `getShows` `models/show.ts:207-217`, `getShowsCount` `:235-241` (three `innerJoin`s, no `GROUP BY`/`DISTINCT`); consumed by `listShowsLocal` `functions/shows/index.ts:166-184` |
+| 1 | **N-plication + wrong `total` + specials invisible** in `/api/shows/new` | a show appears once per comic; `total` counts act-rows; act-less specials never appear | `getShows` `models/show.ts:215-220`, `getShowsCount` `:243-248` (three `innerJoin`s, no `GROUP BY`/`DISTINCT`); consumed by `listShowsLocal` `functions/shows/index.ts:166-184` |
 | 2 | **`/api/shows/scan` always returns `[]`** | scan endpoint yields nothing for any horizon | `scanShows` `functions/shows/index.ts:94-105` → `handleShowList({days})` `handleShowList.ts:11` (no `fromTimestamp`) → `getFutureDatesByDay` `getFutureDatesByDay.ts:21,28-31` builds `new Date(undefined)` = Invalid Date → `eachDayOfInterval` returns `[]` |
 | 3 | **Comic identity = exact name string** | a comedian forks into multiple rows; history/likes/notifications split | `createComics` `models/comic.ts:36-38` (`onConflictDoNothing()`); uniques on `name` and `lower(name)` only (`sql/comic.sql.ts:27,33-37`); batch dedup is an exact-name `Set` (`handleLineUp.ts:16-21`) |
-| 4 | **Show upsert staleness + unknown-room silent vanish** (secondary) | some columns never refresh; a new CC `roomId` makes a whole night's shows disappear with no error | `createShows` DO UPDATE refreshes only 6 columns `models/show.ts:169-178`; `roomDictionary` has no room 4/6+ `:27-32`; failure swallowed by `Promise.allSettled` + try/catch `handleShowDetails.ts:19-28` |
+| 4 | **Show upsert staleness + unknown-room silent vanish** (secondary) | some columns never refresh; a new CC `roomId` makes a whole night's shows disappear with no error | `createShows` DO UPDATE still refreshes only 6 columns `models/show.ts:169-178` (it now also `.returning`s an `inserted`/`xmax=0` flag `:180-186` for the notification enqueue — orthogonal to the `set`); `roomDictionary` has no room 4/6+ `:27-32`; failure swallowed by `Promise.allSettled` + try/catch `handleShowDetails.ts:21-24,37-40` |
 
 ## Campaign map
 
@@ -92,9 +92,9 @@ curl -sS "$API/api/shows/new?limit=100&sort=-timestamp" \
 | Field | Healthy (post-fix) | Current (buggy) | Why |
 |---|---|---|---|
 | `rows` vs `distinctIds` | **equal** | `rows > distinctIds` | a show with N comics is emitted N times (the `act`/`comic` `innerJoin`s, no `DISTINCT`) |
-| `total` vs `distinctIds` | **equal** when `total ≤ 100` | `total > distinctIds` | `getShowsCount` counts act-rows, not shows (`show.ts:235-241`) |
+| `total` vs `distinctIds` | **equal** when `total ≤ 100` | `total > distinctIds` | `getShowsCount` counts act-rows, not shows (`show.ts:243-248`) |
 
-Note: `getShows` selects **only show columns** (`show.ts:208`, `getTableColumns(show)`) — the
+Note: `getShows` selects **only show columns** (`show.ts:215`, `getTableColumns(show)`) — the
 `act`/`comic` join contributes *no data*, only duplication and the optional `comicId` filter.
 That fact drives the Phase 2 fix. (Caveat: two rooms can legitimately share a `timestamp`, so
 dedupe on `id`, never on `timestamp`.)
@@ -178,14 +178,20 @@ sed -n '27,32p' packages/core/models/show.ts     # expect rooms 1,2,3,5 — no 4
 - **Unknown-room symptom (needs-AWS or live cross-check):** a whole night's shows missing from
   `/api/shows/new` on a night the site lists them. Reuse the Defect 1b live-vs-DB probe: `db == 0`
   while `live > 0` for a date is the fingerprint of a swallowed persist failure
-  (`handleShowDetails.ts:19-28`). Confirm which room by reading logs (**cellar-run-and-operate**).
+  (`handleShowDetails.ts:21-24,37-40`). Confirm which room by reading logs (**cellar-run-and-operate**).
 - **Staleness is largely benign and must not be over-claimed:** `createShows` never refreshes
   `soldout`/`available`, **but the API doesn't read `soldout` from the DB** — `Show.toJSON`
   recomputes it as `totalGuests >= max` (`show.ts:83-85,103`), and `totalGuests`/`max` **are**
   refreshed on conflict (`show.ts:177`). So live availability is current despite the stale
   column. The column that matters is **`timestamp` never refreshing** (`show.ts:169-178`): it is
-  the lineup lookup key (`getShowByTimestamp`, `show.ts:254-256`), though CC show timestamps are
+  the lineup lookup key (`getShowByTimestamp`, `show.ts:261-263`), though CC show timestamps are
   effectively immutable, so this is latent, not observed. Rank accordingly (Phase 1).
+- **What #62 changed here (as of 2026-07-13):** `createShows` now `.returning`s an `inserted`
+  flag (`sql<boolean>(xmax = 0)`, `show.ts:180-186`) that `handleShowDetails` reads to enqueue
+  brand-new upcoming shows for the new-show notification email (`handleShowDetails.ts:28-35` →
+  `enqueueNewShows`). That is **orthogonal to the DO UPDATE `set`** — `soldout`/`available`/
+  `timestamp` are STILL not refreshed on conflict (`:169-178` unchanged). The staleness ranking
+  above is intact; just be aware `createShows`' return value now has a downstream consumer.
 
 ---
 
@@ -225,7 +231,7 @@ duplication (there is none to lose in the payload).
 **The specials fix is orthogonal to dedup and must be done too:** an act-less show has no `act`
 row, so any variant that still `innerJoin`s `act` keeps specials invisible. Fix by **not joining
 `act` when there is no `comicId` filter** (Option 1 gives this for free) or `innerJoin` →
-`leftJoin` on `act`. Also weigh the `innerJoin(room)` (`show.ts:212,240`): a show whose `roomId`
+`leftJoin` on `act`. Also weigh the `innerJoin(room)` (`show.ts:219,247`): a show whose `roomId`
 has no `room` row (Defect 4) is *also* dropped — prefer `leftJoin(room)` or filter `roomId` via a
 subquery so a missing room can't hide a show.
 
@@ -261,7 +267,7 @@ Two independent halves; do the ingest half first, the cleanup half is owner-gate
 |---|---|---|
 | **1** | **Fail loud on an unknown `roomId`** instead of inserting `name: undefined`: throw or log with the room id in `handleShowDetails`/`roomName`, so a new room surfaces as an error, not a silent empty night. | It changes a swallowed failure into a visible one — confirm the crons/handlers surface it (an email or a non-swallowed log). Behavior change → change control. |
 | **2** | **Add the missing room(s)** to `roomDictionary` (`show.ts:27-32`) and/or a `default` room name. | Requires knowing CC's real room numbering — a scrape observation, not a guess. Room 4 has never been seen; do not invent a name. |
-| **3** | **Refresh more columns on conflict** in `createShows` (add `available`/`soldout`/`timestamp` to the DO UPDATE `set`). | **Low value — derive before doing.** The API already recomputes `soldout` from refreshed `totalGuests`/`max`; `timestamp` is effectively immutable. Justify the need with a measured stale row, or skip it. |
+| **3** | **Refresh more columns on conflict** in `createShows` (add `available`/`soldout`/`timestamp` to the DO UPDATE `set`). | **Low value — derive before doing.** The API already recomputes `soldout` from refreshed `totalGuests`/`max`; `timestamp` is effectively immutable. Justify the need with a measured stale row, or skip it. If you do touch `createShows`, leave its `.returning({... inserted})` block (`:180-186`) intact — `handleShowDetails` depends on it for the new-show notification enqueue (as of 2026-07-13); it is unrelated to the `set`. |
 
 ---
 
@@ -270,7 +276,7 @@ Two independent halves; do the ingest half first, the cleanup half is owner-gate
 | Wrong path | Why it is fenced |
 |---|---|
 | **Client-side dedup in the frontend** to "hide" the duplicate shows | Masks the bug at one screen while `total` stays an act-row count — and the repo's infinite-scroll computes page count from `total` (`pages/Comics/index.tsx:34`), so pagination stays broken (over-counts pages / loops). Fix the query, not the view. |
-| **Dropping the `act` join entirely without preserving the `comicId` filter path** | The join *is* how `comicId` filtering works (`show.ts:138-139,210-211`). Remove it unconditionally and comic-filtered queries (the current live consumer, `pages/Comic/UpcomingShows.tsx:52-58`) silently return everything. Make the join **conditional**, don't delete it. |
+| **Dropping the `act` join entirely without preserving the `comicId` filter path** | The join *is* how `comicId` filtering works (`show.ts:138-139,217-218`). Remove it unconditionally and comic-filtered queries (the current live consumer, `pages/Comic/UpcomingShows.tsx:52-58`) silently return everything. Make the join **conditional**, don't delete it. |
 | **A destructive prod-DB dedupe (comic merge, `DELETE`/`UPDATE`) without a migration + backup** | Shared DB = prod surgery; comic FKs `CASCADE` to acts, notifications, and likes (**cellar-data-model** §1) — a careless delete takes real user data with it. Owner-approved append-only migration only (**cellar-change-control** §2c). |
 | **"Fixing" scan by hand-passing a timestamp in `scanShows` only** | Leaves the `new Date(undefined)` landmine (`getFutureDatesByDay.ts:21`) armed for `list.ts`, `getFutureDatesByWeek`, and the next caller. Fix the root cause in the helper (Defect 2, Option 1). |
 | **Renaming comic rows in place in prod to "clean up"** without a canonical mapping | `externalId` is the API-facing identity other rows and the frontend reference; renaming/merging without re-pointing FKs and recording the survivor breaks history and links. Route through the mapping/migration options, owner-gated. |
@@ -292,8 +298,10 @@ unrestricted machine, or a dev-stage API — remember dev writes hit the shared 
 | **G5** | 3 | re-scraping a known comic under a variant spelling creates **0** new rows (normalization holds) | dev-stage line-up scrape of a date with that comic, then re-count that comic's rows (needs-AWS) |
 | **G6** | 4 | a simulated unknown `roomId` produces a visible error, not a silent empty night | dev-stage fixture/probe; confirm the failure is surfaced |
 
-There is **no backend test gate today** (zero automated tests; CI is red on main and covers only
-the frontend — **cellar-validation-and-qa** §1). So the acceptance *evidence* is exactly the
+There is **no backend test gate today** (zero automated tests; the only CI workflow covers the
+frontend — and, since PR #63 declared `@clerk/types` (merged 2026-07-12), it is now GREEN there,
+but there is still **no backend CI at all** and **zero automated tests**, as of 2026-07-13 —
+**cellar-validation-and-qa** §1). So the acceptance *evidence* is exactly the
 manual numeric protocol above: paste the before/after probe outputs (and the SQL derivation for
 Defect 1) into the PR. That transcript IS the proof (**cellar-validation-and-qa** §3, §7).
 
@@ -316,24 +324,37 @@ specials present`). Adding that harness + a backend CI job is itself an owner-ga
 
 ## Provenance and maintenance
 
+**Reconciled against commit `5ceaf98` on 2026-07-13.** PR #62 (ship SHOW notifications) added a
+`.returning({... inserted: (xmax=0)})` block to `createShows` and an `enqueueNewShows` call to
+`handleShowDetails`, shifting every `show.ts` line number below by ~+7; the numbers here are
+re-anchored as of 2026-07-13. The four defects are **unchanged in substance** — no fix landed;
+#62 only reused `createShows`' new return value for the outbox. (Two library-wide drifts from the
+same reconcile, both cross-referenced elsewhere: frontend CI is now GREEN after PR #63 declared
+`@clerk/types` — **cellar-validation-and-qa** §1, echoed in Phase 3 above; and SHOW notifications
+now ship to opted-in users via the `new_show_queue` outbox + `ShowNotificationCron` +
+`sendHtmlEmail` — **cellar-frontier-and-method**, **cellar-run-and-operate**. COMIC notifications
+are still NOT shipped, so Defect 3's "splits notifications" concern remains latent, not live.)
+
 Re-verified 2026-07-07 against the working tree (branch `claude/skill-library-continuity-4m3x56`,
-== main) by **reading**: `packages/core/models/show.ts` (roomDictionary `:27-32`; `createShows`
-`:165-180`; `getShows` `:186-219` with `innerJoin`s `:210-212` and show-only select `:208`;
-`getShowsCount` `:221-246` with joins `:238-240`; `getShowWhereClause` `:124-159`),
+== main), line numbers re-anchored 2026-07-13, by **reading**: `packages/core/models/show.ts`
+(roomDictionary `:27-32`; `createShows` `:165-187` — DO UPDATE `set` `:169-178`, new `.returning`
+`:180-186`; `getShows` `:193-226` with `innerJoin`s `:217-219` and show-only select `:215`;
+`getShowsCount` `:228-253` with joins `:245-247`; `getShowWhereClause` `:124-159`),
 `packages/functions/shows/index.ts` (`scanShows` `:94-105`; `listShowsLocal` `:108-185`; specials
 comment `:67`), `packages/core/getFutureDatesByDay.ts` (`:11-41`, `new Date(fromTimestamp)` `:21`,
 `eachDayOfInterval` `:28-31`), `packages/core/handleShowList.ts` (`:11`),
 `packages/core/models/comic.ts` (`createComics` `:36-38`), `packages/core/sql/comic.sql.ts`
 (`name` unique `:27`, `nameUniqueIndex` on `lower(name)` `:33-37`),
 `packages/core/handleLineUp.ts` (`:16-21`, `:34`), `packages/core/handleShowDetails.ts`
-(`:14-28`), `packages/core/models/room.ts` (`createRooms` `:11-13`), `infra/api.ts`
+(`:6-46`, enqueue `:28-35`), `packages/core/models/room.ts` (`createRooms` `:11-13`), `infra/api.ts`
 (`/api/shows/scan` `:52-53`, `/api/shows/new` `:62-63`), and the frontend consumers
 `packages/frontend/src/pages/Comic/UpcomingShows.tsx:52-58`,
 `packages/frontend/src/pages/Comics/index.tsx:33-38` (page count from `total`),
 `packages/frontend/src/utils/api.ts:147-161`. **Ran** (read-only): the Defect-2 `node -e` proof
 against repo `node_modules` — output `currentDate: Invalid Date` / `dayDates: [] length = 0`.
 
-Every defect's line numbers **matched** the discovery leads (`show.ts:186-246`,
+Every defect's line numbers **matched** the discovery leads (the `show.ts` show-query functions,
+`:186-246` on 2026-07-07, now `:193-253` after the #62 `.returning` shift;
 `getFutureDatesByDay.ts` Invalid-Date chain, `comic.ts:36-38` + `comic.sql.ts` indexes,
 `createShows` 6-column set + `roomDictionary`). **Could not verify from this sandbox** (network +
 AWS blocked): live `/api/*` numbers, actual counts of forked comic rows (Defect 3 magnitude),
@@ -342,12 +363,12 @@ labeled needs-AWS / run-from-an-unrestricted-machine above.
 
 | May drift | Re-verify with |
 |---|---|
-| Defect 1 joins still un-grouped | `sed -n '207,246p' packages/core/models/show.ts` (expect three `innerJoin`, no `groupBy`/`distinct`) |
-| `getShows` still selects only show columns | `sed -n '207,218p' packages/core/models/show.ts` (`getTableColumns(show)`) |
+| Defect 1 joins still un-grouped | `sed -n '214,253p' packages/core/models/show.ts` (expect three `innerJoin`, no `groupBy`/`distinct`) |
+| `getShows` still selects only show columns | `sed -n '214,226p' packages/core/models/show.ts` (`getTableColumns(show)`) |
 | Defect 2 chain intact | `sed -n '94,105p' packages/functions/shows/index.ts` + `sed -n '11,11p' packages/core/handleShowList.ts` + `sed -n '21,31p' packages/core/getFutureDatesByDay.ts` |
 | Defect 2 behavior (library) | the `node -e` proof above → `[] length = 0` |
 | Defect 3 conflict handling + indexes | `sed -n '36,38p' packages/core/models/comic.ts`; `sed -n '27,37p' packages/core/sql/comic.sql.ts` |
-| Defect 4 upsert set + roomDictionary | `sed -n '165,180p' packages/core/models/show.ts`; `sed -n '27,32p' packages/core/models/show.ts` |
+| Defect 4 upsert set + roomDictionary | `sed -n '165,187p' packages/core/models/show.ts` (6-column `set` + new `.returning` inserted flag); `sed -n '27,32p' packages/core/models/show.ts` |
 | Routes unchanged | `grep -n 'shows/scan\|shows/new' infra/api.ts` |
 | Frontend still divides by `total` | `sed -n '33,38p' packages/frontend/src/pages/Comics/index.tsx` |
 | API base URL | `grep -n 'comedycellar-api' infra/api.ts` |

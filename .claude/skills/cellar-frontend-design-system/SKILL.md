@@ -234,26 +234,27 @@ workspace root — see `cellar-build-and-env` for the two-workspace trap):
 cd /home/user/comedy-cellar-bot/packages/frontend
 pnpm install --frozen-lockfile   # only if deps changed / fresh clone
 pnpm exec eslint src             # expect: no output, exit 0
-pnpm exec tsc --noEmit           # LOCAL exit 0 only, and NOT CI-faithful — see caveats below
+pnpm exec tsc --noEmit           # clean-tree exit 0; CI-faithful for @clerk/types since #63 — see caveat
 pnpm build                       # vite build; succeeds ~10s; a >500kB clerk-js
                                  # chunk warning is expected and pre-existing
 ```
 
-(Commands mirror `.github/workflows/frontend-ci.yml:45-54`. **A local exit-0 on `tsc`
-is NOT proof CI is green: CI is RED on `main` and has never passed.** In CI, `tsc`
-fails with `TS2307: Cannot find module '@clerk/types'` — `useAuth.ts:2` imports
-`@clerk/types`, which is not a declared dependency in `packages/frontend/package.json`
-(only `@clerk/clerk-js` is). It only "passes" locally because a repo-root `pnpm install`
-hoists `@clerk/types` where a directory walk-up finds it — a **phantom dependency**.
-CI runs `pnpm install --frozen-lockfile` inside `packages/frontend` only, so it can't
-resolve it. Candidate fix (add `@clerk/types` to package.json) routes through
-`cellar-change-control` and is NOT yet applied. **Second `tsc` trap:** `tsconfig.json`
-has `include: ["**/*"]` + `checkJs`, so running `tsc` AFTER a `pnpm build` typechecks
-minified `dist/assets/*.js` and fails with dozens of bogus errors — always typecheck on
-a clean tree (`rm -rf dist` first) and BEFORE build. Both the CI-red fact and both traps
-are owned by **`cellar-validation-and-qa` §2** and **`cellar-build-and-env`** — defer
-there. There are zero automated tests in this repo — CI is these three gates only, so
-the visual pass below is not optional.)
+(Commands mirror `.github/workflows/frontend-ci.yml:45-54`. **CI history (as of 2026-07-13):**
+CI was RED on every run until PR #63 (commit `1fea669`, merged 2026-07-12) declared
+`@clerk/types`; the frontend-ci.yml run is now GREEN — the first-ever passing run. The old
+failure was `TS2307: Cannot find module '@clerk/types'` — `useAuth.ts:2` imports
+`@clerk/types`, which was NOT a declared dependency in `packages/frontend/package.json`
+(only `@clerk/clerk-js` was), so it resolved locally as a **phantom dependency** (a repo-root
+`pnpm install` hoisted it where a directory walk-up finds it) but CI's
+`pnpm install --frozen-lockfile` inside `packages/frontend` only could not. #63 added
+`"@clerk/types": "^4.101.25"` (package.json:11), so a clean-tree local `tsc` is now
+CI-faithful for that check. **The OTHER `tsc` trap is UNCHANGED and still real:**
+`tsconfig.json` has `include: ["**/*"]` + `checkJs`, so running `tsc` AFTER a `pnpm build`
+typechecks minified `dist/assets/*.js` and fails with dozens of bogus errors — always
+typecheck on a clean tree (`rm -rf dist` first) and BEFORE build. The CI history and both
+traps are owned by **`cellar-validation-and-qa` §2** and **`cellar-build-and-env`** — defer
+there. There are STILL zero automated tests in this repo and NO backend CI — the frontend
+CI trio is the only automation, so the visual pass below is not optional.)
 
 Visual pass (no automation exists for this):
 
@@ -284,9 +285,14 @@ claude/skill-library-continuity-4m3x56, == main + skill checkpoints) by reading:
 Avatar/Perforation/Input/Card/Button/Link/ThemeToggle/FlameMeter/ProgressBar/Event`,
 `plan/README.md`, `plan/IMPLEMENTATION_PLAN.md`, `plan/theme.css`,
 `.github/workflows/frontend-ci.yml`; commits verified via `git show --stat`
-(2fd6b30, 6192496, c8d9918, 64b3ee2, 75029b8). CI trio run locally and passing
-LOCALLY ONLY — CI is red on `main` (@clerk/types phantom dep; see §9 and
-`cellar-validation-and-qa`).
+(2fd6b30, 6192496, c8d9918, 64b3ee2, 75029b8). CI trio run locally and passing.
+
+Reconciled 2026-07-13 against commit 5ceaf98: CI is now GREEN on `main` — PR #63
+(commit 1fea669, merged 2026-07-12) declared `@clerk/types` (package.json:11), fixing
+the former phantom-dep TS2307 failure (see §9 and `cellar-validation-and-qa`). The
+stale-`dist` `tsc` trap and the zero-automated-tests / no-backend-CI facts are unchanged.
+(This skill is frontend-only; the #62 show-notification feature added no `packages/frontend`
+surface — it touches `packages/core`, `packages/functions`, `infra/`, and `migrations/`.)
 
 | May drift | Re-verify with |
 |---|---|
@@ -298,4 +304,5 @@ LOCALLY ONLY — CI is red on `main` (@clerk/types phantom dep; see §9 and
 | Light default / no prefers-color-scheme | `grep -n "data-theme\|color-scheme" packages/frontend/index.html` |
 | Clerk override fragility | `cat packages/frontend/src/pages/Auth/Auth.css` (count of `.cl-*` !important patches) |
 | CI gate commands | `sed -n '40,60p' .github/workflows/frontend-ci.yml` |
+| @clerk/types declared (keeps CI green) | `grep -n "@clerk/types" packages/frontend/package.json` — expect present (`^4.101.25`, since #63); its absence would re-break CI with TS2307 |
 | theme.css not importing tailwind | `grep -n "tailwindcss" packages/frontend/src/{style,theme}.css` |

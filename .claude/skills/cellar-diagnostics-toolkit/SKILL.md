@@ -66,14 +66,15 @@ freshness: OK newest show 2026-07-24 (~+17d ahead)
 comics:    OK total=1843
 ```
 
-**Interpretation guide** — anchored to the two crons (verified against infra/cron.ts:13,26 on 2026-07-07):
+**Interpretation guide** — the freshness verdict keys off the two *scraping* crons; there are now **three** crons total, but the third does not scrape (schedules at infra/cron.ts:13,26,39, verified as of 2026-07-13):
 
 | Cron | Schedule | Job |
 |---|---|---|
 | `Cron` (newShowCron) | `cron(0 0/6 * * ? *)` = every 6h | walks the date horizon forward, discovering shows that were just announced |
 | `SyncCron` (syncCron) | `cron(0 0/1 * * ? *)` = hourly | refreshes **today's** inventory only |
+| `ShowNotificationCron` | `cron(0/15 * * * ? *)` = every 15 min | emails opted-in subscribers about batches of newly discovered shows (added #62, 2026-07-13). Does **not** scrape — irrelevant to freshness; see cellar-run-and-operate |
 
-Because shows are announced **ahead of time** and newShowCron pushes the horizon out every 6h, the newest persisted show should normally sit **days-to-weeks in the FUTURE**. So:
+Freshness keys off newShowCron/syncCron only — `ShowNotificationCron` reads the DB and sends email, it never touches comedycellar.com, so it can't move the newest-show timestamp. Because shows are announced **ahead of time** and newShowCron pushes the horizon out every 6h, the newest persisted show should normally sit **days-to-weeks in the FUTURE**. So:
 
 | Observation | Meaning |
 |---|---|
@@ -171,7 +172,7 @@ aws logs tail /aws/lambda/<function-name> --since 1h --follow
 aws lambda list-functions --query "Functions[?contains(FunctionName, 'comedy-cellar')].FunctionName"
 ```
 
-**Interpret:** for exactly which log groups exist, how SST names the cron/API Lambdas, and how to read the admin self-emails that double as telemetry, see **cellar-run-and-operate** (the operations home for logs). This repo has **no structured logging or monitoring** beyond raw `console.log(error)` and admin-to-self emails, so expect large raw axios error dumps.
+**Interpret:** for exactly which log groups exist, how SST names the cron/API Lambdas, and how to read the admin self-emails that double as telemetry, see **cellar-run-and-operate** (the operations home for logs). This repo has **no structured logging or monitoring** beyond raw `console.log(error)` and admin-to-self emails (the `sendEmail` channel, `to: FromEmail`), so expect large raw axios error dumps. Note (as of 2026-07-13): a **separate** user-facing email channel now exists — `sendHtmlEmail` mails show-notification announcements to opted-in *users* (recipe 2's `ShowNotificationCron`). That is a product feature, not monitoring; ops/telemetry alerts (including `ShowNotificationCron`'s own failure email) still go admin-to-self.
 
 ---
 
@@ -219,6 +220,8 @@ grep -c "x-code-localize" packages/core/requester.ts   # expect 1
 
 **Authored/verified 2026-07-07** against repo at branch `claude/skill-library-continuity-4m3x56` (== main).
 
+**Reconciled 2026-07-13** against main at commit `5ceaf98`. Changes since 2026-07-07: a **third** cron shipped (`ShowNotificationCron`, `cron(0/15 * * * ? *)`, PR #62) — so recipe 2's interpretation guide and the cron-cadence re-verify row below now list three crons (freshness still keys off the two scraping crons only). A new user-facing email channel `sendHtmlEmail` now coexists with the admin-to-self `sendEmail` ops channel (recipe 6). This skill's probes and recipes were otherwise re-confirmed unchanged — none of them touch the notification path (that's cellar-run-and-operate / cellar-data-model / cellar-validation-and-qa).
+
 Verified by running here (node v22.22.2, pnpm 10.23.0, root deps installed):
 - `token-age.sh` -> exact output pasted in recipe 1 (662 days / ~22 months / standing order triggered).
 - Recipe 4 `node -e` one-liner -> exact output pasted (`start: Invalid Date` / `[] length = 0`).
@@ -233,7 +236,7 @@ Re-verify when things drift:
 | Fact | Command | Expected (2026-07-07) |
 |---|---|---|
 | Token age (grows daily) | `.claude/skills/cellar-scraper-recovery-campaign/scripts/token-age.sh` | capture 2024-09-13; age keeps climbing; standing order stays triggered |
-| Cron cadence | `grep -n "schedule" infra/cron.ts` | `cron(0 0/6 * * ? *)` and `cron(0 0/1 * * ? *)` |
+| Cron cadence (3 crons as of 2026-07-13) | `grep -n "schedule" infra/cron.ts` | `cron(0 0/6 * * ? *)`, `cron(0 0/1 * * ? *)`, and `cron(0/15 * * * ? *)` |
 | bundle-visualizer is a devDep | `grep -n "vite-bundle-visualizer" packages/frontend/package.json` | one hit under devDependencies |
 | clert typo intact on both sides | `grep -rn "clertPublishableKey" infra/` | 2 hits (secrets.ts:11, frontend.ts:21) |
 | Anti-bot header still hardcoded | `grep -c "x-code-localize" packages/core/requester.ts` | 1 |

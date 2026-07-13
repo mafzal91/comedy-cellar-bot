@@ -1,6 +1,6 @@
 ---
 name: cellar-validation-and-qa
-description: What counts as evidence before claiming a change to comedy-cellar-bot works - the honest state of testing (zero automated tests, CI red on main), the frontend gate runbook with its two known traps, manual backend verification protocols per change class, the fixture inventory, quantified acceptance criteria, and a CANDIDATE plan for adding a test harness. Use when about to claim "this works" or "tests pass", when asked to verify or QA a change, when deciding what proof a PR needs, when CI fails on tsc/@clerk/types or dist/assets errors, or when someone proposes adding tests.
+description: What counts as evidence before claiming a change to comedy-cellar-bot works - the honest state of testing (zero automated tests, no backend CI, frontend CI green since PR #63), the frontend gate runbook with its two known traps, manual backend verification protocols per change class, the fixture inventory, quantified acceptance criteria, and a CANDIDATE plan for adding a test harness. Use when about to claim "this works" or "tests pass", when asked to verify or QA a change, when deciding what proof a PR needs, when CI fails on tsc/@clerk/types or dist/assets errors, or when someone proposes adding tests.
 ---
 
 # Validation and QA: what counts as evidence here
@@ -23,25 +23,27 @@ contracts and politeness rules → `cellar-scraping-reference`.
 | Claim you might be tempted to make | Reality | Evidence |
 |---|---|---|
 | "Tests pass" | **Zero automated tests exist anywhere.** Root `pnpm test` is a failing placeholder: `echo "Error: no test specified" && exit 1` | `package.json:8`; `find` for `*.test.*`/`*.spec.*`/vitest/jest configs returns nothing |
-| "CI is green" | **CI has NEVER passed. All 15 runs since the workflow was added (2026-07-02) failed.** Latest main run fails at the Typecheck step | GitHub Actions run 28639348858 (main @ `c8d9918`, 2026-07-03): Lint ok, Typecheck failure, Build skipped |
+| "CI is green" | **Now TRUE for the frontend workflow (as of 2026-07-13).** It was red on all 15 runs from when the workflow was added (2026-07-02) through `c8d9918`; PR #63 (commit `1fea669`, merged 2026-07-12) declared `@clerk/types` and the next run went GREEN. Still NO backend CI at all — this covers `packages/frontend/**` only. | First green: Actions run for head `1fea6697` = success. Prior red baseline: run 28639348858 (main @ `c8d9918`, 2026-07-03): Lint ok, Typecheck failure, Build skipped |
 | "CI covers the backend" | The only workflow is frontend lint/typecheck/build, path-filtered to `packages/frontend/**` | `.github/workflows/frontend-ci.yml:6-8,47-54` |
 | "Backend typechecks" | Root `pnpm exec tsc --noEmit` exits 2 with `Cannot find name 'sst'/'$app'/'aws'` in `infra/*.ts` unless `.sst/` platform types were generated (`sst install` needs network; blocked in sandboxes). **There is no working backend typecheck gate.** | Verified 2026-07-07; see `cellar-build-and-env` |
 | "Deploys are gated" | Deploys are manual `pnpm deploy:prod` from the owner's machine. No deploy automation exists | `package.json:10`; owner-only per `cellar-change-control` |
 
-The CI failure root cause (as of 2026-07-07): `packages/frontend/src/hooks/useAuth.ts:2`
-imports `@clerk/types`, which is **not declared** in `packages/frontend/package.json`
-(only `@clerk/clerk-js` is). Locally it resolves by walking up to the repo-root
+The CI failure root cause (historical — fixed by #63, see below): `packages/frontend/src/hooks/useAuth.ts:2`
+imported `@clerk/types`, which **was not declared** in `packages/frontend/package.json`
+(only `@clerk/clerk-js` was). Locally it resolved by walking up to the repo-root
 `node_modules`, where `.npmrc`'s `shamefully-hoist=true` exposes it as a transitive dep
 of root's `@clerk/backend`. CI installs only inside `packages/frontend` (its own pnpm
-workspace), so resolution fails:
+workspace), so resolution failed:
 
 ```
 src/hooks/useAuth.ts(2,30): error TS2307: Cannot find module '@clerk/types' or its corresponding type declarations.
 ```
 
-Candidate fix: add `@clerk/types` to `packages/frontend` devDependencies. That is a
-frontend dependency change — classify and gate it via `cellar-change-control`. Until it
-lands, treat a local tsc pass as NOT predictive of CI.
+**Fix applied (as of 2026-07-13):** PR #63 (commit `1fea669`, merged 2026-07-12) added
+`@clerk/types` to `packages/frontend` — it is now declared under `dependencies` at
+`packages/frontend/package.json:11` (`"@clerk/types": "^4.101.25"`; verify with `grep
+'@clerk/types' packages/frontend/package.json`), and CI went green on the next run. A
+frontend dependency change like this classifies and gates via `cellar-change-control`.
 
 Check current CI status before repeating any claim above (needs network + gh auth;
 blocked in restricted sandboxes):
@@ -66,16 +68,19 @@ Expected `pnpm build` output: a chunk-size warning that the Clerk chunk (~3MB) e
 500 kB. **That warning is NORMAL** — do not "fix" it or treat it as a failure. The build
 must end with the vite success summary and exit 0.
 
-### Two traps that produce false failures/passes (both verified 2026-07-07)
+### Two traps that produce false failures/passes (dist trap live, verified 2026-07-07; the `@clerk/types` phantom-dep trap was RESOLVED by #63 on 2026-07-13)
 
 1. **Stale `dist/` breaks tsc.** `tsconfig.json:21` includes `**/*` with
    `allowJs`/`checkJs`, so a `dist/` left by a previous build gets typechecked and
    produces ~1500+ errors in `dist/assets/*.js`. Always typecheck BEFORE building, or
-   `rm -rf dist` first. CI never hits this (fresh checkout).
-2. **A local tsc pass is partly fake.** It depends on the repo-root `node_modules`
-   supplying `@clerk/types` (phantom dependency, section 1). A CI-faithful typecheck
-   requires a tree where only `packages/frontend` deps are installed — which currently
-   fails. Do not claim "typecheck passes in CI" from a local run.
+   `rm -rf dist` first. CI never hits this (fresh checkout). **This trap is still live.**
+2. **The `@clerk/types` phantom dependency — RESOLVED as of 2026-07-13.** This used to
+   make a local tsc pass non-predictive: `@clerk/types` was undeclared and resolved only
+   via the repo-root `node_modules` (section 1). PR #63 declared it in
+   `packages/frontend/package.json`, so a local `tsc --noEmit` on a dist-free tree is now
+   CI-faithful for that import. The general caution still holds — a local pass only
+   mirrors CI when only `packages/frontend` deps are on the resolution path — but this
+   specific phantom no longer bites.
 
 ### Manual verification matrix (no automated coverage exists for any of this)
 
@@ -287,7 +292,7 @@ non-secret; substitute your dev URL; needs network):
 | "Reservation upstream change works" | Dev-stage POST returns the fixture-derived success for valid input, and 400 with `fieldErrors` for each invalid field you touched | Section 3d; assert against `packages/__fixtures__/createReservation.ts` shape |
 
 Caveat that invalidates naive counting: `GET /api/shows/new` inner-joins shows to acts
-and comics with no DISTINCT (`packages/core/models/show.ts:207-216`), so a show with N
+and comics with no DISTINCT (`packages/core/models/show.ts:213-219`), so a show with N
 comics appears N times and `total` counts act-rows, while shows with no parsed lineup
 (specials) are invisible. Always dedup by `.id` and expect live-count ≥ DB-count when
 specials exist. If your acceptance check needs exact parity, compare id SETS, not
@@ -340,14 +345,25 @@ log shows the TS2307 error verbatim). `pnpm build` success + clerk-chunk warning
 verified by the lead session on 2026-07-07 (build writes `dist/`, so it was not re-run
 here). File:line citations were read directly.
 
+Reconciled against main commit `5ceaf98` on 2026-07-13. One CI fact inverted since the
+2026-07-07 baseline: PR #63 (commit `1fea669`, merged 2026-07-12) declared `@clerk/types`
+in `packages/frontend/package.json:11`, so the frontend workflow is now GREEN (first green
+run: head `1fea6697` = success) and the dist-free local tsc mirror no longer fails on that
+import. Everything else in this skill re-verified unchanged: still zero automated tests,
+still no backend CI, root `tsc` still needs `.sst` types, and the stale-`dist/` tsc trap is
+still live. (Note: #62 shipped a third cron `ShowNotificationCron` and user-facing show
+emails via a new `sendHtmlEmail` channel — those belong to `cellar-frontier-and-method` /
+`cellar-run-and-operate`; the show-notification path has zero tests and no CI, so it is
+"shipped, unproven," and nothing here validates it.)
+
 Volatile facts and how to re-check them:
 
 | Fact | Re-verification command |
 |---|---|
 | Zero tests exist | `find packages infra -name "*.test.*" -o -name "*.spec.*" \| grep -v node_modules` (expect empty) |
 | Root test script still a placeholder | `grep '"test"' package.json` |
-| CI still red / red for the same reason | `gh run list --workflow=frontend-ci.yml --limit 5` (needs network) |
-| `@clerk/types` still undeclared in frontend | `grep '@clerk' packages/frontend/package.json` (expect only `@clerk/clerk-js`) |
+| Frontend CI still green (since #63) | `gh run list --workflow=frontend-ci.yml --limit 5` (needs network; expect the recent runs = success) |
+| `@clerk/types` declared in frontend (fix #63) | `grep '@clerk/types' packages/frontend/package.json` (expect present: `"@clerk/types": "^4.101.25"`) |
 | Frontend gate order in CI unchanged | `sed -n '44,55p' .github/workflows/frontend-ci.yml` |
 | Reservation stage gate intact | `sed -n '10,17p' packages/core/createReservation.ts` (expect the `STAGE === "prod"` branch + fixture return) |
 | Fixture inventory unchanged | `ls packages/__fixtures__/ plan/screenshots/` |

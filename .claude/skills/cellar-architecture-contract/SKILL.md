@@ -5,11 +5,11 @@ description: Entry-point system map for comedy-cellar-bot - monorepo layout, SST
 
 # Cellar Architecture Contract
 
-comedy-cellar-bot scrapes comedycellar.com (the NYC comedy club) on a schedule, stores shows/comics/lineups in a shared Supabase Postgres, serves them via an AWS API, lets signed-in users mark comics for notification (notifications have NEVER actually been sent - open ambition), and can submit REAL seat reservations to the club's booking API. Solo-owner project (mafzal91), deployed with SST v3.
+comedy-cellar-bot scrapes comedycellar.com (the NYC comedy club) on a schedule, stores shows/comics/lineups in a shared Supabase Postgres, serves them via an AWS API, lets signed-in users mark comics for notification and opt into new-show announcements (show-announcement emails now ship to opted-in users as of 2026-07-13, #62 - shipped but unproven; comic-follow notifications are still never sent - open ambition), and can submit REAL seat reservations to the club's booking API. Solo-owner project (mafzal91), deployed with SST v3.
 
 **When NOT to use this skill:** for step-by-step procedures go to the sibling that owns them - environment setup → `cellar-build-and-env`; running/deploying/logs → `cellar-run-and-operate`; scraper endpoint/parse details → `cellar-scraping-reference`; schema and migrations → `cellar-data-model`; debugging a live symptom → `cellar-debugging-playbook`; anything that changes behavior → `cellar-change-control` first.
 
-## Map of the library (14 skills)
+## Map of the library (15 skills)
 
 | Skill | Load when |
 |---|---|
@@ -41,7 +41,7 @@ comedy-cellar-bot scrapes comedycellar.com (the NYC comedy club) on a schedule, 
 | `packages/__fixtures__/` | Captured real payloads (notably `createReservation.ts`, a real success response) | NO - plain directory |
 | `packages/frontend/` | Preact 10 + Vite 7 + Tailwind v4 SPA | YES - and it is its OWN pnpm workspace root |
 | `infra/` | SST v3 resource definitions (5 files: api, config, cron, frontend, secrets) | n/a |
-| `migrations/` | Drizzle migrations 0000-0002 (history re-baselined 2025-02-05, commit 8b3b837) | n/a |
+| `migrations/` | Drizzle migrations 0000-0003 (0003 appended 2026-07-13 for the show-notification outbox; history re-baselined 2025-02-05, commit 8b3b837) | n/a |
 | `plan/` | Historical design-handoff scaffolding for the 2026 re-skin (checked in, not live code) | n/a |
 
 Two structural facts that trip everyone:
@@ -49,7 +49,7 @@ Two structural facts that trip everyone:
 1. **Backend dirs are NOT packages.** `packages/core|functions|types|__fixtures__` have no `package.json` (verified: `ls packages/core/package.json` → No such file). SST/esbuild bundles each Lambda from source using root `tsconfig.json` path aliases `@core/* → ./packages/core/*` and `@customTypes/* → ./packages/types/*` (tsconfig.json:3-6). All backend deps live in root `package.json`.
 2. **`packages/frontend` is a second, independent pnpm workspace root** (own `pnpm-workspace.yaml` + own `pnpm-lock.yaml`). The canonical explanation is the comment at `.github/workflows/frontend-ci.yml:40-43`: install from `packages/frontend`, "the repo root, whose lockfile is stale for frontend deps". Details and traps: `cellar-build-and-env`.
 
-### 1.2 SST resource graph (as of 2026-07-07, HEAD c8d9918)
+### 1.2 SST resource graph (as of 2026-07-13, HEAD 5ceaf98; unchanged since 2026-07-07/c8d9918 except the third cron)
 
 SST is an infrastructure-as-code framework; `sst.config.ts` declares AWS resources in TypeScript. Its `run()` dynamically imports **every** file in `./infra/` (sst.config.ts:23-26) - drop a file in `infra/`, it deploys. Providers: home `aws`, plus `cloudflare` (DNS, creds from root `.env`) and `supabase` (sst.config.ts:9-16).
 
@@ -59,6 +59,7 @@ SST is an infrastructure-as-code framework; `sst.config.ts` declares AWS resourc
 | JWT authorizer `myClerkAuthorizer` | infra/api.ts:19-25 | Clerk (hosted auth provider); issuer from infra/config.ts per stage. **Applied ONLY to GET+POST `/api/settings`** (api.ts:103-123); every other route is public |
 | `sst.aws.Cron "Cron"` | infra/cron.ts:4-14 | `newShowCron.handler`, `cron(0 0/6 * * ? *)` = every 6h; discovers shows beyond the last known one |
 | `sst.aws.Cron "SyncCron"` | infra/cron.ts:17-27 | `syncCron.handler`, `cron(0 0/1 * * ? *)` = hourly; refreshes TODAY only (syncCron.ts:68 iterates `[dates[0]]`) |
+| `sst.aws.Cron "ShowNotificationCron"` | infra/cron.ts:30-40 | `showNotificationCron.handler`, `cron(0/15 * * * ? *)` = every 15 min; drains the `new_show_queue` outbox and emails show-announcement subscribers via `sendHtmlEmail` (added 2026-07-13, #62) |
 | `sst.aws.StaticSite "Frontend"` | infra/frontend.ts:12-26 | prod domain `comedycellar.mafz.al`; build injects `VITE_API_URL`, `VITE_CLERK_PUBLISHABLE_KEY` |
 | 6 × `sst.Secret` | infra/secrets.ts | FromEmail, FromEmailPw, DbUrl, ClerkSigningSecret, ClerkSecretKey, ClerkPublishableKey (stored in AWS SSM; see `cellar-config-and-secrets`) |
 
@@ -78,7 +79,8 @@ comedycellar.com  ──(scrape: 2 endpoints, serial + sleeps)──>  packages/
    ▼
 handleShowDetails / handleLineUp  ──(Drizzle upserts)──>  Supabase Postgres (ONE db, all stages)
    ▼                                                        tables: show, room, comic, act,
-public API (API Gateway v2)                                 user, *_notification, comic_to_user
+public API (API Gateway v2)                                 user, *_notification, comic_to_user,
+                                                            new_show_queue (outbox, added #62)
    ├─ DB-backed:   GET /api/shows/new, GET /api/comics, GET /api/comics/{id}
    ├─ live-scrape: GET /api/shows?date=, GET /api/line-up?date=, GET /api/shows/{timestamp}
    │               (these also persist in the background, errors swallowed)
@@ -89,7 +91,7 @@ public API (API Gateway v2)                                 user, *_notification
 frontend SPA (Preact) fetches via VITE_API_URL; Clerk handles sign-in
 ```
 
-Crons feed the DB; the DB feeds `/api/shows/new` and `/api/comics`; several routes still scrape live per request. Full route table and handler line numbers: `cellar-run-and-operate`; endpoint/parse contracts: `cellar-scraping-reference`.
+Crons feed the DB; the DB feeds `/api/shows/new` and `/api/comics`; several routes still scrape live per request. A third cron (`ShowNotificationCron`, every 15 min) drains the `new_show_queue` outbox and emails show-announcement subscribers via `sendHtmlEmail` - the first outbound path to real end users (as of 2026-07-13, #62; unproven). Full route table and handler line numbers: `cellar-run-and-operate`; endpoint/parse contracts: `cellar-scraping-reference`.
 
 ## 2. Load-bearing design decisions (decision / why / consequence)
 
@@ -115,9 +117,9 @@ Do not "fix" any of these without reading its consequence and `cellar-change-con
    Why: this is what ended the 5-month outage.
    Consequence: single point of failure for ALL scraping AND real bookings (same axios instance). Treat any edit to requester.ts as a high-risk change; token anatomy in `cellar-scraping-reference`.
 
-6. **Email-to-self is the only telemetry.** `sendEmail` sends from and TO the same Gmail address (core/email.ts:22-23); Sentry init was removed 2024-10-14 (commit 56afdca) and remains commented out at packages/frontend/src/index.tsx:20-26 (@sentry/browser still a dep).
+6. **Admin email-to-self is the telemetry channel; a second, user-facing email channel shipped 2026-07-13.** `sendEmail` sends from and TO the same Gmail address (core/email.ts:27-28) - still the ops/telemetry channel (New/Sync Show Cron, `new reservation!`, Show Notification Cron failures). The NEW `sendHtmlEmail` (core/email.ts:35) sends from `"Comedy Cellar Bot"` TO a recipient user - the first real user-facing channel (#62, as of 2026-07-13). Both coexist. Sentry init was removed 2024-10-14 (commit 56afdca) and remains commented out at packages/frontend/src/index.tsx:20-26 (@sentry/browser still a dep).
    Why: solo project; the owner's inbox is the dashboard.
-   Consequence: "notifications" in this repo means admin self-email only. End users have NEVER received a notification - the tables and settings UI exist, but no code reads them to send anything. That is the flagship open ambition (`cellar-frontier-and-method`).
+   Consequence: telemetry still means admin self-email, but "notifications" no longer means self-email only. Show-announcement subscribers ARE now emailed as of 2026-07-13: `ShowNotificationCron` reads `show_notification` via `getShowNotificationRecipients` (models/showNotification.ts:35-42) and sends via `sendHtmlEmail` - shipped but UNPROVEN (zero tests, no track record). `comic_notification` is still read by no code, so comic-follow notifications remain the flagship open ambition (`cellar-frontier-and-method`).
 
 7. **Auth uses headless @clerk/clerk-js, not React bindings.** Lazy singleton dynamic-imports the SDK (frontend/src/utils/clerk.ts:6-9).
    Why: keeps the ~3MB Clerk chunk out of the main bundle.
@@ -138,7 +140,7 @@ Do not "fix" any of these without reading its consequence and `cellar-change-con
 | # | Invariant | Enforced at | Check command |
 |---|---|---|---|
 | 1 | Real reservations are created ONLY when `STAGE === "prod"`; all other stages return the fixture | packages/core/createReservation.ts:10-17; STAGE env only at infra/api.ts:84-86 | `grep -n 'STAGE === "prod"' packages/core/createReservation.ts` → line 10 |
-| 2 | Scheduled crons no-op outside prod: infra sets `IS_ACTIVE = (stage==="prod")` and `IS_CRON="1"` (infra/cron.ts:8-11,21-24); handlers early-return on `!IS_ACTIVE && IS_CRON` (newShowCron.ts:14-16, syncCron.ts:45-47). Note the same syncCron handler on `GET /sync-shows` has NO env vars, so HTTP invocation always runs | infra/cron.ts + both cron handlers | `grep -n "IS_ACTIVE" infra/cron.ts packages/functions/cron/*.ts` |
+| 2 | Scheduled crons no-op outside prod: infra sets `IS_ACTIVE = (stage==="prod")` and `IS_CRON="1"` on all three crons (infra/cron.ts:8-11,21-24,35-36); handlers early-return on `!IS_ACTIVE && IS_CRON` (newShowCron.ts:14-16, syncCron.ts:45-47, showNotificationCron.ts:21-22). Note the same syncCron handler on `GET /sync-shows` has NO env vars, so HTTP invocation always runs | infra/cron.ts + all three cron handlers | `grep -n "IS_ACTIVE" infra/cron.ts packages/functions/cron/*.ts` |
 | 3 | Every `user`-table query goes through `applyWhere`, which appends `eq(user.stage, SST_STAGE)` | packages/core/models/user.ts:9-11 (all exported fns use it) | `grep -n "applyWhere" packages/core/models/user.ts` |
 | 4 | `show.timestamp` is treated as a unique show identity (lookup: show.ts:254-256; act creation requires exactly 1 match: handleLineUp.ts:34) even though the DB has no unique index on it (show.sql.ts:39). Shows must only ever be written through `createShows`' upsert-on-id (show.ts:165-180) | convention, not schema | `grep -n "timestamp: integer" packages/core/sql/show.sql.ts` |
 | 5 | Frontend colors come from theme tokens, never raw hex or stock Tailwind grays - "hardcoded colors won't flip in dark mode" | packages/frontend/src/components/ui/CONTRACT.md:17-18 (that file rules; defer to it) | read CONTRACT.md; enforcement recipes in `cellar-frontend-design-system` |
@@ -162,7 +164,7 @@ Stated plainly so nobody rediscovers them the hard way. "Open" = known, unfixed,
 | 8 | externalId type guards are unanchored substring regexes - `"show_comic_x"` passes the comic check; worse, models/user.ts:13-14 defines a function NAMED `isRoomExternalId` that checks USER_PREFIX | models/comic.ts:33, room.ts:8, show.ts:162, sql/user.sql.ts:56, models/user.ts:13-14 | open |
 | 9 | Load-bearing typo: the secret object key is `clertPublishableKey` (infra/secrets.ts:11) and infra/frontend.ts:21 references it by that spelling. Renaming one side breaks deploy | infra/secrets.ts:11; infra/frontend.ts:21 | open - rename only as a coordinated change |
 | 10 | A live Slack webhook URL sits in committed dead code (leftover from a removed side-project cron). Do not copy it anywhere; rotation is an owner decision | packages/core/slack.ts:3-9 (reference only - never reproduce the value) | open, secret-hygiene |
-| 11 | Zero tests exist (`pnpm test` = failing placeholder, package.json:8); the ONLY CI is frontend lint/typecheck/build (.github/workflows/frontend-ci.yml). Root `tsc --noEmit` fails without generated `.sst/` platform types, so there is no working backend typecheck gate in sandboxes | package.json:8; frontend-ci.yml | open (see `cellar-validation-and-qa`) |
+| 11 | Zero tests exist (`pnpm test` = failing placeholder, package.json:8); the ONLY CI is frontend lint/typecheck/build (.github/workflows/frontend-ci.yml, now GREEN since #63 declared @clerk/types, 2026-07-12 - there is still NO backend CI). Root `tsc --noEmit` fails without generated `.sst/` platform types, so there is no working backend typecheck gate in sandboxes | package.json:8; frontend-ci.yml | open, narrowed (see `cellar-validation-and-qa`) |
 | 12 | Scraper responses are never runtime-validated (blind casts); a comedycellar.com redesign means TypeErrors or silently empty data, not alarms | e.g. fetchShows.ts, fetchLineUp.ts | open - the flagship live risk; see `cellar-scraper-recovery-campaign` |
 
 ## 5. Before you change anything
@@ -173,13 +175,17 @@ Any edit that changes behavior - code, infra, schema, schedules, secrets - must 
 
 Verified 2026-07-07 against HEAD `c8d9918` (branch mirrors main) by reading: sst.config.ts, tsconfig.json, package.json, pnpm-workspace.yaml, all 5 infra/*.ts, packages/core/{createReservation,database,requester,email,handleShowDetails,handleLineUp,handleShowList,getFutureDatesByDay}.ts, packages/core/models/{show,user}.ts, packages/core/sql/{show,user}.sql.ts, packages/core/common/{constants,createExternalId}.ts, packages/functions/cron/{newShowCron,syncCron}.ts, packages/functions/{shows/index,reservation}.ts, packages/frontend/src/utils/clerk.ts, packages/frontend/src/index.tsx, packages/frontend/pnpm-workspace.yaml, .github/workflows/frontend-ci.yml, packages/frontend/src/components/ui/CONTRACT.md, .env.template; and running `git show 741ca41` / `git show 56afdca` / the grep commands quoted above. Commit 122ccf5 (Sep-2024 recovery) predates the shallow clone and is carried from git-archaeology (GitHub API) - labeled as such.
 
+Reconciled 2026-07-13 against commit `5ceaf98` for two changes since c8d9918: (1) PR #63 made frontend CI GREEN by declaring `@clerk/types` in packages/frontend/package.json (weak point 11 narrowed); (2) PR #62 shipped show-announcement notifications end-to-end - migration 0003, the `new_show_queue` outbox (packages/core/{sql/newShowQueue.sql.ts,models/newShowQueue.ts}), a third cron `ShowNotificationCron`, `sendHtmlEmail`, and a react-email template (packages/core/emails/newShowsEmail.tsx). Re-read for this pass: infra/cron.ts, packages/core/email.ts, packages/core/models/{show,newShowQueue,showNotification}.ts, packages/core/handleShowDetails.ts, packages/functions/cron/showNotificationCron.ts, packages/frontend/package.json, migrations/. Comic-follow notifications remain unshipped (nothing reads `comic_notification`); show notifications are shipped but UNPROVEN (zero tests). Migration 0003 was a clean APPEND (not a re-baseline), which upholds the append-only rule in `cellar-data-model`.
+
 Re-verification one-liners for facts most likely to drift:
 
 | Fact | Command | Expected today |
 |---|---|---|
 | Booking gate intact | `grep -n 'STAGE === "prod"' packages/core/createReservation.ts` | line 10 |
-| Cron schedules | `grep -n "schedule" infra/cron.ts` | `0 0/6 * * ? *` (line 13), `0 0/1 * * ? *` (line 26) |
-| Cron guards | `grep -n "IS_ACTIVE" infra/cron.ts packages/functions/cron/*.ts` | infra sets, both handlers check |
+| Cron schedules (now three) | `grep -n "schedule" infra/cron.ts` | `0 0/6 * * ? *` (line 13), `0 0/1 * * ? *` (line 26), `0/15 * * * ? *` (line 39) |
+| Cron guards | `grep -n "IS_ACTIVE" infra/cron.ts packages/functions/cron/*.ts` | infra sets all three, all three handlers check |
+| Migration count | `ls migrations/*.sql` | four: 0000-0003 (0003 appended 2026-07-13) |
+| @clerk/types declared (CI-green fix #63) | `grep -n "@clerk/types" packages/frontend/package.json` | present, line 11 |
 | User stage filter | `grep -n "applyWhere" packages/core/models/user.ts` | defined line 9, used in every query fn |
 | Auth only on settings | `grep -n -A2 "auth:" infra/api.ts` | only the two `/api/settings` routes |
 | Stage list | `grep -n "clerkFrontendApi" infra/config.ts` | mohammadafzal + prod only |
