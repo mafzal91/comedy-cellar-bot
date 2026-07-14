@@ -33,7 +33,7 @@ export default function SignUp() {
     <PageWrapper
       eyebrow="Independent Fan Site"
       title="Create Your Account"
-      subline="Free sign-up for show alerts — not affiliated with the Comedy Cellar."
+      subline="Accounts are for this fan site only and are not connected to comedycellar.com."
       footer={
         <>
           Already have an account?{" "}
@@ -42,7 +42,6 @@ export default function SignUp() {
           </Link>
         </>
       }
-      footnote="Accounts are for this fan site only and are not connected to comedycellar.com."
     >
       <div className="mx-auto mb-6 max-w-[25rem] border-b border-track pb-6">
         <p className="mb-3.5 font-mono text-meta uppercase tracking-wider text-faint">
