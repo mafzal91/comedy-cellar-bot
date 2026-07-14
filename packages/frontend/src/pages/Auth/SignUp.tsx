@@ -33,7 +33,12 @@ export default function SignUp() {
     <PageWrapper
       eyebrow="Independent Fan Site"
       title="Create Your Account"
-      subline="Accounts are for this fan site only and are not connected to comedycellar.com."
+      subline={
+        <span className="font-mono text-meta tracking-wide text-faint">
+          Accounts are for this fan site only and are not connected to
+          comedycellar.com.
+        </span>
+      }
       footer={
         <>
           Already have an account?{" "}
