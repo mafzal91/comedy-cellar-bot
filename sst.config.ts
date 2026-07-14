@@ -12,7 +12,9 @@ export default $config({
           apiToken: process.env.CLOUDFLARE_API_TOKEN,
           email: process.env.CLOUDFLARE_EMAIL,
         },
-        supabase: true
+        supabase: {
+          version: "1.9.1",
+        },
       },
     };
   },
