@@ -13,7 +13,7 @@ export default $config({
           email: process.env.CLOUDFLARE_EMAIL,
         },
         supabase: {
-          version: "1.9.1",
+          version: "1.4.1",
         },
       },
     };
