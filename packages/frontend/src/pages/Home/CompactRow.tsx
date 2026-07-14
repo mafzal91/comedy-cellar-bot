@@ -181,7 +181,7 @@ export function CompactRow({
             </ul>
           ) : (
             <p className="font-sans text-caption font-semibold text-faint">
-              No acts announced yet — usually posted the morning of the show.
+              No acts announced yet — check back for the lineup.
             </p>
           )}
         </div>
