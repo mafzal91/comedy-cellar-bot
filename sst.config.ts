@@ -18,7 +18,7 @@ export default $config({
   },
   async run() {
     $transform(sst.aws.Function, (args) => {
-      args.runtime ??= "nodejs24.x";
+      args.runtime ??= "nodejs22.x";
     });
 
     const { readdirSync } = await import("fs");
