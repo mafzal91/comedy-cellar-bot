@@ -62,9 +62,12 @@ api.route("GET /api/shows", {
   link: [dbCreds.dbUrl, ...Object.values(emailSecrets), email],
 });
 
+// listShowsLocal itself doesn't send email, but this handler file is bundled
+// together with listShows/getShow, which pull in email.ts (reads
+// Resource.Email/AlertEmail at module load), so the link is required here too.
 api.route("GET /api/shows/new", {
   handler: `${functionDir}/shows/index.listShowsLocal`,
-  link: [dbCreds.dbUrl],
+  link: [dbCreds.dbUrl, ...Object.values(emailSecrets), email],
 });
 
 api.route("GET /api/shows/{timestamp}", {
