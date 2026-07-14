@@ -6,3 +6,4 @@ export const ACT_PREFIX = "act";
 export const SHOW_NOTIFICATION_PREFIX = "show_notif";
 export const NEW_SHOW_QUEUE_PREFIX = "nsq";
 export const COMIC_NOTIFICATION_PREFIX = "comic_notif";
+export const COMIC_NOTIFICATION_QUEUE_PREFIX = "cnq";
