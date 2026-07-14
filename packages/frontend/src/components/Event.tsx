@@ -216,7 +216,7 @@ export function Event(props: EventItemProps) {
                   Lineup not announced yet
                 </p>
                 <p className="mt-0.5 font-mono text-[11px] text-faint">
-                  Acts are usually posted the morning of the show.
+                  Check back for the lineup.
                 </p>
               </div>
             </div>

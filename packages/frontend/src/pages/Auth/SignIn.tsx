@@ -20,7 +20,7 @@ export default function SignIn() {
       title="Take Your Seat"
       footer={
         <>
-          New to the Cellar?{" "}
+          New here?{" "}
           <Link href="/sign-up" variant="underline" className="font-extrabold">
             Create an account
           </Link>
