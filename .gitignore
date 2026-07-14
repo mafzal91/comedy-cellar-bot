@@ -13,3 +13,6 @@ node_modules
 
 # local env files
 .env*.local
+
+# generated email previews (scripts/preview-new-shows-email.tsx)
+scripts/.preview-*

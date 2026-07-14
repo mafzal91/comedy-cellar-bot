@@ -72,6 +72,9 @@ importers:
       '@types/react':
         specifier: ^19.2.17
         version: 19.2.17
+      tsx:
+        specifier: ^4.22.4
+        version: 4.22.4
 
   packages/frontend:
     dependencies:

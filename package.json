@@ -11,7 +11,8 @@
     "remove:prod": "sst remove --stage=prod",
     "db": "sst shell drizzle-kit",
     "db:studio": "sst shell drizzle-kit studio",
-    "test:email": "sst shell node scripts/test-email.mjs"
+    "test:email": "sst shell node scripts/test-email.mjs",
+    "preview:email": "tsx scripts/preview-new-shows-email.tsx"
   },
   "keywords": [],
   "author": "",
@@ -39,7 +40,8 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.159",
-    "@types/react": "^19.2.17"
+    "@types/react": "^19.2.17",
+    "tsx": "^4.22.4"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
