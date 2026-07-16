@@ -14,6 +14,17 @@ import { sendEmail, sendHtmlEmail } from "@core/email";
 const IS_ACTIVE = process.env.IS_ACTIVE === "1";
 const IS_CRON = process.env.IS_CRON === "1";
 
+// Unproven feature: gate sends to an allowlist of emails while it's being
+// dogfooded. Empty (the default) means nobody receives it yet. Not meant to
+// be exhaustive -- just enough to keep this off by default until it's
+// proven out, then widen or remove it. Set via infra/cron.ts.
+const ALLOWED_EMAILS = new Set(
+  (process.env.COMIC_NOTIFICATION_ALLOWED_EMAILS ?? "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean)
+);
+
 // Comics tend to get added to a lineup in bursts as the day's booking
 // settles, so hold the batch until the first queued act is this old.
 // Everything that trickles in while we wait rides along in the same email.
@@ -73,12 +84,17 @@ export async function handler() {
   }
 
   const comicIds = Array.from(new Set(batch.map((item) => item.comicId)));
-  const recipientRows = await getComicNotificationRecipientsForComics(
+  const subscriberRows = await getComicNotificationRecipientsForComics(
     comicIds
+  );
+  const recipientRows = subscriberRows.filter((row) =>
+    ALLOWED_EMAILS.has(row.email.toLowerCase())
   );
 
   if (!recipientRows.length) {
-    console.log(`No subscribers; skipping ${batch.length} queued booking(s)`);
+    console.log(
+      `${subscriberRows.length} subscriber(s) found but none are allowlisted; skipping ${batch.length} queued booking(s)`
+    );
     return {};
   }
 
