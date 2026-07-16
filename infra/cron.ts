@@ -41,9 +41,9 @@ new sst.aws.Cron("ShowNotificationCron", {
 });
 
 // This cron emails subscribers when a comic they follow is booked on a show
-// that still has capacity. New/unproven feature: gated to an allowlist of
-// emails via COMIC_NOTIFICATION_ALLOWED_EMAILS below (comma-separated) until
-// it has a production track record. Empty = nobody receives it yet.
+// that still has capacity. New/unproven feature: gated to a hardcoded
+// allowlist in comicNotificationCron.ts until it has a production track
+// record.
 new sst.aws.Cron("ComicNotificationCron", {
   job: {
     handler: "packages/functions/cron/comicNotificationCron.handler",
@@ -51,9 +51,6 @@ new sst.aws.Cron("ComicNotificationCron", {
     environment: {
       IS_ACTIVE: $app.stage === "prod" ? "1" : "0",
       IS_CRON: "1",
-      // e.g. "you@example.com,teammate@example.com" — fill in before relying
-      // on this cron, then widen or remove once it's been proven out.
-      COMIC_NOTIFICATION_ALLOWED_EMAILS: "",
     },
   },
   schedule: "cron(0/15 * * * ? *)",

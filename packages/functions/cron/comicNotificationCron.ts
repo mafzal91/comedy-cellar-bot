@@ -14,15 +14,15 @@ import { sendEmail, sendHtmlEmail } from "@core/email";
 const IS_ACTIVE = process.env.IS_ACTIVE === "1";
 const IS_CRON = process.env.IS_CRON === "1";
 
-// Unproven feature: gate sends to an allowlist of emails while it's being
-// dogfooded. Empty (the default) means nobody receives it yet. Not meant to
-// be exhaustive -- just enough to keep this off by default until it's
-// proven out, then widen or remove it. Set via infra/cron.ts.
-const ALLOWED_EMAILS = new Set(
-  (process.env.COMIC_NOTIFICATION_ALLOWED_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean)
+// Unproven feature: gate sends to a hardcoded allowlist while it's being
+// dogfooded. Empty (the current default) means nobody receives it yet. Not
+// meant to be exhaustive -- just enough to keep this off by default until
+// it's proven out, then widen or remove it.
+const ALLOWED_EMAILS: string[] = [
+  // "you@example.com",
+];
+const ALLOWED_EMAILS_SET = new Set(
+  ALLOWED_EMAILS.map((email) => email.toLowerCase())
 );
 
 // Comics tend to get added to a lineup in bursts as the day's booking
@@ -88,7 +88,7 @@ export async function handler() {
     comicIds
   );
   const recipientRows = subscriberRows.filter((row) =>
-    ALLOWED_EMAILS.has(row.email.toLowerCase())
+    ALLOWED_EMAILS_SET.has(row.email.toLowerCase())
   );
 
   if (!recipientRows.length) {
