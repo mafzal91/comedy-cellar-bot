@@ -23,8 +23,6 @@ import { formatInTimeZone } from "date-fns-tz";
 
 const TIME_ZONE = "America/New_York";
 const SITE_URL = "https://comedycellar.mafz.al";
-// Keep readers on our site: link to our own reservation page
-// (/reservations/:timestamp) rather than out to comedycellar.com.
 const RESERVATION_URL = `${SITE_URL}/reservations/`;
 const MANAGE_URL = `${SITE_URL}/profile`;
 
