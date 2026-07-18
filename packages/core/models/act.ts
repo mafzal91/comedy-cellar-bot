@@ -47,7 +47,10 @@ export function createActs(data: InsertAct[]) {
     .values(data)
     .onConflictDoNothing({
       target: [act.showId, act.comicId],
-    });
+    })
+    // ON CONFLICT DO NOTHING never returns the skipped (conflicting) rows,
+    // so every row returned here is a genuinely new comic<->show link.
+    .returning({ id: act.id, comicId: act.comicId, showId: act.showId });
 }
 
 export function createAct(data: InsertAct) {

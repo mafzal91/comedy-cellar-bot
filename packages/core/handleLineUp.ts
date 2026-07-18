@@ -3,6 +3,7 @@ import { isValidComic } from "./sql/comic.sql";
 import { createComics, getComicsByNames } from "./models/comic";
 import { createActs, Lineup } from "./models/act";
 import { getShowByTimestamp } from "./models/show";
+import { enqueueComicActs } from "./models/comicNotificationQueue";
 
 export const handleLineUp = async ({ date }: { date: string }) => {
   const lineUpsData = await fetchLineUp(date);
@@ -36,7 +37,14 @@ export const handleLineUp = async ({ date }: { date: string }) => {
           comicId: id,
           showId: show[0].id,
         }));
-        await createActs(newActs);
+        const insertedActs = await createActs(newActs);
+
+        // Queue newly-assigned comics on upcoming shows so the comic
+        // notification cron can batch them into subscriber emails
+        const nowInSeconds = Math.floor(Date.now() / 1000);
+        if (insertedActs.length && (show[0].timestamp ?? 0) > nowInSeconds) {
+          await enqueueComicActs(insertedActs.map((row) => row.id));
+        }
       }
     }
   } catch (e) {

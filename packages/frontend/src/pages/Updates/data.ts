@@ -5,6 +5,13 @@ export interface Update {
 }
 
 export const updates: Update[] = [
+  // Comic booking notifications are dogfooding in prod behind an allowlist
+  // (comicNotificationCron.ts) before this gets announced publicly.
+  // {
+  //   date: "July 2026",
+  //   title: "Comic Booking Email Notifications",
+  //   text: "You can now get emailed when a comic you follow is booked on a show with open seats! Turn it on from any comic's profile page.",
+  // },
   {
     date: "July 2026",
     title: "New Show Email Notifications",
