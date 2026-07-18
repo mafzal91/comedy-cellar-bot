@@ -19,7 +19,7 @@ const IS_CRON = process.env.IS_CRON === "1";
 // meant to be exhaustive -- just enough to keep this off by default until
 // it's proven out, then widen or remove it.
 const ALLOWED_EMAILS: string[] = [
-  // "you@example.com",
+  "mafzal91@gmail.com",
 ];
 const ALLOWED_EMAILS_SET = new Set(
   ALLOWED_EMAILS.map((email) => email.toLowerCase())
