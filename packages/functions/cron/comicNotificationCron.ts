@@ -117,7 +117,11 @@ export async function handler() {
 
   // Group into one email per subscriber, covering every comic (in this
   // batch) they follow, so a user following multiple newly-booked comics
-  // gets a single email instead of one per comic
+  // gets a single email instead of one per comic. Each recipientRow is one
+  // (user, comic) subscription match, so a user who only follows comic Y
+  // only ever contributes Y's items here -- even if another comic in the
+  // batch (that they don't follow) is also being announced to someone else
+  // in the same run.
   const itemsByRecipient = new Map<string, ComicBookedEmailItem[]>();
   for (const { email, comicId } of recipientRows) {
     const comicItems = itemsByComicId.get(comicId);

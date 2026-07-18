@@ -71,8 +71,11 @@ export async function getComicNotifications(
     .innerJoin(comic, eq(comic.id, comicNotification.comicId));
 }
 
-// Everyone (for the current stage) who opted in to hear about any of the
-// given comics being booked
+// Returns one row per (user, comic) subscription match -- NOT deduplicated
+// by email. A user who only follows comic Y produces a single {email, Y}
+// row even if other comics in `comicIds` are also in this batch, so callers
+// must attribute items per-row by comicId rather than fan every item in the
+// batch out to every returned email.
 export async function getComicNotificationRecipientsForComics(
   comicIds: SelectComic["id"][]
 ) {
