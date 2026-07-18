@@ -19,23 +19,14 @@ import { formatInTimeZone } from "date-fns-tz";
 // Pure template module: takes plain data in, returns subject/html/text.
 // Keep it free of db/sst imports so it can be rendered and previewed offline.
 
-import {
-  BrowseCalendarFooter,
-  COLOR,
-  EmailFooter,
-  Masthead,
-  RESERVATION_URL,
-  ReserveButton,
-  SANS,
-  SERIF,
-  SITE_URL,
-  SpecialBadge,
-  TIME_ZONE,
-  buildTextFooter,
-  formatDateHeading,
-  formatDateShort,
-  formatTime,
-} from "./shared";
+import { BrowseCalendarFooter } from "./shared/BrowseCalendarFooter";
+import { buildTextFooter } from "./shared/buildTextFooter";
+import { COLOR, RESERVATION_URL, SANS, SERIF, SITE_URL, TIME_ZONE } from "./shared/constants";
+import { EmailFooter } from "./shared/EmailFooter";
+import { formatDateHeading, formatDateShort, formatTime } from "./shared/format";
+import { Masthead } from "./shared/Masthead";
+import { ReserveButton } from "./shared/ReserveButton";
+import { SpecialBadge } from "./shared/SpecialBadge";
 
 export type NewShowEmailItem = {
   timestamp: number; // unix seconds
