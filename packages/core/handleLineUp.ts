@@ -4,6 +4,7 @@ import { createComics, getComicsByNames } from "./models/comic";
 import { createActs, Lineup } from "./models/act";
 import { getShowByTimestamp } from "./models/show";
 import { enqueueComicActs } from "./models/comicNotificationQueue";
+import { sendEmail } from "./email";
 
 export const handleLineUp = async ({ date }: { date: string }) => {
   const lineUpsData = await fetchLineUp(date);
@@ -21,7 +22,20 @@ export const handleLineUp = async ({ date }: { date: string }) => {
       return !duplicate;
     });
     if (uniqueComics.length) {
-      await createComics(uniqueComics);
+      const insertedComics = await createComics(uniqueComics);
+
+      // Alert the owner about comics brand-new to the DB, mirroring the
+      // per-new-show alert in handleShowDetails. createComics uses
+      // onConflictDoNothing, so it only returns rows it actually inserted —
+      // every entry here is new to the system.
+      await Promise.allSettled(
+        insertedComics.map((insertedComic) =>
+          sendEmail({
+            subject: `new comic! ${insertedComic.name}`.trim(),
+            message: JSON.stringify({ date, ...insertedComic }, null, 2),
+          })
+        )
+      );
     }
 
     for (const lineup of lineUps) {
