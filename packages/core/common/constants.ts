@@ -7,3 +7,5 @@ export const SHOW_NOTIFICATION_PREFIX = "show_notif";
 export const NEW_SHOW_QUEUE_PREFIX = "nsq";
 export const COMIC_NOTIFICATION_PREFIX = "comic_notif";
 export const COMIC_NOTIFICATION_QUEUE_PREFIX = "cnq";
+export const NEW_COMIC_NOTIFICATION_PREFIX = "new_comic_notif";
+export const NEW_COMIC_QUEUE_PREFIX = "ncq";

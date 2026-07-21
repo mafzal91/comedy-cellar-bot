@@ -55,3 +55,17 @@ new sst.aws.Cron("ComicNotificationCron", {
   },
   schedule: "cron(0/15 * * * ? *)",
 });
+
+// This cron emails subscribers about batches of comics newly discovered in the
+// system ("new comics on the scene"), draining the new_comic_queue outbox.
+new sst.aws.Cron("NewComicNotificationCron", {
+  job: {
+    handler: "packages/functions/cron/newComicNotificationCron.handler",
+    link: [dbCreds.dbUrl, ...Object.values(emailSecrets), email],
+    environment: {
+      IS_ACTIVE: $app.stage === "prod" ? "1" : "0",
+      IS_CRON: "1",
+    },
+  },
+  schedule: "cron(0/15 * * * ? *)",
+});

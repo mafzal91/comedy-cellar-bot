@@ -77,12 +77,12 @@ api.route("GET /api/shows/{timestamp}", {
 
 // ---- Line Ups -----
 
-// handleLineUp sends a per-new-comic alert email (email.ts reads
-// Resource.Email/AlertEmail at module load), so this route needs the email
-// identity + AlertEmail linked, same as the show-ingesting routes above.
+// handleLineUp enqueues brand-new comics into the new_comic_queue outbox (a
+// DB write, drained by NewComicNotificationCron), so this route only needs
+// the DB link — no email identity here.
 api.route("GET /api/line-up", {
   handler: `${functionDir}/lineUp.handler`,
-  link: [dbCreds.dbUrl, ...Object.values(emailSecrets), email],
+  link: [dbCreds.dbUrl],
 });
 
 // ---- Reservations -----
