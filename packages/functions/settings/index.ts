@@ -8,6 +8,10 @@ import {
   getShowNotification,
   upsertShowNotification,
 } from "@core/models/showNotification";
+import {
+  getNewComicNotification,
+  upsertNewComicNotification,
+} from "@core/models/newComicNotification";
 
 import { generateResponse } from "@core/common/generateResponse";
 import { getAuthIdFromJwtClaim } from "@core/common/getAuthIdFromJwtClaim";
@@ -47,10 +51,12 @@ export async function get(_evt) {
 
   const query = queryValidationSchema.safeParse(queryStringParameters);
 
-  const [comicNotifications, showNotification] = await Promise.all([
-    getComicNotifications(user.id),
-    getShowNotification(user.id),
-  ]);
+  const [comicNotifications, showNotification, newComicNotification] =
+    await Promise.all([
+      getComicNotifications(user.id),
+      getShowNotification(user.id),
+      getNewComicNotification(user.id),
+    ]);
 
   const mappedComicNotification = comicNotifications.map((i) => ({
     name: i.comic.name,
@@ -74,6 +80,9 @@ export async function get(_evt) {
       showNotification: {
         enabled: showNotification?.[0]?.enabled ?? false,
       },
+      newComicNotification: {
+        enabled: newComicNotification?.[0]?.enabled ?? false,
+      },
     },
   });
 }
@@ -89,6 +98,9 @@ const comicNotificationPayload = z
   .strict()
   .required();
 const showNotification = z.object({
+  enabled: z.boolean(),
+});
+const newComicNotification = z.object({
   enabled: z.boolean(),
 });
 
@@ -109,6 +121,7 @@ export async function update(_evt) {
     .object({
       comicNotifications: z.array(comicNotificationPayload).optional(),
       showNotification: showNotification.optional(),
+      newComicNotification: newComicNotification.optional(),
     })
     .default({
       comicNotifications: [],
@@ -130,6 +143,14 @@ export async function update(_evt) {
     await upsertShowNotification({
       userId: user.id,
       enabled: showNotification.enabled,
+    });
+  }
+
+  if (body.data.newComicNotification) {
+    const { newComicNotification } = body.data;
+    await upsertNewComicNotification({
+      userId: user.id,
+      enabled: newComicNotification.enabled,
     });
   }
 

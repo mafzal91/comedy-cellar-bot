@@ -34,7 +34,20 @@ export function isComicExternalId(externalId) {
 }
 
 export async function createComics(data: InsertComic[]) {
-  return db.insert(comic).values(data).onConflictDoNothing();
+  // onConflictDoNothing means RETURNING yields only the rows actually
+  // inserted (comics brand-new to the DB), skipping any that collided on
+  // name — so callers can act on comics that are new to the system.
+  return db
+    .insert(comic)
+    .values(data)
+    .onConflictDoNothing()
+    .returning({
+      id: comic.id,
+      externalId: comic.externalId,
+      name: comic.name,
+      img: comic.img,
+      website: comic.website,
+    });
 }
 
 export async function getComics({

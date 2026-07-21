@@ -77,6 +77,9 @@ api.route("GET /api/shows/{timestamp}", {
 
 // ---- Line Ups -----
 
+// handleLineUp enqueues brand-new comics into the new_comic_queue outbox (a
+// DB write, drained by NewComicNotificationCron), so this route only needs
+// the DB link — no email identity here.
 api.route("GET /api/line-up", {
   handler: `${functionDir}/lineUp.handler`,
   link: [dbCreds.dbUrl],
