@@ -20,6 +20,7 @@ const IS_CRON = process.env.IS_CRON === "1";
 // it's proven out, then widen or remove it.
 const ALLOWED_EMAILS: string[] = [
   "mafzal91@gmail.com",
+  "andrewcboryk@gmail.com",
 ];
 const ALLOWED_EMAILS_SET = new Set(
   ALLOWED_EMAILS.map((email) => email.toLowerCase())
