@@ -28,7 +28,17 @@ export const handleLineUp = async ({ date }: { date: string }) => {
       // cron can batch them into a digest for opted-in subscribers.
       // createComics uses onConflictDoNothing, so it only returns rows it
       // actually inserted — every entry here is new to the system.
-      await enqueueNewComics(insertedComics.map((insertedComic) => insertedComic.id));
+      //
+      // Isolated in its own try/catch: enqueueing is a notification side
+      // effect, so a failure here (e.g. the outbox table not yet migrated)
+      // must never abort the act creation below.
+      try {
+        await enqueueNewComics(
+          insertedComics.map((insertedComic) => insertedComic.id)
+        );
+      } catch (e) {
+        console.error("enqueueing new comics for notifications", e);
+      }
     }
 
     for (const lineup of lineUps) {
