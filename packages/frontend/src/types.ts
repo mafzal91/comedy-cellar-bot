@@ -88,6 +88,9 @@ export type Settings = {
   showNotification: {
     enabled?: boolean;
   };
+  newComicNotification: {
+    enabled?: boolean;
+  };
 };
 
 export type ComicNotification = {

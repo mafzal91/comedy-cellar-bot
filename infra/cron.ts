@@ -27,10 +27,13 @@ new sst.aws.Cron("SyncCron", {
   schedule: "cron(0 0/1 * * ? *)",
 });
 
-// This cron emails subscribers about batches of newly discovered shows
-new sst.aws.Cron("ShowNotificationCron", {
+// One cron tick drives every batched subscriber-notification job (new shows
+// and new comics) via a single Lambda invocation. notificationCron.handler
+// runs each job independently in its own try/catch — see
+// packages/functions/cron/notificationCron.ts.
+new sst.aws.Cron("NotificationCron", {
   job: {
-    handler: "packages/functions/cron/showNotificationCron.handler",
+    handler: "packages/functions/cron/notificationCron.handler",
     link: [dbCreds.dbUrl, ...Object.values(emailSecrets), email],
     environment: {
       IS_ACTIVE: $app.stage === "prod" ? "1" : "0",

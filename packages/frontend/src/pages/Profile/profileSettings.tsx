@@ -26,8 +26,13 @@ export function ProfileSettings() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const showNotification = formData.get("showNotification") === "on";
+    const newComicNotification =
+      formData.get("newComicNotification") === "on";
 
-    mutateSettings({ showNotification: { enabled: showNotification } });
+    mutateSettings({
+      showNotification: { enabled: showNotification },
+      newComicNotification: { enabled: newComicNotification },
+    });
   };
 
   if (isLoading) {
@@ -52,6 +57,12 @@ export function ProfileSettings() {
               displayLabel="New Show Alerts"
               description="Get a heads-up whenever any new show is added — independent of comic notifications."
               defaultChecked={data?.showNotification.enabled ?? false}
+            />
+            <Checkbox
+              label="newComicNotification"
+              displayLabel="New Comic Alerts"
+              description="Get an email when a comic new to the Comedy Cellar joins the lineup for the first time."
+              defaultChecked={data?.newComicNotification?.enabled ?? false}
             />
             <div className="flex justify-end">
               <Button type="submit" variant="solid" disabled={isPending}>
