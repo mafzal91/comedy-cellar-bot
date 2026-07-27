@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { getInitials, getSwatch } from "../../utils/swatches";
+import { removeSizeFromUrl } from "../../utils/helpers";
 
 export interface AvatarProps {
   name: string;
@@ -22,7 +23,7 @@ export function Avatar({ name, img, size = 42, className }: AvatarProps) {
         style={{ width: size, height: size }}
       >
         <img
-          src={img}
+          src={removeSizeFromUrl(img)}
           alt={`${name}'s photo`}
           loading="lazy"
           className="h-full w-full object-cover"
