@@ -174,10 +174,14 @@ type SettingPostBody = {
   showNotification?: {
     enabled: boolean;
   };
+  newComicNotification?: {
+    enabled: boolean;
+  };
 };
 export const updateSettings = async ({
   comicNotifications,
   showNotification,
+  newComicNotification,
 }: SettingPostBody): Promise<ListApiRes<ShowDb>> => {
   const res = await customFetch(`${VITE_API_URL}/api/settings`, {
     method: "POST",
@@ -187,6 +191,7 @@ export const updateSettings = async ({
     body: JSON.stringify({
       comicNotifications,
       showNotification,
+      newComicNotification,
     }),
   });
 

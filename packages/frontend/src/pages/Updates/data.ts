@@ -14,6 +14,11 @@ export const updates: Update[] = [
   // },
   {
     date: "July 2026",
+    title: "New Comic Email Notifications",
+    text: "You can now get emailed when a comic new to the Comedy Cellar joins the lineup for the first time! Subscribers receive an email digest of fresh faces on the mic. Turn it on with the new comic alerts toggle in your profile settings.",
+  },
+  {
+    date: "July 2026",
     title: "New Show Email Notifications",
     text: "You can now get emailed when new shows are added! Subscribers receive an email digest whenever fresh shows hit the calendar. Turn it on with the show notification toggle in your profile settings.",
   },
