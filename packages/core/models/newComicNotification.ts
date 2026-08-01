@@ -33,10 +33,11 @@ export async function getNewComicNotification(
     .where(eq(newComicNotification.userId, userId));
 }
 
-// Everyone (for the current stage) who opted in to hear about new comics
+// Everyone (for the current stage) who opted in to hear about new comics.
+// externalId is returned so the cron can mint a per-recipient unsubscribe link.
 export async function getNewComicNotificationRecipients() {
   return db
-    .select({ email: user.email })
+    .select({ email: user.email, externalId: user.externalId })
     .from(newComicNotification)
     .innerJoin(user, eq(user.id, newComicNotification.userId))
     .where(

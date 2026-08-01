@@ -7,6 +7,11 @@ import {
 import { getNewComicNotificationRecipients } from "@core/models/newComicNotification";
 import { renderNewComicsEmail } from "@core/emails/newComicsEmail";
 import { sendEmail, sendHtmlEmail } from "@core/email";
+import {
+  UnsubscribeChannel,
+  createUnsubscribeToken,
+} from "@core/unsubscribe";
+import { unsubscribeUrl } from "@core/emails/shared/constants";
 
 const IS_ACTIVE = process.env.IS_ACTIVE === "1";
 const IS_CRON = process.env.IS_CRON === "1";
@@ -67,21 +72,37 @@ export async function handler() {
     return {};
   }
 
-  const { subject, html, text } = await renderNewComicsEmail({
-    comics: batch.map(({ comic }) => ({
-      name: comic.name,
-      img: comic.img,
-      website: comic.website,
-      description: comic.description,
-    })),
-  });
+  const comics = batch.map(({ comic }) => ({
+    name: comic.name,
+    img: comic.img,
+    website: comic.website,
+    description: comic.description,
+  }));
 
+  // The unsubscribe link is personalized per recipient, so render the email
+  // once per recipient with their own opaque token in the footer + one-click
+  // header.
   const failures: string[] = [];
 
   for (let i = 0; i < recipients.length; i += SEND_CHUNK_SIZE) {
     const chunk = recipients.slice(i, i + SEND_CHUNK_SIZE);
     const results = await Promise.allSettled(
-      chunk.map(({ email }) => sendHtmlEmail({ to: email, subject, html, text }))
+      chunk.map(async ({ email, externalId }) => {
+        const unsubUrl = unsubscribeUrl(
+          createUnsubscribeToken(externalId, UnsubscribeChannel.NEW_COMICS)
+        );
+        const { subject, html, text } = await renderNewComicsEmail({
+          comics,
+          unsubscribeUrl: unsubUrl,
+        });
+        return sendHtmlEmail({
+          to: email,
+          subject,
+          html,
+          text,
+          unsubscribeUrl: unsubUrl,
+        });
+      })
     );
 
     results.forEach((result, index) => {

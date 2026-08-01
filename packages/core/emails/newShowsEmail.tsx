@@ -167,9 +167,11 @@ function DateGroup({ group }: { group: NewShowEmailItem[] }) {
 export function NewShowsEmail({
   shows,
   preheader,
+  unsubscribeUrl,
 }: {
   shows: NewShowEmailItem[];
   preheader: string;
+  unsubscribeUrl?: string;
 }) {
   const groups = groupByDate(shows);
   const count = shows.length;
@@ -241,6 +243,7 @@ export function NewShowsEmail({
                 turned on for your account.
               </>
             }
+            unsubscribeUrl={unsubscribeUrl}
           />
         </Container>
       </Body>
@@ -253,11 +256,13 @@ function buildText({
   count,
   plural,
   dateRange,
+  unsubscribeUrl,
 }: {
   groups: NewShowEmailItem[][];
   count: number;
   plural: string;
   dateRange: string;
+  unsubscribeUrl?: string;
 }) {
   const textGroups = groups
     .map((group) => {
@@ -286,14 +291,17 @@ ${textGroups}
 Browse the full calendar: ${SITE_URL}
 
 ${buildTextFooter(
-  "You're receiving this because new-show notifications are turned on for your account."
+  "You're receiving this because new-show notifications are turned on for your account.",
+  unsubscribeUrl
 )}`;
 }
 
 export async function renderNewShowsEmail({
   shows,
+  unsubscribeUrl,
 }: {
   shows: NewShowEmailItem[];
+  unsubscribeUrl?: string;
 }) {
   const sorted = [...shows].sort((a, b) => a.timestamp - b.timestamp);
   const groups = groupByDate(sorted);
@@ -309,9 +317,13 @@ export async function renderNewShowsEmail({
   const preheader = `Reservations are open for ${count} new show${plural} on the calendar. The best seats go fast.`;
 
   const html = await render(
-    <NewShowsEmail shows={sorted} preheader={preheader} />
+    <NewShowsEmail
+      shows={sorted}
+      preheader={preheader}
+      unsubscribeUrl={unsubscribeUrl}
+    />
   );
-  const text = buildText({ groups, count, plural, dateRange });
+  const text = buildText({ groups, count, plural, dateRange, unsubscribeUrl });
 
   return { subject, html, text };
 }
