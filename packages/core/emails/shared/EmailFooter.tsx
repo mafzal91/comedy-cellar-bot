@@ -6,7 +6,15 @@ import { Link, Section, Text } from "@react-email/components";
 
 import { COLOR, MANAGE_URL, SANS } from "./constants";
 
-export function EmailFooter({ reason }: { reason: React.ReactNode }) {
+export function EmailFooter({
+  reason,
+  unsubscribeUrl,
+}: {
+  reason: React.ReactNode;
+  // Personalized one-click unsubscribe link for this recipient/channel. When
+  // omitted the footer shows only the "manage settings" link.
+  unsubscribeUrl?: string;
+}) {
   return (
     <Section style={{ padding: "24px 28px", textAlign: "center" as const }}>
       <Text
@@ -26,6 +34,17 @@ export function EmailFooter({ reason }: { reason: React.ReactNode }) {
         >
           Manage notification settings
         </Link>
+        {unsubscribeUrl ? (
+          <>
+            {" · "}
+            <Link
+              href={unsubscribeUrl}
+              style={{ color: COLOR.muted, textDecoration: "underline" }}
+            >
+              Unsubscribe
+            </Link>
+          </>
+        ) : null}
       </Text>
     </Section>
   );

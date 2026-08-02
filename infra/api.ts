@@ -128,6 +128,18 @@ api.route(
   }
 );
 
+// ---- Unsubscribe (one-click email opt-out, unauthenticated) -----
+
+api.route("GET /api/unsubscribe", {
+  handler: `${functionDir}/unsubscribe.get`,
+  link: [dbCreds.dbUrl],
+});
+
+api.route("POST /api/unsubscribe", {
+  handler: `${functionDir}/unsubscribe.post`,
+  link: [dbCreds.dbUrl],
+});
+
 // ---- Webhook -----
 
 api.route("POST /webhook/clerk", {

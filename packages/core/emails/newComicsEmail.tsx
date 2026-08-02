@@ -127,9 +127,11 @@ function ComicRow({
 export function NewComicsEmail({
   comics,
   preheader,
+  unsubscribeUrl,
 }: {
   comics: NewComicEmailItem[];
   preheader: string;
+  unsubscribeUrl?: string;
 }) {
   const count = comics.length;
   const plural = count === 1 ? "" : "s";
@@ -204,6 +206,7 @@ export function NewComicsEmail({
                 turned on for your account.
               </>
             }
+            unsubscribeUrl={unsubscribeUrl}
           />
         </Container>
       </Body>
@@ -211,7 +214,13 @@ export function NewComicsEmail({
   );
 }
 
-function buildText({ comics }: { comics: NewComicEmailItem[] }) {
+function buildText({
+  comics,
+  unsubscribeUrl,
+}: {
+  comics: NewComicEmailItem[];
+  unsubscribeUrl?: string;
+}) {
   const count = comics.length;
   const plural = count === 1 ? "" : "s";
 
@@ -236,14 +245,17 @@ ${lines}
 Browse the full calendar: ${SITE_URL}
 
 ${buildTextFooter(
-  "You're receiving this because new-comic notifications are turned on for your account."
+  "You're receiving this because new-comic notifications are turned on for your account.",
+  unsubscribeUrl
 )}`;
 }
 
 export async function renderNewComicsEmail({
   comics,
+  unsubscribeUrl,
 }: {
   comics: NewComicEmailItem[];
+  unsubscribeUrl?: string;
 }) {
   const count = comics.length;
   const plural = count === 1 ? "" : "s";
@@ -252,9 +264,13 @@ export async function renderNewComicsEmail({
   const preheader = `${count} comic${plural} just joined the lineup for the first time.`;
 
   const html = await render(
-    <NewComicsEmail comics={comics} preheader={preheader} />
+    <NewComicsEmail
+      comics={comics}
+      preheader={preheader}
+      unsubscribeUrl={unsubscribeUrl}
+    />
   );
-  const text = buildText({ comics });
+  const text = buildText({ comics, unsubscribeUrl });
 
   return { subject, html, text };
 }

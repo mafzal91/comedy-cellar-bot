@@ -31,10 +31,11 @@ export async function getShowNotification(
     .where(eq(showNotification.userId, userId));
 }
 
-// Everyone (for the current stage) who opted in to hear about new shows
+// Everyone (for the current stage) who opted in to hear about new shows.
+// externalId is returned so the cron can mint a per-recipient unsubscribe link.
 export async function getShowNotificationRecipients() {
   return db
-    .select({ email: user.email })
+    .select({ email: user.email, externalId: user.externalId })
     .from(showNotification)
     .innerJoin(user, eq(user.id, showNotification.userId))
     .where(

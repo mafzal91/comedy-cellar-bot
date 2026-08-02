@@ -7,6 +7,11 @@ import {
 import { getShowNotificationRecipients } from "@core/models/showNotification";
 import { renderNewShowsEmail } from "@core/emails/newShowsEmail";
 import { sendEmail, sendHtmlEmail } from "@core/email";
+import {
+  UnsubscribeChannel,
+  createUnsubscribeToken,
+} from "@core/unsubscribe";
+import { unsubscribeUrl } from "@core/emails/shared/constants";
 
 const IS_ACTIVE = process.env.IS_ACTIVE === "1";
 const IS_CRON = process.env.IS_CRON === "1";
@@ -73,23 +78,39 @@ export async function handler() {
     return {};
   }
 
-  const { subject, html, text } = await renderNewShowsEmail({
-    shows: batch.map(({ show, room }) => ({
-      timestamp: show.timestamp ?? 0,
-      description: show.description,
-      cover: show.cover,
-      note: show.note,
-      special: show.special,
-      roomName: room?.name ?? null,
-    })),
-  });
+  const shows = batch.map(({ show, room }) => ({
+    timestamp: show.timestamp ?? 0,
+    description: show.description,
+    cover: show.cover,
+    note: show.note,
+    special: show.special,
+    roomName: room?.name ?? null,
+  }));
 
+  // The unsubscribe link is personalized per recipient, so render the email
+  // once per recipient with their own opaque token baked into the footer and
+  // the RFC 8058 one-click header.
   const failures: string[] = [];
 
   for (let i = 0; i < recipients.length; i += SEND_CHUNK_SIZE) {
     const chunk = recipients.slice(i, i + SEND_CHUNK_SIZE);
     const results = await Promise.allSettled(
-      chunk.map(({ email }) => sendHtmlEmail({ to: email, subject, html, text }))
+      chunk.map(async ({ email, externalId }) => {
+        const unsubUrl = unsubscribeUrl(
+          createUnsubscribeToken(externalId, UnsubscribeChannel.NEW_SHOWS)
+        );
+        const { subject, html, text } = await renderNewShowsEmail({
+          shows,
+          unsubscribeUrl: unsubUrl,
+        });
+        return sendHtmlEmail({
+          to: email,
+          subject,
+          html,
+          text,
+          unsubscribeUrl: unsubUrl,
+        });
+      })
     );
 
     results.forEach((result, index) => {
