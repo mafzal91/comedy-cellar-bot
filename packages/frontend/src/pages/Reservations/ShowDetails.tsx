@@ -63,7 +63,7 @@ function LineUpDetails(props: { lineUp: LineUp }) {
           className="-mr-[7px] inline-flex"
         >
           <span className="sr-only">{act.name}</span>
-          <Avatar name={act.name} size={30} />
+          <Avatar name={act.name} img={act.img} size={30} />
         </span>
       ))}
     </div>
