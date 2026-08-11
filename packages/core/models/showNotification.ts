@@ -13,9 +13,12 @@ const SST_STAGE = Resource.App.stage;
 export async function upsertShowNotification(data: InsertShowNotification) {
   // Only overwrite the fields the caller actually provided so that toggling
   // `enabled` never silently resets a user's chosen `frequency`, and vice versa.
-  const set: Partial<Pick<InsertShowNotification, "enabled" | "frequency">> = {};
+  const set: Partial<
+    Pick<InsertShowNotification, "enabled" | "frequencyMinutes">
+  > = {};
   if (data.enabled !== undefined) set.enabled = data.enabled;
-  if (data.frequency !== undefined) set.frequency = data.frequency;
+  if (data.frequencyMinutes !== undefined)
+    set.frequencyMinutes = data.frequencyMinutes;
 
   return db
     .insert(showNotification)
@@ -44,7 +47,7 @@ export async function getShowNotificationRecipients() {
       userId: user.id,
       email: user.email,
       externalId: user.externalId,
-      frequency: showNotification.frequency,
+      frequencyMinutes: showNotification.frequencyMinutes,
       lastNotifiedAt: showNotification.lastNotifiedAt,
     })
     .from(showNotification)

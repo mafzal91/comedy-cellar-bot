@@ -1,5 +1,5 @@
 {
-  "id": "11619845-1bde-46e0-aaf1-16fad387459c",
+  "id": "8a4290a0-055f-4a84-8fd2-04a0da7b5b58",
   "prevId": "6c41c8f6-a7c0-428c-91c4-04d30e8198ee",
   "version": "7",
   "dialect": "postgresql",
@@ -518,12 +518,12 @@
           "notNull": true,
           "default": false
         },
-        "frequency": {
-          "name": "frequency",
-          "type": "varchar(16)",
+        "frequencyMinutes": {
+          "name": "frequencyMinutes",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": "'immediately'"
+          "default": 0
         },
         "lastNotifiedAt": {
           "name": "lastNotifiedAt",
@@ -974,12 +974,12 @@
           "notNull": true,
           "default": false
         },
-        "frequency": {
-          "name": "frequency",
-          "type": "varchar(16)",
+        "frequencyMinutes": {
+          "name": "frequencyMinutes",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": "'immediately'"
+          "default": 0
         },
         "lastNotifiedAt": {
           "name": "lastNotifiedAt",

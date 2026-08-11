@@ -14,8 +14,8 @@ import {
 } from "@core/models/newComicNotification";
 
 import {
-  DEFAULT_NOTIFICATION_FREQUENCY,
-  NOTIFICATION_FREQUENCIES,
+  DEFAULT_FREQUENCY_MINUTES,
+  MAX_FREQUENCY_MINUTES,
 } from "@core/common/notificationFrequency";
 
 import { generateResponse } from "@core/common/generateResponse";
@@ -84,14 +84,14 @@ export async function get(_evt) {
       comicNotifications: mappedComicNotification,
       showNotification: {
         enabled: showNotification?.[0]?.enabled ?? false,
-        frequency:
-          showNotification?.[0]?.frequency ?? DEFAULT_NOTIFICATION_FREQUENCY,
+        frequencyMinutes:
+          showNotification?.[0]?.frequencyMinutes ?? DEFAULT_FREQUENCY_MINUTES,
       },
       newComicNotification: {
         enabled: newComicNotification?.[0]?.enabled ?? false,
-        frequency:
-          newComicNotification?.[0]?.frequency ??
-          DEFAULT_NOTIFICATION_FREQUENCY,
+        frequencyMinutes:
+          newComicNotification?.[0]?.frequencyMinutes ??
+          DEFAULT_FREQUENCY_MINUTES,
       },
     },
   });
@@ -107,13 +107,22 @@ const comicNotificationPayload = z
   })
   .strict()
   .required();
+// Any interval is accepted, not just the UI's presets — the cadence is
+// future-proofed as an arbitrary number of minutes (0 = immediately), capped at
+// what the retention window can honour.
+const frequencyMinutes = z
+  .number()
+  .int()
+  .min(0)
+  .max(MAX_FREQUENCY_MINUTES)
+  .optional();
 const showNotification = z.object({
   enabled: z.boolean(),
-  frequency: z.enum(NOTIFICATION_FREQUENCIES).optional(),
+  frequencyMinutes,
 });
 const newComicNotification = z.object({
   enabled: z.boolean(),
-  frequency: z.enum(NOTIFICATION_FREQUENCIES).optional(),
+  frequencyMinutes,
 });
 
 export async function update(_evt) {
@@ -155,7 +164,7 @@ export async function update(_evt) {
     await upsertShowNotification({
       userId: user.id,
       enabled: showNotification.enabled,
-      frequency: showNotification.frequency,
+      frequencyMinutes: showNotification.frequencyMinutes,
     });
   }
 
@@ -164,7 +173,7 @@ export async function update(_evt) {
     await upsertNewComicNotification({
       userId: user.id,
       enabled: newComicNotification.enabled,
-      frequency: newComicNotification.frequency,
+      frequencyMinutes: newComicNotification.frequencyMinutes,
     });
   }
 

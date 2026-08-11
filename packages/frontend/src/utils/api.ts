@@ -1,4 +1,4 @@
-import { Comic, ListApiRes, NotificationFrequency, ShowDb } from "../types";
+import { Comic, ListApiRes, ShowDb } from "../types";
 
 import { getClerk } from "./clerk";
 import qs from "qs";
@@ -173,11 +173,11 @@ type SettingPostBody = {
   }[];
   showNotification?: {
     enabled: boolean;
-    frequency?: NotificationFrequency;
+    frequencyMinutes?: number;
   };
   newComicNotification?: {
     enabled: boolean;
-    frequency?: NotificationFrequency;
+    frequencyMinutes?: number;
   };
 };
 export const updateSettings = async ({

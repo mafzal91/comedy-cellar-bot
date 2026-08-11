@@ -1,9 +1,5 @@
 import { Card, CardBody, CardHeader } from "@/components/Card";
-import {
-  ComicNotification,
-  NotificationFrequency,
-  Settings,
-} from "@/types";
+import { ComicNotification, Settings } from "@/types";
 import { fetchSettings, updateSettings } from "@/utils/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "preact/hooks";
@@ -18,11 +14,16 @@ import { Badge } from "@/components/ui/Badge";
 import { SegmentedToggle } from "@/components/ui/SegmentedToggle";
 import { BellAlertIcon, BellSlashIcon } from "@heroicons/react/20/solid";
 
-const FREQUENCY_OPTIONS: { label: string; value: NotificationFrequency }[] = [
-  { label: "Immediately", value: "immediately" },
-  { label: "Weekly", value: "weekly" },
-  { label: "Monthly", value: "monthly" },
+// The cadence is stored as an arbitrary interval in minutes (0 = immediately);
+// the UI only exposes these curated presets so users pick a friendly label.
+// Add a row here to offer another preset — no backend change needed.
+const MINUTES_PER_DAY = 24 * 60;
+const FREQUENCY_OPTIONS: { label: string; value: number }[] = [
+  { label: "Immediately", value: 0 },
+  { label: "Weekly", value: 7 * MINUTES_PER_DAY },
+  { label: "Monthly", value: 30 * MINUTES_PER_DAY },
 ];
+const DEFAULT_FREQUENCY_MINUTES = 0;
 
 export function ProfileSettings() {
   const { data, isLoading } = useQuery<Settings>({
@@ -64,17 +65,27 @@ function FrequencyField({
   onChange,
 }: {
   label: string;
-  value: NotificationFrequency;
-  onChange: (value: NotificationFrequency) => void;
+  value: number;
+  onChange: (value: number) => void;
 }) {
+  // Snap an arbitrary stored interval to the nearest preset so a value set
+  // outside the UI still highlights a sensible option instead of nothing.
+  const selected = FREQUENCY_OPTIONS.some((option) => option.value === value)
+    ? value
+    : FREQUENCY_OPTIONS.reduce((closest, option) =>
+        Math.abs(option.value - value) < Math.abs(closest.value - value)
+          ? option
+          : closest
+      ).value;
+
   return (
     <div className="flex flex-col gap-2 pl-8">
       <span className="font-mono text-[11px] uppercase tracking-cap text-faint">
         {label}
       </span>
-      <SegmentedToggle<NotificationFrequency>
+      <SegmentedToggle<number>
         options={FREQUENCY_OPTIONS}
-        value={value}
+        value={selected}
         onChange={onChange}
       />
     </div>
@@ -89,24 +100,28 @@ function GlobalNotifications({ settings }: { settings: Settings }) {
   const [showEnabled, setShowEnabled] = useState(
     settings.showNotification.enabled ?? false
   );
-  const [showFrequency, setShowFrequency] = useState<NotificationFrequency>(
-    settings.showNotification.frequency ?? "immediately"
+  const [showFrequency, setShowFrequency] = useState<number>(
+    settings.showNotification.frequencyMinutes ?? DEFAULT_FREQUENCY_MINUTES
   );
   const [comicEnabled, setComicEnabled] = useState(
     settings.newComicNotification?.enabled ?? false
   );
-  const [comicFrequency, setComicFrequency] = useState<NotificationFrequency>(
-    settings.newComicNotification?.frequency ?? "immediately"
+  const [comicFrequency, setComicFrequency] = useState<number>(
+    settings.newComicNotification?.frequencyMinutes ??
+      DEFAULT_FREQUENCY_MINUTES
   );
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     mutateSettings({
-      showNotification: { enabled: showEnabled, frequency: showFrequency },
+      showNotification: {
+        enabled: showEnabled,
+        frequencyMinutes: showFrequency,
+      },
       newComicNotification: {
         enabled: comicEnabled,
-        frequency: comicFrequency,
+        frequencyMinutes: comicFrequency,
       },
     });
   };

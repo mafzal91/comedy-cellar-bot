@@ -3,7 +3,6 @@ import { differenceInMilliseconds } from "date-fns";
 import {
   IMMEDIATE_BATCH_WINDOW_MINUTES,
   frequencyIntervalMs,
-  isNotificationFrequency,
 } from "./common/notificationFrequency";
 
 // A subscriber to one of the global digests (new shows / new comics), carrying
@@ -12,7 +11,7 @@ export type DigestRecipient = {
   userId: number;
   email: string;
   externalId: string;
-  frequency: string;
+  frequencyMinutes: number;
   lastNotifiedAt: Date | null;
 };
 
@@ -36,9 +35,9 @@ export function selectDueRecipients<
   const due: Array<{ recipient: R; items: I[] }> = [];
 
   for (const recipient of recipients) {
-    const frequency = isNotificationFrequency(recipient.frequency)
-      ? recipient.frequency
-      : "immediately";
+    const frequencyMinutes = Number.isFinite(recipient.frequencyMinutes)
+      ? Math.max(0, recipient.frequencyMinutes)
+      : 0;
     const cursor = recipient.lastNotifiedAt;
 
     // Everything this recipient has not been told about yet.
@@ -47,7 +46,10 @@ export function selectDueRecipients<
 
     if (cursor) {
       // Already had a digest — enforce the cadence between digests.
-      if (differenceInMilliseconds(now, cursor) < frequencyIntervalMs(frequency)) {
+      if (
+        differenceInMilliseconds(now, cursor) <
+        frequencyIntervalMs(frequencyMinutes)
+      ) {
         continue;
       }
     } else {

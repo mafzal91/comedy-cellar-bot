@@ -1,18 +1,18 @@
 import clsx from "clsx";
 
-export interface SegmentedToggleOption<T extends string = string> {
+export interface SegmentedToggleOption<T extends string | number = string> {
   label: string;
   value: T;
 }
 
-export interface SegmentedToggleProps<T extends string = string> {
+export interface SegmentedToggleProps<T extends string | number = string> {
   options: SegmentedToggleOption<T>[];
   value: T;
   onChange: (value: T) => void;
   className?: string;
 }
 
-export function SegmentedToggle<T extends string = string>({
+export function SegmentedToggle<T extends string | number = string>({
   options,
   value,
   onChange,

@@ -15,10 +15,12 @@ export async function upsertNewComicNotification(
 ) {
   // Only overwrite the fields the caller actually provided so that toggling
   // `enabled` never silently resets a user's chosen `frequency`, and vice versa.
-  const set: Partial<Pick<InsertNewComicNotification, "enabled" | "frequency">> =
-    {};
+  const set: Partial<
+    Pick<InsertNewComicNotification, "enabled" | "frequencyMinutes">
+  > = {};
   if (data.enabled !== undefined) set.enabled = data.enabled;
-  if (data.frequency !== undefined) set.frequency = data.frequency;
+  if (data.frequencyMinutes !== undefined)
+    set.frequencyMinutes = data.frequencyMinutes;
 
   return db
     .insert(newComicNotification)
@@ -47,7 +49,7 @@ export async function getNewComicNotificationRecipients() {
       userId: user.id,
       email: user.email,
       externalId: user.externalId,
-      frequency: newComicNotification.frequency,
+      frequencyMinutes: newComicNotification.frequencyMinutes,
       lastNotifiedAt: newComicNotification.lastNotifiedAt,
     })
     .from(newComicNotification)
