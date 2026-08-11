@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@core/database";
 import {
   showNotification,
@@ -11,14 +11,18 @@ import { Resource } from "sst";
 const SST_STAGE = Resource.App.stage;
 
 export async function upsertShowNotification(data: InsertShowNotification) {
+  // Only overwrite the fields the caller actually provided so that toggling
+  // `enabled` never silently resets a user's chosen `frequency`, and vice versa.
+  const set: Partial<Pick<InsertShowNotification, "enabled" | "frequency">> = {};
+  if (data.enabled !== undefined) set.enabled = data.enabled;
+  if (data.frequency !== undefined) set.frequency = data.frequency;
+
   return db
     .insert(showNotification)
     .values(data)
     .onConflictDoUpdate({
       target: showNotification.userId,
-      set: {
-        enabled: data.enabled ?? false,
-      },
+      set,
     });
 }
 
@@ -31,14 +35,33 @@ export async function getShowNotification(
     .where(eq(showNotification.userId, userId));
 }
 
-// Everyone (for the current stage) who opted in to hear about new shows.
+// Everyone (for the current stage) who opted in to hear about new shows, with
+// the per-user delivery cursor the cron needs to honour their chosen cadence.
 // externalId is returned so the cron can mint a per-recipient unsubscribe link.
 export async function getShowNotificationRecipients() {
   return db
-    .select({ email: user.email, externalId: user.externalId })
+    .select({
+      userId: user.id,
+      email: user.email,
+      externalId: user.externalId,
+      frequency: showNotification.frequency,
+      lastNotifiedAt: showNotification.lastNotifiedAt,
+    })
     .from(showNotification)
     .innerJoin(user, eq(user.id, showNotification.userId))
     .where(
       and(eq(showNotification.enabled, true), eq(user.stage, SST_STAGE))
     );
+}
+
+// Advance the delivery cursor for the users we just emailed (or are about to).
+export async function markShowNotificationsNotified(
+  userIds: SelectShowNotification["userId"][],
+  notifiedAt: Date
+) {
+  if (!userIds.length) return;
+  await db
+    .update(showNotification)
+    .set({ lastNotifiedAt: notifiedAt })
+    .where(inArray(showNotification.userId, userIds));
 }

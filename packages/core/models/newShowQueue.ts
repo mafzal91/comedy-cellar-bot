@@ -1,4 +1,4 @@
-import { and, asc, eq, getTableColumns, inArray, isNull } from "drizzle-orm";
+import { asc, eq, getTableColumns, gt, inArray, lte } from "drizzle-orm";
 import { db } from "@core/database";
 import {
   newShowQueue,
@@ -23,7 +23,15 @@ export function enqueueNewShows(showIds: SelectShow["id"][]) {
     .returning({ id: newShowQueue.id });
 }
 
-export async function getPendingNewShows(): Promise<PendingNewShow[]> {
+// Upcoming queued shows, newest-cadence-agnostic. Rows are retained (not
+// cleared once announced) so weekly/monthly subscribers can still receive a
+// show that "immediately" subscribers already saw — per-user delivery is gated
+// by each subscriber's cursor, not by a global notifiedAt flag. Only shows that
+// have not started yet are returned; past shows are pruned by prunePastShows.
+export async function getPendingNewShows(
+  now: Date = new Date()
+): Promise<PendingNewShow[]> {
+  const nowInSeconds = Math.floor(now.getTime() / 1000);
   return db
     .select({
       queueId: newShowQueue.id,
@@ -34,21 +42,17 @@ export async function getPendingNewShows(): Promise<PendingNewShow[]> {
     .from(newShowQueue)
     .innerJoin(show, eq(show.id, newShowQueue.showId))
     .leftJoin(room, eq(room.id, show.roomId))
-    .where(isNull(newShowQueue.notifiedAt))
+    .where(gt(show.timestamp, nowInSeconds))
     .orderBy(asc(show.timestamp));
 }
 
-// Marks queue rows as handled and returns only the rows this caller actually
-// claimed, so overlapping cron runs never announce the same show twice.
-export async function claimPendingNewShows(
-  queueIds: SelectNewShowQueue["id"][]
-) {
-  if (!queueIds.length) return [];
-  return db
-    .update(newShowQueue)
-    .set({ notifiedAt: new Date() })
-    .where(
-      and(inArray(newShowQueue.id, queueIds), isNull(newShowQueue.notifiedAt))
-    )
-    .returning({ id: newShowQueue.id, showId: newShowQueue.showId });
+// A show that has already started is useless to every cadence, so drop its
+// queue row to keep the table bounded.
+export async function prunePastShows(now: Date = new Date()) {
+  const nowInSeconds = Math.floor(now.getTime() / 1000);
+  const staleShowIds = db
+    .select({ id: show.id })
+    .from(show)
+    .where(lte(show.timestamp, nowInSeconds));
+  await db.delete(newShowQueue).where(inArray(newShowQueue.showId, staleShowIds));
 }

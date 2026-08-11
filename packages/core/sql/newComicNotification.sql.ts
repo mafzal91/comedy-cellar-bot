@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { NEW_COMIC_NOTIFICATION_PREFIX } from "../common/constants";
+import { DEFAULT_NOTIFICATION_FREQUENCY } from "../common/notificationFrequency";
 import { createExternalId } from "../common/createExternalId";
 import { relations } from "drizzle-orm";
 import { user } from "./user.sql";
@@ -29,6 +30,14 @@ export const newComicNotification = pgTable(
       .references(() => user.id, { onDelete: "cascade" })
       .notNull(),
     enabled: boolean("enabled").notNull().default(false),
+    // How often this user wants the global "new comics" email. See
+    // common/notificationFrequency.ts. Only meaningful when enabled.
+    frequency: varchar("frequency", { length: 16 })
+      .notNull()
+      .default(DEFAULT_NOTIFICATION_FREQUENCY),
+    // When we last sent this user a new-comics digest (per-user delivery
+    // cursor). NULL = never notified yet.
+    lastNotifiedAt: timestamp("lastNotifiedAt"),
     createdAt: timestamp("createdAt").defaultNow(),
   },
   (table) => ({

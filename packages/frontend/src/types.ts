@@ -83,13 +83,17 @@ export type Room = {
   createdAt: string;
 };
 
+export type NotificationFrequency = "immediately" | "weekly" | "monthly";
+
 export type Settings = {
   comicNotifications: ComicNotification[];
   showNotification: {
     enabled?: boolean;
+    frequency?: NotificationFrequency;
   };
   newComicNotification: {
     enabled?: boolean;
+    frequency?: NotificationFrequency;
   };
 };
 

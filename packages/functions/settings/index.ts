@@ -13,6 +13,11 @@ import {
   upsertNewComicNotification,
 } from "@core/models/newComicNotification";
 
+import {
+  DEFAULT_NOTIFICATION_FREQUENCY,
+  NOTIFICATION_FREQUENCIES,
+} from "@core/common/notificationFrequency";
+
 import { generateResponse } from "@core/common/generateResponse";
 import { getAuthIdFromJwtClaim } from "@core/common/getAuthIdFromJwtClaim";
 import { getUserByAuthId } from "@core/models/user";
@@ -79,9 +84,14 @@ export async function get(_evt) {
       comicNotifications: mappedComicNotification,
       showNotification: {
         enabled: showNotification?.[0]?.enabled ?? false,
+        frequency:
+          showNotification?.[0]?.frequency ?? DEFAULT_NOTIFICATION_FREQUENCY,
       },
       newComicNotification: {
         enabled: newComicNotification?.[0]?.enabled ?? false,
+        frequency:
+          newComicNotification?.[0]?.frequency ??
+          DEFAULT_NOTIFICATION_FREQUENCY,
       },
     },
   });
@@ -99,9 +109,11 @@ const comicNotificationPayload = z
   .required();
 const showNotification = z.object({
   enabled: z.boolean(),
+  frequency: z.enum(NOTIFICATION_FREQUENCIES).optional(),
 });
 const newComicNotification = z.object({
   enabled: z.boolean(),
+  frequency: z.enum(NOTIFICATION_FREQUENCIES).optional(),
 });
 
 export async function update(_evt) {
@@ -143,6 +155,7 @@ export async function update(_evt) {
     await upsertShowNotification({
       userId: user.id,
       enabled: showNotification.enabled,
+      frequency: showNotification.frequency,
     });
   }
 
@@ -151,6 +164,7 @@ export async function update(_evt) {
     await upsertNewComicNotification({
       userId: user.id,
       enabled: newComicNotification.enabled,
+      frequency: newComicNotification.frequency,
     });
   }
 

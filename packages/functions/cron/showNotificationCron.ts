@@ -1,10 +1,12 @@
-import { differenceInMinutes } from "date-fns";
-
 import {
-  claimPendingNewShows,
   getPendingNewShows,
+  prunePastShows,
 } from "@core/models/newShowQueue";
-import { getShowNotificationRecipients } from "@core/models/showNotification";
+import {
+  getShowNotificationRecipients,
+  markShowNotificationsNotified,
+} from "@core/models/showNotification";
+import { selectDueRecipients } from "@core/notificationDelivery";
 import { renderNewShowsEmail } from "@core/emails/newShowsEmail";
 import { sendEmail, sendHtmlEmail } from "@core/email";
 import {
@@ -16,10 +18,6 @@ import { unsubscribeUrl } from "@core/emails/shared/constants";
 const IS_ACTIVE = process.env.IS_ACTIVE === "1";
 const IS_CRON = process.env.IS_CRON === "1";
 
-// New shows are typically posted over the span of about an hour, so hold the
-// batch until the first queued show is this old. Everything that trickles in
-// while we wait rides along in the same email instead of spamming users.
-const BATCH_WINDOW_MINUTES = 60;
 const SEND_CHUNK_SIZE = 25;
 
 export async function handler() {
@@ -27,84 +25,67 @@ export async function handler() {
     return;
   }
 
-  const pending = await getPendingNewShows();
+  const now = new Date();
+
+  // Retained outbox of upcoming shows; each subscriber is served the ones
+  // queued since their own last digest, no more often than their cadence.
+  const pending = await getPendingNewShows(now);
 
   if (!pending.length) {
-    return {};
-  }
-
-  const now = new Date();
-  const oldestQueuedAt = pending.reduce(
-    (oldest, item) => (item.queuedAt < oldest ? item.queuedAt : oldest),
-    pending[0].queuedAt
-  );
-  const batchAgeMinutes = differenceInMinutes(now, oldestQueuedAt);
-
-  if (batchAgeMinutes < BATCH_WINDOW_MINUTES) {
-    console.log(
-      `Holding batch: ${pending.length} show(s) queued, oldest queued ${batchAgeMinutes}m ago (window is ${BATCH_WINDOW_MINUTES}m)`
-    );
-    return {};
-  }
-
-  // Claim before sending so an overlapping run can't announce the same shows
-  const claimed = await claimPendingNewShows(
-    pending.map((item) => item.queueId)
-  );
-
-  if (!claimed.length) {
-    console.log("Batch already claimed by another run");
-    return {};
-  }
-
-  const claimedIds = new Set(claimed.map((row) => row.id));
-  const nowInSeconds = Math.floor(now.getTime() / 1000);
-
-  // Skip anything that started while the batch was collecting
-  const batch = pending.filter(
-    (item) =>
-      claimedIds.has(item.queueId) && (item.show.timestamp ?? 0) > nowInSeconds
-  );
-
-  if (!batch.length) {
-    console.log("No upcoming shows left in the claimed batch");
+    await prunePastShows(now);
     return {};
   }
 
   const recipients = await getShowNotificationRecipients();
 
-  if (!recipients.length) {
-    console.log(`No subscribers; skipping ${batch.length} queued show(s)`);
+  const due = selectDueRecipients(recipients, pending, now);
+
+  if (!due.length) {
+    await prunePastShows(now);
     return {};
   }
 
-  const shows = batch.map(({ show, room }) => ({
-    timestamp: show.timestamp ?? 0,
-    description: show.description,
-    cover: show.cover,
-    note: show.note,
-    special: show.special,
-    roomName: room?.name ?? null,
-  }));
+  // Advance every due recipient's cursor BEFORE sending so an overlapping cron
+  // run can't announce the same batch twice (mirrors the old claim-before-send
+  // guarantee). A send failure below just means that recipient misses this
+  // batch, exactly as the previous outbox behaved.
+  await markShowNotificationsNotified(
+    due.map(({ recipient }) => recipient.userId),
+    now
+  );
 
-  // The unsubscribe link is personalized per recipient, so render the email
-  // once per recipient with their own opaque token baked into the footer and
-  // the RFC 8058 one-click header.
+  const nowInSeconds = Math.floor(now.getTime() / 1000);
   const failures: string[] = [];
 
-  for (let i = 0; i < recipients.length; i += SEND_CHUNK_SIZE) {
-    const chunk = recipients.slice(i, i + SEND_CHUNK_SIZE);
+  for (let i = 0; i < due.length; i += SEND_CHUNK_SIZE) {
+    const chunk = due.slice(i, i + SEND_CHUNK_SIZE);
     const results = await Promise.allSettled(
-      chunk.map(async ({ email, externalId }) => {
+      chunk.map(async ({ recipient, items }) => {
+        const shows = items
+          .filter(({ show }) => (show.timestamp ?? 0) > nowInSeconds)
+          .map(({ show, room }) => ({
+            timestamp: show.timestamp ?? 0,
+            description: show.description,
+            cover: show.cover,
+            note: show.note,
+            special: show.special,
+            roomName: room?.name ?? null,
+          }));
+
+        if (!shows.length) return;
+
         const unsubUrl = unsubscribeUrl(
-          createUnsubscribeToken(externalId, UnsubscribeChannel.NEW_SHOWS)
+          createUnsubscribeToken(
+            recipient.externalId,
+            UnsubscribeChannel.NEW_SHOWS
+          )
         );
         const { subject, html, text } = await renderNewShowsEmail({
           shows,
           unsubscribeUrl: unsubUrl,
         });
         return sendHtmlEmail({
-          to: email,
+          to: recipient.email,
           subject,
           html,
           text,
@@ -115,22 +96,24 @@ export async function handler() {
 
     results.forEach((result, index) => {
       if (result.status === "rejected") {
-        failures.push(`${chunk[index].email}: ${result.reason}`);
+        failures.push(`${chunk[index].recipient.email}: ${result.reason}`);
       }
     });
   }
 
   console.log(
-    `Announced ${batch.length} show(s) to ${
-      recipients.length - failures.length
-    }/${recipients.length} subscriber(s)`
+    `Announced new shows to ${due.length - failures.length}/${
+      due.length
+    } due subscriber(s)`
   );
+
+  await prunePastShows(now);
 
   if (failures.length) {
     await sendEmail({
       subject: "Show Notification Cron",
       message: `Failed to send ${failures.length} of ${
-        recipients.length
+        due.length
       } new-show notification emails:\n\n${failures.join("\n")}`,
     }).catch((e) => console.error(e));
   }
