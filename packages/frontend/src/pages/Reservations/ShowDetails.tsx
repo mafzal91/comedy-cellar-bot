@@ -1,7 +1,9 @@
 import { LineUp, Show } from "../../types";
 import { deriveShowDetails } from "../../utils/deriveShowDetails";
+import { useState } from "preact/hooks";
 import { Avatar } from "../../components/ui/Avatar";
 import { Eyebrow } from "../../components/ui/Eyebrow";
+import { LineUpModal } from "./LineUpModal";
 
 export const ShowDetails = (props: { show: Show; lineUp: LineUp }) => {
   const { roomName, max, description } = props.show;
@@ -53,19 +55,38 @@ export const ShowDetails = (props: { show: Show; lineUp: LineUp }) => {
 
 function LineUpDetails(props: { lineUp: LineUp }) {
   const { lineUp } = props;
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (lineUp.acts.length === 0) return null;
 
   return (
-    <div className="mt-5 flex">
-      {lineUp.acts.map((act) => (
-        <span
-          key={act.name}
-          title={act.name}
-          className="-mr-[7px] inline-flex"
-        >
-          <span className="sr-only">{act.name}</span>
-          <Avatar name={act.name} img={act.img} size={30} />
+    <div className="mt-5">
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        aria-label="View full lineup"
+        className="group flex items-center gap-3 rounded-pill outline-none focus-visible:shadow-[3px_3px_0_var(--color-brand)]"
+      >
+        <span className="flex">
+          {lineUp.acts.map((act) => (
+            <span
+              key={act.name}
+              title={act.name}
+              className="-mr-[7px] inline-flex"
+            >
+              <span className="sr-only">{act.name}</span>
+              <Avatar name={act.name} img={act.img} size={30} />
+            </span>
+          ))}
         </span>
-      ))}
+        <span className="font-mono text-meta uppercase tracking-wider text-muted group-hover:text-text">
+          View lineup
+        </span>
+      </button>
+
+      {isOpen && (
+        <LineUpModal lineUp={lineUp} onClose={() => setIsOpen(false)} />
+      )}
     </div>
   );
 }
