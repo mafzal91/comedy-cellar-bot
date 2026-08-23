@@ -6,17 +6,18 @@
 // possible on the backend; the UI only exposes a curated set of presets (see
 // FREQUENCY_PRESETS) so end users pick a friendly label rather than a number.
 //
-//   0 (immediately) — send as soon as there is something to announce. Still
-//                     held for the short batch window (below) so a burst of new
-//                     shows/comics rides in one email; this is the historical
-//                     behaviour.
+//   0 (immediately) — the shortest cadence: a digest as often as the batch
+//                     window (below) allows. For an "immediately" user that
+//                     spacing is what makes a burst of shows/comics land in one
+//                     email — they fall inside the same gap between sends.
 //   any N > 0       — at most one digest every N minutes.
 
 export const MINUTES_PER_DAY = 24 * 60;
 
-// "immediately" still batches new items for up to an hour before sending, and
-// this doubles as the GLOBAL minimum spacing between any two digests: no
-// cadence, however small, emails a user more often than once per window.
+// The 60-minute window is the GLOBAL minimum spacing between any two digests:
+// no cadence, however small, emails a user more often than once per window.
+// It is spacing measured from the last send, not a hold on each item — only a
+// brand-new subscriber's first digest waits out the window itself.
 export const IMMEDIATE_BATCH_WINDOW_MINUTES = 60;
 
 export const FREQUENCY_IMMEDIATELY = 0;
