@@ -33,8 +33,15 @@
     {
       "idx": 4,
       "version": "7",
-      "when": 1786464999883,
-      "tag": "0004_email_frequency",
+      "when": 1787521699505,
+      "tag": "0004_new_comic_baseline",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787521724636,
+      "tag": "0005_email_frequency",
       "breakpoints": true
     }
   ]

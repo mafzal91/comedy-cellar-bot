@@ -150,7 +150,11 @@ On both `show_notification` and `new_comic_notification`:
 - **`frequencyMinutes`** (integer, default `0`) — the chosen cadence. `0` = immediately.
 - **`lastNotifiedAt`** (timestamp, nullable) — the bookmark. Empty until the first email.
 
-Added in migration `migrations/0004_email_frequency.sql`.
+Added in migration `migrations/0005_email_frequency.sql`. (The preceding
+`0004_new_comic_baseline.sql` is a catch-up that records the `new_comic_*` /
+`comic_notification_queue` tables introduced by #80 via `drizzle-kit push` but
+never migrated; it is written idempotently so it's a no-op on the existing
+shared DB and recreates the tables on a fresh one.)
 
 ## Deploying this feature (first-run behavior)
 
@@ -163,7 +167,7 @@ to everyone.
 
 Two things in the migration handle this:
 
-1. **Cursor backfill.** Migration `0004` stamps every *existing* subscriber's
+1. **Cursor backfill.** Migration `0005` stamps every *existing* subscriber's
    `lastNotifiedAt = now()`, immediately after adding the column. So on the first
    tick they're already "caught up" and the pre-existing backlog is **not**
    re-announced. It's in the same migration as the column-add on purpose — the

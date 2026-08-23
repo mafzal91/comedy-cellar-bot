@@ -1,6 +1,6 @@
 {
-  "id": "d3969e61-b361-45b3-b14d-61b5701ce762",
-  "prevId": "6c41c8f6-a7c0-428c-91c4-04d30e8198ee",
+  "id": "2afb2f8a-3c61-44ae-a7f5-16907f720e7b",
+  "prevId": "d3969e61-b361-45b3-b14d-61b5701ce762",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -518,6 +518,19 @@
           "notNull": true,
           "default": false
         },
+        "frequencyMinutes": {
+          "name": "frequencyMinutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "lastNotifiedAt": {
+          "name": "lastNotifiedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
@@ -960,6 +973,19 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "frequencyMinutes": {
+          "name": "frequencyMinutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "lastNotifiedAt": {
+          "name": "lastNotifiedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         },
         "createdAt": {
           "name": "createdAt",
