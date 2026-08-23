@@ -145,6 +145,33 @@ On both `show_notification` and `new_comic_notification`:
 
 Added in migration `migrations/0004_email_frequency.sql`.
 
+## Deploying this feature (first-run behavior)
+
+Before this feature, `new_show_queue` rows were never deleted — an announced row
+was just flagged (`notifiedAt` set) and left in the table. The new code ignores
+that old flag and instead uses each user's cursor. That creates a one-time
+deploy concern: with a fresh `lastNotifiedAt` starting empty, the first cron run
+would treat every still-upcoming show already in the queue as "new" and email it
+to everyone.
+
+Two things in the migration handle this:
+
+1. **Cursor backfill.** Migration `0004` stamps every *existing* subscriber's
+   `lastNotifiedAt = now()`, immediately after adding the column. So on the first
+   tick they're already "caught up" and the pre-existing backlog is **not**
+   re-announced. It's in the same migration as the column-add on purpose — the
+   cron runs every 15 minutes regardless of deploys, so there must be no moment
+   where the column exists as NULL for an existing subscriber. New subscribers
+   created after deploy keep NULL and correctly receive a starter digest.
+2. **Automatic pruning.** On that first tick, `prunePastShows` deletes queue rows
+   whose show has already started (the bulk of the old backlog). Rows for
+   still-upcoming shows are kept but, thanks to the backfill, are not emailed to
+   existing subscribers; they age out of the queue when their show starts.
+
+Net first-run result after backfill: past-show rows deleted, upcoming-show rows
+retained silently, **zero notification blast**. Only shows queued *after* deploy
+trigger emails.
+
 ## One assumption to be aware of
 
 The bookmark is a "high-water mark" — it assumes items are always queued in time
