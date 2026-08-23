@@ -16,7 +16,10 @@ import { BellAlertIcon, BellSlashIcon } from "@heroicons/react/20/solid";
 
 // The cadence is stored as an arbitrary interval in minutes (0 = immediately);
 // the UI only exposes these curated presets so users pick a friendly label.
-// Add a row here to offer another preset — no backend change needed.
+// This list is a hand-kept copy of FREQUENCY_PRESETS in
+// packages/core/common/notificationFrequency.ts (the frontend can't import
+// @core). The API validates against the core copy, so a new preset must be
+// added in BOTH places or the API will reject the new value with a 400.
 const MINUTES_PER_DAY = 24 * 60;
 const FREQUENCY_OPTIONS: { label: string; value: number }[] = [
   { label: "Immediately", value: 0 },
@@ -31,13 +34,24 @@ export function ProfileSettings() {
     queryFn: fetchSettings,
   });
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return <PageLoader />;
   }
 
   return (
     <div className="flex flex-col gap-[22px]">
-      <GlobalNotifications settings={data} />
+      {data ? (
+        <GlobalNotifications settings={data} />
+      ) : (
+        <Card>
+          <CardBody>
+            <p className="font-sans text-caption text-muted">
+              We couldn't load your notification settings just now. Refresh the
+              page to try again.
+            </p>
+          </CardBody>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

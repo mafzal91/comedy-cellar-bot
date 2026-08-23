@@ -72,14 +72,20 @@ wakes up every 15 minutes and asks these two questions.
 New shows are usually posted in a burst over about an hour. If we emailed on every
 15-minute tick, a user could get several emails for one batch of shows.
 
-So "immediately" really means **"at most once per hour."** New items are held for a
-60-minute window so a burst arrives in a **single** email. This 60-minute window is
-also a floor for *every* cadence — no one is ever emailed more than once per hour,
-whatever their setting.
+So "immediately" really means **"at most once per hour."** The 60-minute window is a
+floor on how often *any* user is emailed — it's spacing between digests, not a hold
+on each individual item. For an "immediately" user that spacing is what makes a burst
+of shows posted close together land in one email: they were all queued inside the
+same hour-long gap between sends, so they go out together.
 
-The first email a brand-new subscriber gets also waits for this window (rather than
-the full 7 or 30 days), so a new weekly subscriber still gets a starter digest
-promptly, then settles into their weekly rhythm afterward.
+Because it's spacing (measured from the last email), not a per-item timer, an item
+can go out while it's only minutes old — as soon as the user's cadence has elapsed
+since their previous digest. (In the worked example below, SHOW-3 reaches Ben's
+weekly digest even though, relative to *that* send, it's not an hour old.) The one
+place a true per-item hold applies is a brand-new subscriber's **first** digest: with
+no previous send to measure from, we hold it for the 60-minute window (rather than
+the full 7 or 30 days) so their opening email still batches a burst, then their
+chosen cadence takes over.
 
 ## Keeping the queues from growing forever
 
@@ -126,7 +132,8 @@ Two things this shows:
 
 | Piece | File |
 |---|---|
-| Cadence values, presets, batch window, interval math | `packages/core/common/notificationFrequency.ts` |
+| Cadence values, batch window, interval math, and the preset list the API validates against | `packages/core/common/notificationFrequency.ts` |
+| The preset list the UI shows (hand-kept copy — frontend can't import `@core`) | `packages/frontend/src/pages/Profile/profileSettings.tsx` (`FREQUENCY_OPTIONS`) |
 | The "who is due and what do they get" decision | `packages/core/notificationDelivery.ts` (`selectDueRecipients`) |
 | Per-user settings + bookmark (new shows) | `packages/core/models/showNotification.ts`, `packages/core/sql/showNotification.sql.ts` |
 | Per-user settings + bookmark (new comics) | `packages/core/models/newComicNotification.ts`, `packages/core/sql/newComicNotification.sql.ts` |

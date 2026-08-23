@@ -46,10 +46,13 @@ export async function handler() {
     return {};
   }
 
-  // Advance every due recipient's cursor BEFORE sending so an overlapping cron
-  // run can't announce the same batch twice (mirrors the old claim-before-send
-  // guarantee). A send failure below just means that recipient misses this
-  // batch, exactly as the previous outbox behaved.
+  // Advance every due recipient's cursor BEFORE sending, so a send failure just
+  // means that recipient misses this batch (never a repeat), exactly as the old
+  // outbox behaved. NOTE: this UPDATE is unconditional, so unlike the old
+  // per-row conditional claim it does NOT fully guarantee mutual exclusion — two
+  // overlapping runs (at-least-once delivery, or a slow run overlapping the next
+  // tick) could each read the same cursor and both send. Accepted: low
+  // probability at this scale, and the failure is a rare duplicate, not a miss.
   await markNewComicNotificationsNotified(
     due.map(({ recipient }) => recipient.userId),
     now
