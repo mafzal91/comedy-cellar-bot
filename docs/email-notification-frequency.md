@@ -20,9 +20,13 @@ This setting does **not** apply to the "a comic I follow was booked" emails. Tho
 are event-driven and unchanged.
 
 > Note: the UI only offers Immediately / Weekly / Monthly, but the backend stores
-> the cadence as an arbitrary number of minutes. Adding a new preset (e.g. "Every
-> 2 weeks") is a one-line change in the settings page — no backend or database
-> change needed.
+> the cadence as an arbitrary number of minutes (the database column accepts any
+> value). No database change is needed to add a preset like "Every 2 weeks", but
+> it must be added in **two** places that are kept in sync: the core preset list
+> (`FREQUENCY_PRESETS` in `packages/core/common/notificationFrequency.ts`, which
+> the API validates against) and the UI list (`FREQUENCY_OPTIONS` in
+> `profileSettings.tsx`). Add it to only the UI and the API rejects the new value
+> with a 400.
 
 ## The core idea: one cursor per user
 
