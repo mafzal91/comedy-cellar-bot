@@ -15,7 +15,7 @@ import {
 
 import {
   DEFAULT_FREQUENCY_MINUTES,
-  MAX_FREQUENCY_MINUTES,
+  isAllowedFrequencyMinutes,
 } from "@core/common/notificationFrequency";
 
 import { generateResponse } from "@core/common/generateResponse";
@@ -107,14 +107,15 @@ const comicNotificationPayload = z
   })
   .strict()
   .required();
-// Any interval is accepted, not just the UI's presets — the cadence is
-// future-proofed as an arbitrary number of minutes (0 = immediately), capped at
-// what the retention window can honour.
+// The DB column stores an arbitrary interval in minutes (future-proofing), but
+// the API only accepts the curated UI presets for now — so users can't set an
+// off-menu cadence even though the storage layer could hold one.
 const frequencyMinutes = z
   .number()
   .int()
-  .min(0)
-  .max(MAX_FREQUENCY_MINUTES)
+  .refine(isAllowedFrequencyMinutes, {
+    message: "frequencyMinutes must be one of the supported presets",
+  })
   .optional();
 const showNotification = z.object({
   enabled: z.boolean(),

@@ -49,6 +49,19 @@ export function isValidFrequencyMinutes(value: unknown): value is number {
   );
 }
 
+// The exact minute values behind the UI presets. The DB column accepts any
+// interval (future-proofing), but the API only lets users SET one of these —
+// so the storage layer stays flexible while the user-facing surface is locked
+// to the curated presets for now.
+export const FREQUENCY_PRESET_MINUTES: readonly number[] =
+  FREQUENCY_PRESETS.map((preset) => preset.minutes);
+
+export function isAllowedFrequencyMinutes(value: unknown): value is number {
+  return (
+    typeof value === "number" && FREQUENCY_PRESET_MINUTES.includes(value)
+  );
+}
+
 // Minimum time between two digests for a recipient at the given cadence. The
 // batch window is a floor, so an "immediately" (0) subscriber is still spaced
 // by one window and never emailed more than once per window.
