@@ -25,29 +25,22 @@ export const FREQUENCY_MONTHLY = 30 * MINUTES_PER_DAY; // 43200
 
 export const DEFAULT_FREQUENCY_MINUTES = FREQUENCY_IMMEDIATELY;
 
-// The longest cadence the pipeline can honour is bounded by how long queue rows
+// The longest cadence the pipeline could honour, bounded by how long queue rows
 // are retained (see COMIC_QUEUE_RETENTION_DAYS in models/newComicQueue.ts):
 // a subscriber's cursor may be up to their cadence old, and the items queued
-// since then must still exist. Keep this comfortably below the retention window
-// so a max-cadence digest is never assembled from a half-pruned queue.
+// since then must still exist. This documents that ceiling — nothing currently
+// enforces it, because the API only accepts the presets below (max = Monthly,
+// 30 days), comfortably inside the 45-day retention window. It becomes a real
+// bound only if the API is ever opened up to arbitrary intervals.
 export const MAX_FREQUENCY_MINUTES = 40 * MINUTES_PER_DAY; // 57600
 
-// Curated presets the UI offers. Storage/validation is not limited to these —
-// they exist purely so end users pick a label instead of typing minutes.
+// Curated presets the UI offers. Storage is not limited to these — the column
+// holds any interval — but the API is: see isAllowedFrequencyMinutes below.
 export const FREQUENCY_PRESETS = [
   { label: "Immediately", minutes: FREQUENCY_IMMEDIATELY },
   { label: "Weekly", minutes: FREQUENCY_WEEKLY },
   { label: "Monthly", minutes: FREQUENCY_MONTHLY },
 ] as const;
-
-export function isValidFrequencyMinutes(value: unknown): value is number {
-  return (
-    typeof value === "number" &&
-    Number.isInteger(value) &&
-    value >= 0 &&
-    value <= MAX_FREQUENCY_MINUTES
-  );
-}
 
 // The exact minute values behind the UI presets. The DB column accepts any
 // interval (future-proofing), but the API only lets users SET one of these —

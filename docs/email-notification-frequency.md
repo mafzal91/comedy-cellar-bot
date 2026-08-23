@@ -80,8 +80,8 @@ same hour-long gap between sends, so they go out together.
 
 Because it's spacing (measured from the last email), not a per-item timer, an item
 can go out while it's only minutes old — as soon as the user's cadence has elapsed
-since their previous digest. (In the worked example below, SHOW-3 reaches Ben's
-weekly digest even though, relative to *that* send, it's not an hour old.) The one
+since their previous digest. (In the worked example below, Ava is emailed SHOW-3 at
+11:15, when it is only 55 minutes old.) The one
 place a true per-item hold applies is a brand-new subscriber's **first** digest: with
 no previous send to measure from, we hold it for the 60-minute window (rather than
 the full 7 or 30 days) so their opening email still batches a burst, then their
