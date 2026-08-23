@@ -83,13 +83,17 @@ export type Room = {
   createdAt: string;
 };
 
+// Cadence for the global emails, stored as an arbitrary interval in minutes
+// (0 = immediately). The UI only surfaces a curated set of presets.
 export type Settings = {
   comicNotifications: ComicNotification[];
   showNotification: {
     enabled?: boolean;
+    frequencyMinutes?: number;
   };
   newComicNotification: {
     enabled?: boolean;
+    frequencyMinutes?: number;
   };
 };
 

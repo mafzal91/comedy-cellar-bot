@@ -26,7 +26,7 @@ export function ProfileTabs({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col gap-8">
-      <SegmentedToggle
+      <SegmentedToggle<string>
         options={tabNames.map((tabName) => ({
           label: tabName,
           value: tabName,

@@ -29,6 +29,20 @@
       "when": 1783796566427,
       "tag": "0003_dizzy_lady_ursula",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787521699505,
+      "tag": "0004_new_comic_baseline",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787521724636,
+      "tag": "0005_email_frequency",
+      "breakpoints": true
     }
   ]
 }

@@ -173,9 +173,11 @@ type SettingPostBody = {
   }[];
   showNotification?: {
     enabled: boolean;
+    frequencyMinutes?: number;
   };
   newComicNotification?: {
     enabled: boolean;
+    frequencyMinutes?: number;
   };
 };
 export const updateSettings = async ({

@@ -13,6 +13,11 @@ import {
   upsertNewComicNotification,
 } from "@core/models/newComicNotification";
 
+import {
+  DEFAULT_FREQUENCY_MINUTES,
+  isAllowedFrequencyMinutes,
+} from "@core/common/notificationFrequency";
+
 import { generateResponse } from "@core/common/generateResponse";
 import { getAuthIdFromJwtClaim } from "@core/common/getAuthIdFromJwtClaim";
 import { getUserByAuthId } from "@core/models/user";
@@ -79,9 +84,14 @@ export async function get(_evt) {
       comicNotifications: mappedComicNotification,
       showNotification: {
         enabled: showNotification?.[0]?.enabled ?? false,
+        frequencyMinutes:
+          showNotification?.[0]?.frequencyMinutes ?? DEFAULT_FREQUENCY_MINUTES,
       },
       newComicNotification: {
         enabled: newComicNotification?.[0]?.enabled ?? false,
+        frequencyMinutes:
+          newComicNotification?.[0]?.frequencyMinutes ??
+          DEFAULT_FREQUENCY_MINUTES,
       },
     },
   });
@@ -97,11 +107,23 @@ const comicNotificationPayload = z
   })
   .strict()
   .required();
+// The DB column stores an arbitrary interval in minutes (future-proofing), but
+// the API only accepts the curated UI presets for now — so users can't set an
+// off-menu cadence even though the storage layer could hold one.
+const frequencyMinutes = z
+  .number()
+  .int()
+  .refine(isAllowedFrequencyMinutes, {
+    message: "frequencyMinutes must be one of the supported presets",
+  })
+  .optional();
 const showNotification = z.object({
   enabled: z.boolean(),
+  frequencyMinutes,
 });
 const newComicNotification = z.object({
   enabled: z.boolean(),
+  frequencyMinutes,
 });
 
 export async function update(_evt) {
@@ -143,6 +165,7 @@ export async function update(_evt) {
     await upsertShowNotification({
       userId: user.id,
       enabled: showNotification.enabled,
+      frequencyMinutes: showNotification.frequencyMinutes,
     });
   }
 
@@ -151,6 +174,7 @@ export async function update(_evt) {
     await upsertNewComicNotification({
       userId: user.id,
       enabled: newComicNotification.enabled,
+      frequencyMinutes: newComicNotification.frequencyMinutes,
     });
   }
 
