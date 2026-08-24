@@ -56,11 +56,11 @@ export function ProfileSettings() {
       <Card>
         <CardHeader>
           <h3 className="font-display text-d-sm tracking-cap text-text">
-            Comic Notifications (coming soon)
+            Comic Notifications
           </h3>
           <p className="mt-1 font-sans text-caption text-muted">
-            You'll be notified when a tracked comic is added to a show. Manage
-            each comic from its profile page.
+            We'll email you when a comic you follow is booked on a show with
+            open seats. Manage each comic from its profile page.
           </p>
         </CardHeader>
         <CardBody>

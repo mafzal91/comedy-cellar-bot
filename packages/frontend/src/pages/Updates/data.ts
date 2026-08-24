@@ -7,16 +7,14 @@ export interface Update {
 export const updates: Update[] = [
   {
     date: "August 2026",
+    title: "Comic Booking Email Notifications",
+    text: "Following a comic now gets you an email when they're booked on a show that still has open seats. Turn it on with the bell on any comic's profile page, and see everything you follow under Comic Notifications in your profile settings.",
+  },
+  {
+    date: "August 2026",
     title: "Choose How Often We Email You",
     text: "New Show and New Comic alerts now come at your pace. Pick Immediately, Weekly, or Monthly for each one in your profile settings, and we'll batch everything into a single digest at that rhythm instead of a stream of emails.",
   },
-  // Comic booking notifications are dogfooding in prod behind an allowlist
-  // (comicNotificationCron.ts) before this gets announced publicly.
-  // {
-  //   date: "July 2026",
-  //   title: "Comic Booking Email Notifications",
-  //   text: "You can now get emailed when a comic you follow is booked on a show with open seats! Turn it on from any comic's profile page.",
-  // },
   {
     date: "July 2026",
     title: "New Comic Email Notifications",
