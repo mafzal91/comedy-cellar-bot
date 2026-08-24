@@ -44,8 +44,7 @@ new sst.aws.Cron("NotificationCron", {
 });
 
 // This cron emails subscribers when a comic they follow is booked on a show
-// that still has capacity. Open to every subscriber as of Aug 2026; it
-// previously sent only to a hardcoded dogfooding allowlist.
+// that still has capacity.
 new sst.aws.Cron("ComicNotificationCron", {
   job: {
     handler: "packages/functions/cron/comicNotificationCron.handler",
