@@ -12,7 +12,11 @@ import { PageLoader } from "@/components/PageLoader";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { SegmentedToggle } from "@/components/ui/SegmentedToggle";
-import { BellAlertIcon, BellSlashIcon } from "@heroicons/react/20/solid";
+import {
+  BellAlertIcon,
+  BellSlashIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/20/solid";
 
 // The cadence is stored as an arbitrary interval in minutes (0 = immediately);
 // the UI only exposes these curated presets so users pick a friendly label.
@@ -77,10 +81,13 @@ function FrequencyField({
   label,
   value,
   onChange,
+  nonImmediateWarning,
 }: {
   label: string;
   value: number;
   onChange: (value: number) => void;
+  // Optional caution shown only when a slower-than-immediate cadence is picked.
+  nonImmediateWarning?: string;
 }) {
   // Snap an arbitrary stored interval to the nearest preset so a value set
   // outside the UI still highlights a sensible option instead of nothing.
@@ -102,6 +109,12 @@ function FrequencyField({
         value={selected}
         onChange={onChange}
       />
+      {nonImmediateWarning && selected !== 0 && (
+        <p className="flex items-start gap-2 rounded-field border-hair border-warning bg-warning-soft px-3 py-2 font-sans text-caption text-warning">
+          <ExclamationTriangleIcon className="mt-px h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>{nonImmediateWarning}</span>
+        </p>
+      )}
     </div>
   );
 }
@@ -164,6 +177,7 @@ function GlobalNotifications({ settings }: { settings: Settings }) {
               label="How often"
               value={showFrequency}
               onChange={setShowFrequency}
+              nonImmediateWarning="Heads-up: with a weekly or monthly digest, a show added between emails can sell out or happen before you hear about it. Choose Immediately if you don't want to miss short-notice shows."
             />
           )}
           <Checkbox
