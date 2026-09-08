@@ -5,7 +5,17 @@
 export const TIME_ZONE = "America/New_York";
 export const SITE_URL = "https://comedycellar.mafz.al";
 export const RESERVATION_URL = `${SITE_URL}/reservations/`;
+// Generic fallback (requires sign-in). Emails prefer the per-recipient
+// `manageUrl(token)` below, which opens the settings page WITHOUT a login.
 export const MANAGE_URL = `${SITE_URL}/profile`;
+
+// Build the personalized, no-login "manage your notification settings" URL
+// for a signed alerts token (see packages/core/alertsToken.ts). Lands on the
+// SPA route /alerts/:token, which reads and writes prefs via
+// /api/alerts/settings.
+export function manageUrl(token: string) {
+  return `${SITE_URL}/alerts/${encodeURIComponent(token)}`;
+}
 
 // The unsubscribe endpoint lives on the API gateway, not the static site.
 export const API_URL = "https://comedycellar-api.mafz.al";

@@ -1,4 +1,4 @@
-import { clerkCreds, dbCreds, emailSecrets } from "./secrets";
+import { alertsSecrets, clerkCreds, dbCreds, emailSecrets } from "./secrets";
 import { email } from "./email";
 
 import config from "./config";
@@ -127,6 +127,19 @@ api.route(
     auth: authConfig,
   }
 );
+
+// ---- Alerts (token-authorized settings from the email "manage" link) -----
+// Unauthenticated: the signed, expiring token in ?token= is the credential.
+
+api.route("GET /api/alerts/settings", {
+  handler: `${functionDir}/alerts.get`,
+  link: [dbCreds.dbUrl, alertsSecrets.alertsTokenSecret],
+});
+
+api.route("POST /api/alerts/settings", {
+  handler: `${functionDir}/alerts.update`,
+  link: [dbCreds.dbUrl, alertsSecrets.alertsTokenSecret],
+});
 
 // ---- Unsubscribe (one-click email opt-out, unauthenticated) -----
 

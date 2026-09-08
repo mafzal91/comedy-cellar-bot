@@ -81,7 +81,11 @@ export async function getComicNotificationRecipientsForComics(
 ) {
   if (!comicIds.length) return [];
   return db
-    .select({ email: user.email, comicId: comicNotification.comicId })
+    .select({
+      email: user.email,
+      externalId: user.externalId,
+      comicId: comicNotification.comicId,
+    })
     .from(comicNotification)
     .innerJoin(user, eq(user.id, comicNotification.userId))
     .where(

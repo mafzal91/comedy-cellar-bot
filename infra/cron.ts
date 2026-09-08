@@ -1,4 +1,4 @@
-import { dbCreds, emailSecrets } from "./secrets";
+import { alertsSecrets, dbCreds, emailSecrets } from "./secrets";
 import { email } from "./email";
 
 // This cron scans for new shows
@@ -34,7 +34,13 @@ new sst.aws.Cron("SyncCron", {
 new sst.aws.Cron("NotificationCron", {
   job: {
     handler: "packages/functions/cron/notificationCron.handler",
-    link: [dbCreds.dbUrl, ...Object.values(emailSecrets), email],
+    // AlertsTokenSecret signs the per-recipient "manage settings" link
+    link: [
+      dbCreds.dbUrl,
+      ...Object.values(emailSecrets),
+      email,
+      alertsSecrets.alertsTokenSecret,
+    ],
     environment: {
       IS_ACTIVE: $app.stage === "prod" ? "1" : "0",
       IS_CRON: "1",
@@ -48,7 +54,13 @@ new sst.aws.Cron("NotificationCron", {
 new sst.aws.Cron("ComicNotificationCron", {
   job: {
     handler: "packages/functions/cron/comicNotificationCron.handler",
-    link: [dbCreds.dbUrl, ...Object.values(emailSecrets), email],
+    // AlertsTokenSecret signs the per-recipient "manage settings" link
+    link: [
+      dbCreds.dbUrl,
+      ...Object.values(emailSecrets),
+      email,
+      alertsSecrets.alertsTokenSecret,
+    ],
     environment: {
       IS_ACTIVE: $app.stage === "prod" ? "1" : "0",
       IS_CRON: "1",

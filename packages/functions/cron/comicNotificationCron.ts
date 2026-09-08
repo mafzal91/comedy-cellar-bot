@@ -10,6 +10,8 @@ import {
   renderComicBookedEmail,
 } from "@core/emails/comicBookedEmail";
 import { sendEmail, sendHtmlEmail } from "@core/email";
+import { createAlertsToken } from "@core/alertsToken";
+import { manageUrl } from "@core/emails/shared/constants";
 
 const IS_ACTIVE = process.env.IS_ACTIVE === "1";
 const IS_CRON = process.env.IS_CRON === "1";
@@ -106,12 +108,18 @@ export async function handler() {
   // only ever contributes Y's items here -- even if another comic in the
   // batch (that they don't follow) is also being announced to someone else
   // in the same run.
-  const itemsByRecipient = new Map<string, ComicBookedEmailItem[]>();
-  for (const { email, comicId } of recipientRows) {
+  const itemsByRecipient = new Map<
+    string,
+    { externalId: string; items: ComicBookedEmailItem[] }
+  >();
+  for (const { email, externalId, comicId } of recipientRows) {
     const comicItems = itemsByComicId.get(comicId);
     if (!comicItems) continue;
-    const existing = itemsByRecipient.get(email) ?? [];
-    itemsByRecipient.set(email, existing.concat(comicItems));
+    const existing = itemsByRecipient.get(email) ?? { externalId, items: [] };
+    itemsByRecipient.set(email, {
+      externalId,
+      items: existing.items.concat(comicItems),
+    });
   }
 
   const recipients = Array.from(itemsByRecipient.entries());
@@ -126,9 +134,11 @@ export async function handler() {
   for (let i = 0; i < recipients.length; i += SEND_CHUNK_SIZE) {
     const chunk = recipients.slice(i, i + SEND_CHUNK_SIZE);
     const results = await Promise.allSettled(
-      chunk.map(async ([email, items]) => {
+      chunk.map(async ([email, { externalId, items }]) => {
         const { subject, html, text } = await renderComicBookedEmail({
           items,
+          // Signed, expiring no-login link to this recipient's settings page
+          manageUrl: manageUrl(createAlertsToken(externalId)),
         });
         return sendHtmlEmail({ to: email, subject, html, text });
       })

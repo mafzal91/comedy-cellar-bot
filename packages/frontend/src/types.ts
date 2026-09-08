@@ -97,6 +97,13 @@ export type Settings = {
   };
 };
 
+// Payload of GET /api/alerts/settings — the same prefs as `Settings`, plus a
+// masked email so the no-login page can say whose settings it's showing.
+export type AlertSettings = Settings & {
+  email: string;
+  expiresAt: string;
+};
+
 export type ComicNotification = {
   comicId: string;
   name: string;

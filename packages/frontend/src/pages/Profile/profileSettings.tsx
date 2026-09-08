@@ -2,7 +2,7 @@ import { Card, CardBody, CardHeader } from "@/components/Card";
 import { ComicNotification, Settings } from "@/types";
 import { fetchSettings, updateSettings } from "@/utils/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
 import { Button } from "@/components/Button";
 import { Checkbox } from "@/components/Checkbox";
@@ -45,7 +45,7 @@ export function ProfileSettings() {
   return (
     <div className="flex flex-col gap-[22px]">
       {data ? (
-        <GlobalNotifications settings={data} />
+        <GlobalNotifications settings={data} save={updateSettings} />
       ) : (
         <Card>
           <CardBody>
@@ -119,10 +119,38 @@ function FrequencyField({
   );
 }
 
-function GlobalNotifications({ settings }: { settings: Settings }) {
-  const { mutate: mutateSettings, isPending } = useMutation({
-    mutationFn: updateSettings,
+export type GlobalNotificationsBody = {
+  showNotification: { enabled: boolean; frequencyMinutes: number };
+  newComicNotification: { enabled: boolean; frequencyMinutes: number };
+};
+
+// The "Global Notifications" form. `save` is injected so the same form can be
+// backed by the signed-in /api/settings route (profile page) or the
+// token-authorized /api/alerts/settings route (the email "manage" link).
+export function GlobalNotifications({
+  settings,
+  save,
+}: {
+  settings: Settings;
+  save: (body: GlobalNotificationsBody) => Promise<unknown>;
+}) {
+  const {
+    mutate: mutateSettings,
+    isPending,
+    isSuccess,
+    isError,
+    reset,
+  } = useMutation({
+    mutationFn: save,
   });
+
+  // Let the "Saved" confirmation fade after a moment so a second edit reads
+  // as a fresh, unsaved change.
+  useEffect(() => {
+    if (!isSuccess) return;
+    const timer = setTimeout(reset, 3000);
+    return () => clearTimeout(timer);
+  }, [isSuccess, reset]);
 
   const [showEnabled, setShowEnabled] = useState(
     settings.showNotification.enabled ?? false
@@ -194,7 +222,17 @@ function GlobalNotifications({ settings }: { settings: Settings }) {
               onChange={setComicFrequency}
             />
           )}
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end gap-3">
+            {isSuccess && (
+              <span className="font-mono text-[11px] uppercase tracking-cap text-success">
+                Saved
+              </span>
+            )}
+            {isError && (
+              <span className="font-mono text-[11px] uppercase tracking-cap text-warning">
+                Couldn't save — try again
+              </span>
+            )}
             <Button type="submit" variant="solid" disabled={isPending}>
               {isPending ? "Saving..." : "Save"}
             </Button>
@@ -219,12 +257,27 @@ function NotificationPill({ enabled }: { enabled: boolean }) {
 
 export function ComicNotificationList({
   comicNotifications,
+  onToggle,
 }: {
   comicNotifications?: ComicNotification[];
+  // When provided, each row gets a Mute/Unmute button instead of a static pill
+  // (used by the no-login settings page, where the comic profile page's toggle
+  // isn't available).
+  onToggle?: (comicId: string, enabled: boolean) => void;
 }) {
+  const list = comicNotifications ?? [];
+
+  if (!list.length) {
+    return (
+      <p className="font-sans text-caption text-muted">
+        You aren't following any comics yet.
+      </p>
+    );
+  }
+
   return (
     <ul role="list" className="flex flex-col divide-y divide-track">
-      {(comicNotifications ?? []).map((comicNotification) => (
+      {list.map((comicNotification) => (
         <li
           key={comicNotification.comicId}
           className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0"
@@ -238,7 +291,21 @@ export function ComicNotificationList({
               {comicNotification.name}
             </Link>
           </div>
-          <NotificationPill enabled={comicNotification.enabled} />
+          <div className="flex shrink-0 items-center gap-2">
+            <NotificationPill enabled={comicNotification.enabled} />
+            {onToggle && (
+              <Button
+                type="button"
+                size="xs"
+                variant="outline"
+                onClick={() =>
+                  onToggle(comicNotification.comicId, !comicNotification.enabled)
+                }
+              >
+                {comicNotification.enabled ? "Mute" : "Unmute"}
+              </Button>
+            )}
+          </div>
         </li>
       ))}
     </ul>

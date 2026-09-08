@@ -9,8 +9,12 @@ import { COLOR, MANAGE_URL, SANS } from "./constants";
 export function EmailFooter({
   reason,
   unsubscribeUrl,
+  manageUrl = MANAGE_URL,
 }: {
   reason: React.ReactNode;
+  // Personalized, signed "manage settings" link that opens this recipient's
+  // notification prefs without signing in. Falls back to the profile page.
+  manageUrl?: string;
   // Personalized one-click unsubscribe link for this recipient/channel. When
   // omitted the footer shows only the "manage settings" link.
   unsubscribeUrl?: string;
@@ -29,7 +33,7 @@ export function EmailFooter({
         {reason}
         <br />
         <Link
-          href={MANAGE_URL}
+          href={manageUrl}
           style={{ color: COLOR.muted, textDecoration: "underline" }}
         >
           Manage notification settings

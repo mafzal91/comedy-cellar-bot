@@ -1,4 +1,4 @@
-import { Comic, ListApiRes, ShowDb } from "../types";
+import { AlertSettings, Comic, ListApiRes, ShowDb } from "../types";
 
 import { getClerk } from "./clerk";
 import qs from "qs";
@@ -199,6 +199,54 @@ export const updateSettings = async ({
 
   return res;
 };
+
+// ---- Token-authorized settings (the "manage your settings" link in emails) ----
+//
+// These deliberately bypass customFetch: the signed token in the URL is the
+// credential, so no Clerk Authorization header should be attached even if the
+// visitor happens to be signed in as someone else.
+
+export class AlertsApiError extends Error {
+  status: number;
+  code: string;
+  constructor(status: number, code: string) {
+    super(code);
+    this.status = status;
+    this.code = code;
+  }
+}
+
+const alertsFetch = async (token: string, init?: RequestInit) => {
+  const url = `${VITE_API_URL}/api/alerts/settings?token=${encodeURIComponent(token)}`;
+  const response = await fetch(url, init);
+  let data: any = null;
+  try {
+    data = await response.json();
+  } catch {
+    // non-JSON body; fall through to the status check
+  }
+  if (!response.ok) {
+    throw new AlertsApiError(
+      response.status,
+      typeof data?.error === "string" ? data.error : "request_failed"
+    );
+  }
+  return data;
+};
+
+export const fetchAlertSettings = async (
+  token: string
+): Promise<AlertSettings> => alertsFetch(token);
+
+export const updateAlertSettings = async ({
+  token,
+  ...body
+}: SettingPostBody & { token: string }): Promise<{ ok: string }> =>
+  alertsFetch(token, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
 export const getHealth = async (): Promise<any> => {
   const res = await customFetch(`${VITE_API_URL}/api/health`);

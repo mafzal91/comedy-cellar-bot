@@ -39,6 +39,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Updates = lazy(() => import("./pages/Updates"));
 const Gallery = lazy(() => import("./pages/Gallery"));
+const Alerts = lazy(() => import("./pages/Alerts"));
 
 const onRouteChange = (url: string) => {
   console.log("root", url);
@@ -70,6 +71,7 @@ export function App() {
                 <Route path="/updates" component={Updates} />
                 <Route path="/gallery" component={Gallery} />
                 <Route path="/profile" component={Profile} />
+                <Route path="/alerts/:token" component={Alerts} />
                 <Route path="/sign-up" component={SignUp} />
                 <Route path="/sign-in" component={SignIn} />
                 <Route path="/sign-out" component={SignOut} />

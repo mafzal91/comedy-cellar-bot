@@ -194,9 +194,11 @@ function ComicGroup({ group }: { group: ComicBookedEmailItem[] }) {
 export function ComicBookedEmail({
   items,
   preheader,
+  manageUrl,
 }: {
   items: ComicBookedEmailItem[];
   preheader: string;
+  manageUrl?: string;
 }) {
   const groups = groupByComic(items);
   const comicCount = groups.length;
@@ -268,6 +270,7 @@ export function ComicBookedEmail({
                 these comedians.
               </>
             }
+            manageUrl={manageUrl}
           />
         </Container>
       </Body>
@@ -279,10 +282,12 @@ function buildText({
   groups,
   comicCount,
   plural,
+  manageUrl,
 }: {
   groups: ComicBookedEmailItem[][];
   comicCount: number;
   plural: string;
+  manageUrl?: string;
 }) {
   const textGroups = groups
     .map((group) => {
@@ -310,14 +315,19 @@ ${textGroups}
 Browse the full calendar: ${SITE_URL}
 
 ${buildTextFooter(
-  "You're receiving this because you follow one or more of these comedians."
+  "You're receiving this because you follow one or more of these comedians.",
+  undefined,
+  manageUrl
 )}`;
 }
 
 export async function renderComicBookedEmail({
   items,
+  manageUrl,
 }: {
   items: ComicBookedEmailItem[];
+  // Personalized no-login settings link for this recipient
+  manageUrl?: string;
 }) {
   const sorted = [...items].sort((a, b) => a.timestamp - b.timestamp);
   const groups = groupByComic(sorted);
@@ -336,9 +346,9 @@ export async function renderComicBookedEmail({
   } booked and open for reservations.`;
 
   const html = await render(
-    <ComicBookedEmail items={sorted} preheader={preheader} />
+    <ComicBookedEmail items={sorted} preheader={preheader} manageUrl={manageUrl} />
   );
-  const text = buildText({ groups, comicCount, plural });
+  const text = buildText({ groups, comicCount, plural, manageUrl });
 
   return { subject, html, text };
 }

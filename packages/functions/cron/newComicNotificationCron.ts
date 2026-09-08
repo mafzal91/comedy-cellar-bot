@@ -13,7 +13,8 @@ import {
   UnsubscribeChannel,
   createUnsubscribeToken,
 } from "@core/unsubscribe";
-import { unsubscribeUrl } from "@core/emails/shared/constants";
+import { manageUrl, unsubscribeUrl } from "@core/emails/shared/constants";
+import { createAlertsToken } from "@core/alertsToken";
 
 const IS_ACTIVE = process.env.IS_ACTIVE === "1";
 const IS_CRON = process.env.IS_CRON === "1";
@@ -77,9 +78,12 @@ export async function handler() {
             UnsubscribeChannel.NEW_COMICS
           )
         );
+        // Signed, expiring no-login link to this recipient's settings page
+        const settingsUrl = manageUrl(createAlertsToken(recipient.externalId));
         const { subject, html, text } = await renderNewComicsEmail({
           comics,
           unsubscribeUrl: unsubUrl,
+          manageUrl: settingsUrl,
         });
         return sendHtmlEmail({
           to: recipient.email,

@@ -1,32 +1,13 @@
-import * as z from "zod";
-
-import {
-  getComicNotifications,
-  upsertComicNotification,
-} from "@core/models/comicNotification";
-import {
-  getShowNotification,
-  upsertShowNotification,
-} from "@core/models/showNotification";
-import {
-  getNewComicNotification,
-  upsertNewComicNotification,
-} from "@core/models/newComicNotification";
-
-import {
-  DEFAULT_FREQUENCY_MINUTES,
-  isAllowedFrequencyMinutes,
-} from "@core/common/notificationFrequency";
-
 import { generateResponse } from "@core/common/generateResponse";
 import { getAuthIdFromJwtClaim } from "@core/common/getAuthIdFromJwtClaim";
 import { getUserByAuthId } from "@core/models/user";
-import { isComicExternalId } from "@core/models/comic";
-import qs from "qs";
+import {
+  applyNotificationSettings,
+  notificationSettingsUpdateSchema,
+  readNotificationSettings,
+} from "@core/notificationSettings";
 
 export async function get(_evt) {
-  const queryStringParameters = qs.parse(_evt.rawQueryString);
-
   const authId = getAuthIdFromJwtClaim(_evt);
 
   if (!authId) {
@@ -38,93 +19,18 @@ export async function get(_evt) {
 
   const [user] = await getUserByAuthId(authId);
 
-  const queryValidationSchema = z
-    .object({
-      comicId: z
-        .string()
-        .refine(isComicExternalId, {
-          message: "Invalid Id: Comic Ids start with comic_",
-        })
-        .optional(),
-      offset: z.coerce.number().min(0).default(0),
-      limit: z.coerce.number().min(1).max(100).default(20),
-    })
-    .default({
-      offset: 0,
-      limit: 20,
-    });
-
-  const query = queryValidationSchema.safeParse(queryStringParameters);
-
-  const [comicNotifications, showNotification, newComicNotification] =
-    await Promise.all([
-      getComicNotifications(user.id),
-      getShowNotification(user.id),
-      getNewComicNotification(user.id),
-    ]);
-
-  const mappedComicNotification = comicNotifications.map((i) => ({
-    name: i.comic.name,
-    comic: i.comic.img,
-    comicId: i.comic.externalId,
-    enabled: i.enabled,
-  }));
-
-  if (!query.success) {
-    const error = query.error.format();
+  if (!user) {
     return generateResponse({
-      statusCode: 400,
-      body: error,
+      statusCode: 404,
+      body: { error: "user not found" },
     });
   }
 
   return generateResponse({
     statusCode: 200,
-    body: {
-      comicNotifications: mappedComicNotification,
-      showNotification: {
-        enabled: showNotification?.[0]?.enabled ?? false,
-        frequencyMinutes:
-          showNotification?.[0]?.frequencyMinutes ?? DEFAULT_FREQUENCY_MINUTES,
-      },
-      newComicNotification: {
-        enabled: newComicNotification?.[0]?.enabled ?? false,
-        frequencyMinutes:
-          newComicNotification?.[0]?.frequencyMinutes ??
-          DEFAULT_FREQUENCY_MINUTES,
-      },
-    },
+    body: await readNotificationSettings(user.id),
   });
 }
-
-// TODO: move this somewhere else
-const comicNotificationPayload = z
-  .object({
-    comicId: z.string().refine(isComicExternalId, {
-      message: "Invalid Id: Comic Ids start with comic_",
-    }),
-    enabled: z.boolean(),
-  })
-  .strict()
-  .required();
-// The DB column stores an arbitrary interval in minutes (future-proofing), but
-// the API only accepts the curated UI presets for now — so users can't set an
-// off-menu cadence even though the storage layer could hold one.
-const frequencyMinutes = z
-  .number()
-  .int()
-  .refine(isAllowedFrequencyMinutes, {
-    message: "frequencyMinutes must be one of the supported presets",
-  })
-  .optional();
-const showNotification = z.object({
-  enabled: z.boolean(),
-  frequencyMinutes,
-});
-const newComicNotification = z.object({
-  enabled: z.boolean(),
-  frequencyMinutes,
-});
 
 export async function update(_evt) {
   const postBody = JSON.parse(_evt.body);
@@ -139,18 +45,14 @@ export async function update(_evt) {
   }
   const [user] = await getUserByAuthId(authId);
 
-  const bodyValidationSchema = z
-    .object({
-      comicNotifications: z.array(comicNotificationPayload).optional(),
-      showNotification: showNotification.optional(),
-      newComicNotification: newComicNotification.optional(),
-    })
-    .default({
-      comicNotifications: [],
-      showNotification: null,
+  if (!user) {
+    return generateResponse({
+      statusCode: 404,
+      body: { error: "user not found" },
     });
+  }
 
-  const body = bodyValidationSchema.safeParse(postBody);
+  const body = notificationSettingsUpdateSchema.safeParse(postBody);
 
   if (!body.success) {
     const error = body.error.format();
@@ -160,37 +62,7 @@ export async function update(_evt) {
     });
   }
 
-  if (body.data.showNotification) {
-    const { showNotification } = body.data;
-    await upsertShowNotification({
-      userId: user.id,
-      enabled: showNotification.enabled,
-      frequencyMinutes: showNotification.frequencyMinutes,
-    });
-  }
-
-  if (body.data.newComicNotification) {
-    const { newComicNotification } = body.data;
-    await upsertNewComicNotification({
-      userId: user.id,
-      enabled: newComicNotification.enabled,
-      frequencyMinutes: newComicNotification.frequencyMinutes,
-    });
-  }
-
-  if (body.data.comicNotifications?.length) {
-    const { comicNotifications } = body.data;
-    const mappedComicNotifications = comicNotifications
-      .filter(
-        (i): i is { comicId: string; enabled: boolean } =>
-          i.comicId !== undefined && typeof i.enabled === "boolean"
-      )
-      .map((value) => ({
-        userId: user.id,
-        ...value,
-      }));
-    await upsertComicNotification(mappedComicNotifications);
-  }
+  await applyNotificationSettings(user.id, body.data);
 
   return generateResponse({
     statusCode: 200,
