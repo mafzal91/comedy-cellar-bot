@@ -44,9 +44,7 @@ new sst.aws.Cron("NotificationCron", {
 });
 
 // This cron emails subscribers when a comic they follow is booked on a show
-// that still has capacity. New/unproven feature: gated to a hardcoded
-// allowlist in comicNotificationCron.ts until it has a production track
-// record.
+// that still has capacity.
 new sst.aws.Cron("ComicNotificationCron", {
   job: {
     handler: "packages/functions/cron/comicNotificationCron.handler",
