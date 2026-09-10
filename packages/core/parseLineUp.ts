@@ -1,7 +1,6 @@
 import { ApiResponse } from "@customTypes/api";
 import * as cheerio from "cheerio";
 import { CheerioAPI, Element } from "cheerio";
-import { addDays, format, parseISO } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
 
 type ShowInfoList = ApiResponse.LineUp;
@@ -11,12 +10,15 @@ type Act = ShowInfo["acts"][number];
 const CLUB_TIME_ZONE = "America/New_York";
 
 /**
- * Comedy cellar's own reservation showid (parsed from the make-reservation
- * href) does not reliably match the timestamp comedycellar.com's getShows
- * API reports for the same show - the two can drift apart or even collide
- * with a different show's showid. The display time label ("7:00 pm") is
- * plain CMS text, not derived from that computation, so we rebuild the
- * timestamp from the label + the requested date instead of trusting showid.
+ * Comedy cellar's reservation showid (parsed from the make-reservation href)
+ * is not the show's timestamp. It encodes the show's wall-clock time against
+ * the date the request was made, so the same show yields a different showid
+ * on a different day, and two different dates' lineups return identical
+ * showids. The display time label ("7:00 pm") is plain CMS text, so we
+ * rebuild the timestamp from the label + the requested date instead.
+ *
+ * The result must match the timestamp getShows reports for the same show,
+ * because handleLineUp joins the two through getShowByTimestamp.
  *
  * @param {CheerioAPI} $ - The Cheerio instance for parsing HTML.
  * @param {Element} $lineUp - The `.lineup` element for one show.
@@ -47,16 +49,14 @@ const parseShowTimestamp = (
   let hour = parseInt(hourStr, 10) % 12;
   if (meridiem.toLowerCase() === "pm") hour += 12;
 
-  // Comedy Cellar groups its after-midnight "late shows" under the evening
-  // they belong to (e.g. a 12:15 am show on the Saturday page is really
-  // Sunday morning), so an "am" label means the actual date is the day
-  // after the one we requested.
-  const showDate =
-    meridiem.toLowerCase() === "am" ? addDays(parseISO(date), 1) : parseISO(date);
-  const dateStr = format(showDate, "yyyy-MM-dd");
+  // After-midnight shows keep the requested date, even though the lineup
+  // page lists them last. comedycellar.com dates them by calendar day, not
+  // by the evening they belong to: getShows for 2026-09-11 reports its
+  // 12:30 am show at Sep 11 00:30 ET, before that evening's 6pm show.
+  // Adding a day here would break the getShowByTimestamp join.
   const timeStr = `${String(hour).padStart(2, "0")}:${minuteStr}:00`;
 
-  const zonedDate = fromZonedTime(`${dateStr}T${timeStr}`, CLUB_TIME_ZONE);
+  const zonedDate = fromZonedTime(`${date}T${timeStr}`, CLUB_TIME_ZONE);
   return Math.floor(zonedDate.getTime() / 1000);
 };
 
