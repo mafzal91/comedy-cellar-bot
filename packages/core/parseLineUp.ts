@@ -1,10 +1,57 @@
 import { ApiResponse } from "@customTypes/api";
 import * as cheerio from "cheerio";
 import { CheerioAPI, Element } from "cheerio";
+import { addDays, format, parseISO } from "date-fns";
+import { fromZonedTime } from "date-fns-tz";
 
 type ShowInfoList = ApiResponse.LineUp;
 type ShowInfo = ShowInfoList[number];
 type Act = ShowInfo["acts"][number];
+
+const CLUB_TIME_ZONE = "America/New_York";
+
+/**
+ * Comedy cellar's own reservation showid (parsed from the make-reservation
+ * href) does not reliably match the timestamp comedycellar.com's getShows
+ * API reports for the same show - the two can drift apart or even collide
+ * with a different show's showid. The display time label ("7:00 pm") is
+ * plain CMS text, not derived from that computation, so we rebuild the
+ * timestamp from the label + the requested date instead of trusting showid.
+ *
+ * @param {CheerioAPI} $ - The Cheerio instance for parsing HTML.
+ * @param {Element} $lineUp - The `.lineup` element for one show.
+ * @param {string} date - The `yyyy-MM-dd` date the lineup was requested for.
+ * @returns {number | undefined} Unix seconds for the show, or undefined if
+ * the time label couldn't be parsed.
+ */
+const parseShowTimestamp = (
+  $: CheerioAPI,
+  $lineUp: Element,
+  date: string
+): number | undefined => {
+  const $bold = $($lineUp).siblings(".set-header").find(".info .bold").clone();
+  $bold.find(".hide-mobile").remove();
+  const label = $bold.text().trim();
+
+  const match = label.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+  if (!match) return undefined;
+
+  const [, hourStr, minuteStr, meridiem] = match;
+  let hour = parseInt(hourStr, 10) % 12;
+  if (meridiem.toLowerCase() === "pm") hour += 12;
+
+  // Comedy Cellar groups its after-midnight "late shows" under the evening
+  // they belong to (e.g. a 12:15 am show on the Saturday page is really
+  // Sunday morning), so an "am" label means the actual date is the day
+  // after the one we requested.
+  const showDate =
+    meridiem.toLowerCase() === "am" ? addDays(parseISO(date), 1) : parseISO(date);
+  const dateStr = format(showDate, "yyyy-MM-dd");
+  const timeStr = `${String(hour).padStart(2, "0")}:${minuteStr}:00`;
+
+  const zonedDate = fromZonedTime(`${dateStr}T${timeStr}`, CLUB_TIME_ZONE);
+  return Math.floor(zonedDate.getTime() / 1000);
+};
 
 /**
  * Helper function to parse the comedian's name and description.
@@ -51,7 +98,13 @@ const parseActs = ($: CheerioAPI, $show: Element): Act[] => {
   return acts;
 };
 
-export const parseLineUp = ({ html }: { html: string }): ShowInfoList => {
+export const parseLineUp = ({
+  html,
+  date,
+}: {
+  html: string;
+  date: string;
+}): ShowInfoList => {
   // Comedy cellar api returns html elements without a shared parent.
   // Since idk how to select a list of elements without a shared parent I wrap it in a parent
   const $ = cheerio.load(`<div>${html}</div>`);
@@ -69,15 +122,13 @@ export const parseLineUp = ({ html }: { html: string }): ShowInfoList => {
       .find(".make-reservation > a")
       .attr("href");
 
-    const showId = reservationUrl?.split("showid=")[1];
-
     // Parse all acts in the show
     const acts = parseActs($, lineupElement);
 
     // Construct the show info object
     const showInfo: ShowInfo = {
       reservationUrl,
-      timestamp: showId ? parseInt(showId, 10) : undefined,
+      timestamp: parseShowTimestamp($, lineupElement, date),
       acts,
     };
 
