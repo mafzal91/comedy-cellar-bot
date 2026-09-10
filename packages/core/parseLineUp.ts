@@ -29,7 +29,14 @@ const parseShowTimestamp = (
   $lineUp: Element,
   date: string
 ): number | undefined => {
-  const $bold = $($lineUp).siblings(".set-header").find(".info .bold").clone();
+  // A lineup page holds several shows as flat siblings
+  // (.set-header, .lineup, .set-header, .lineup, ...), so take the header
+  // immediately before this lineup rather than every matching sibling.
+  const $bold = $($lineUp)
+    .prevAll(".set-header")
+    .first()
+    .find(".info .bold")
+    .clone();
   $bold.find(".hide-mobile").remove();
   const label = $bold.text().trim();
 
