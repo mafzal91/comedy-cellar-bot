@@ -26,6 +26,7 @@ import { EmailFooter } from "./shared/EmailFooter";
 import { formatDateHeading, formatDateShort, formatTime } from "./shared/format";
 import { Masthead } from "./shared/Masthead";
 import { ReserveButton } from "./shared/ReserveButton";
+import { SoldOutBadge } from "./shared/SoldOutBadge";
 import { SpecialBadge } from "./shared/SpecialBadge";
 
 export type NewShowEmailItem = {
@@ -35,7 +36,50 @@ export type NewShowEmailItem = {
   note: string | null;
   special: boolean | null;
   roomName: string | null;
+  // A show can be announced to us and already be unbookable: the venue posts
+  // it and it fills before our scrape ever sees it. Carry that through so the
+  // email never promises a reservation that cannot be made.
+  soldOut: boolean;
 };
+
+// Copy for the headline block and the plain-text lede. "New" here means new to
+// us, not necessarily newly bookable — see soldOut above.
+export function announcementCopy(shows: NewShowEmailItem[]) {
+  const count = shows.length;
+  const plural = count === 1 ? "" : "s";
+  const soldOut = shows.filter((show) => show.soldOut).length;
+
+  if (soldOut === 0) {
+    return {
+      headline: `${count} new show${plural} just hit the calendar`,
+      subline: "Reservations are open now \u2014 the best tables go fast.",
+      subjectSuffix: "",
+    };
+  }
+
+  if (soldOut === count) {
+    return {
+      headline:
+        count === 1
+          ? "1 new show just hit the calendar \u2014 already sold out"
+          : `${count} new shows just hit the calendar \u2014 all sold out`,
+      subline:
+        "No reservations left on " +
+        (count === 1 ? "this one" : "these") +
+        ", but now you know " +
+        (count === 1 ? "it's" : "they're") +
+        " on the bill.",
+      subjectSuffix: " \u2014 already sold out",
+    };
+  }
+
+  const open = count - soldOut;
+  return {
+    headline: `${count} new show${plural} just hit the calendar`,
+    subline: `${open} still open for reservations \u2014 ${soldOut} already sold out.`,
+    subjectSuffix: `, ${open} still bookable`,
+  };
+}
 
 function metaLine(show: NewShowEmailItem) {
   const parts: string[] = [];
@@ -121,7 +165,11 @@ function ShowRow({ show, isLast }: { show: NewShowEmailItem; isLast: boolean }) 
           ) : null}
         </Column>
         <Column align="right" style={{ paddingLeft: "16px", whiteSpace: "nowrap", verticalAlign: "top" }}>
-          <ReserveButton timestamp={show.timestamp} />
+          {show.soldOut ? (
+            <SoldOutBadge />
+          ) : (
+            <ReserveButton timestamp={show.timestamp} />
+          )}
         </Column>
       </Row>
     </Section>
@@ -174,8 +222,7 @@ export function NewShowsEmail({
   unsubscribeUrl?: string;
 }) {
   const groups = groupByDate(shows);
-  const count = shows.length;
-  const plural = count === 1 ? "" : "s";
+  const { headline, subline } = announcementCopy(shows);
 
   return (
     <Html lang="en">
@@ -205,7 +252,7 @@ export function NewShowsEmail({
                 lineHeight: "1.25",
               }}
             >
-              {count} new show{plural} just hit the calendar
+              {headline}
             </Text>
             <Text
               style={{
@@ -217,7 +264,7 @@ export function NewShowsEmail({
                 lineHeight: "1.5",
               }}
             >
-              Reservations are open now &mdash; the best tables go fast.
+              {subline}
             </Text>
           </Section>
           {/* Shows */}
@@ -253,14 +300,14 @@ export function NewShowsEmail({
 
 function buildText({
   groups,
-  count,
-  plural,
+  headline,
+  subline,
   dateRange,
   unsubscribeUrl,
 }: {
   groups: NewShowEmailItem[][];
-  count: number;
-  plural: string;
+  headline: string;
+  subline: string;
   dateRange: string;
   unsubscribeUrl?: string;
 }) {
@@ -270,10 +317,12 @@ function buildText({
       const lines = group.map((show) => {
         const meta = metaLine(show);
         return [
-          `  ${formatTime(show.timestamp)} — ${show.roomName ?? "Comedy Cellar"}${show.special ? " (Special)" : ""}`,
+          `  ${formatTime(show.timestamp)} — ${show.roomName ?? "Comedy Cellar"}${show.special ? " (Special)" : ""}${show.soldOut ? " (SOLD OUT)" : ""}`,
           show.description ? `    ${show.description}` : null,
           meta ? `    ${meta}` : null,
-          `    Reserve: ${RESERVATION_URL}${show.timestamp}`,
+          show.soldOut
+            ? `    Sold out — no reservations available`
+            : `    Reserve: ${RESERVATION_URL}${show.timestamp}`,
         ]
           .filter(Boolean)
           .join("\n");
@@ -284,7 +333,7 @@ function buildText({
 
   return `NEW SHOWS AT THE COMEDY CELLAR
 
-${count} new show${plural} just hit the calendar (${dateRange}). Reservations are open now.
+${headline} (${dateRange}). ${subline}
 
 ${textGroups}
 
@@ -307,14 +356,18 @@ export async function renderNewShowsEmail({
   const groups = groupByDate(sorted);
   const count = sorted.length;
   const plural = count === 1 ? "" : "s";
+  const { headline, subline, subjectSuffix } = announcementCopy(sorted);
+  const openCount = sorted.filter((show) => !show.soldOut).length;
 
   const firstDate = formatDateShort(sorted[0].timestamp);
   const lastDate = formatDateShort(sorted[sorted.length - 1].timestamp);
   const dateRange =
     firstDate === lastDate ? firstDate : `${firstDate} – ${lastDate}`;
 
-  const subject = `🎤 ${count} new Comedy Cellar show${plural} just dropped (${dateRange})`;
-  const preheader = `Reservations are open for ${count} new show${plural} on the calendar. The best seats go fast.`;
+  const subject = `🎤 ${count} new Comedy Cellar show${plural} just dropped${subjectSuffix} (${dateRange})`;
+  const preheader = openCount
+    ? `Reservations are open for ${openCount} of ${count} new show${plural} on the calendar. The best seats go fast.`
+    : `${count === 1 ? "It's" : "They're"} already sold out, but now you know what's on the bill.`;
 
   const html = await render(
     <NewShowsEmail
@@ -323,7 +376,7 @@ export async function renderNewShowsEmail({
       unsubscribeUrl={unsubscribeUrl}
     />
   );
-  const text = buildText({ groups, count, plural, dateRange, unsubscribeUrl });
+  const text = buildText({ groups, headline, subline, dateRange, unsubscribeUrl });
 
   return { subject, html, text };
 }

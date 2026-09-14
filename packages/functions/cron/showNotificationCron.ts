@@ -20,6 +20,15 @@ const IS_CRON = process.env.IS_CRON === "1";
 
 const SEND_CHUNK_SIZE = 25;
 
+// The Comedy Cellar API's `soldout` field is not trustworthy (see
+// packages/core/models/show.ts), so availability is derived from capacity the
+// same way the site derives it. Missing capacity data means we cannot claim a
+// show is sold out.
+function isSoldOut(show: { totalGuests: number | null; max: number | null }) {
+  if (show.max == null || show.totalGuests == null) return false;
+  return show.totalGuests >= show.max;
+}
+
 export async function handler() {
   if (!IS_ACTIVE && IS_CRON) {
     return;
@@ -73,6 +82,10 @@ export async function handler() {
             note: show.note,
             special: show.special,
             roomName: room?.name ?? null,
+            // Mirrors the derived rule in @core/models/show: the venue's own
+            // `soldout` flag is unreliable, so capacity is the source of truth.
+            // A show we only just discovered can already be full.
+            soldOut: isSoldOut(show),
           }));
 
         if (!shows.length) return;
