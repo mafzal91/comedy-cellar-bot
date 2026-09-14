@@ -28,7 +28,7 @@ export const fetchLineUp = async (
     );
 
     const responseData = res.data;
-    const parsedPayload = parseLineUp({ html: responseData.show.html });
+    const parsedPayload = parseLineUp({ html: responseData.show.html, date });
     return parsedPayload;
   } catch (error) {
     console.log(error);
