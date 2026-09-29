@@ -1,6 +1,7 @@
 import { ListApiRes, ShowDb } from "../../types";
 
 import { fetchShowsNew } from "../../utils/api";
+import { getReserveAction } from "../Home/types";
 import { useMemo } from "preact/hooks";
 import { useQuery } from "@tanstack/react-query";
 
@@ -93,6 +94,7 @@ export function UpcomingShows({ comicId }: { comicId: string }) {
 }
 
 function ShowItem({ show }: { show: ShowDb }) {
+  const { external, reserveHref } = getReserveAction(show);
   const dt = new Date(show.timestamp * 1000);
   const day = dt.toLocaleDateString("en-US", { day: "2-digit" });
   const mon = dt
@@ -127,10 +129,12 @@ function ShowItem({ show }: { show: ShowDb }) {
           <p className="mt-0.5 font-mono text-caption text-muted">{meta}</p>
         </div>
         <a
-          href={`/reservations/${show.timestamp}`}
+          href={reserveHref}
+          target={external ? "_blank" : undefined}
+          rel={external ? "noreferrer noopener" : undefined}
           className="shrink-0 self-start rounded-pill bg-solid px-4 py-2 font-sans text-caption font-bold text-solid-fg transition hover:bg-brand hover:text-brand-fg sm:self-auto"
         >
-          Reserve →
+          {external ? "Tickets ↗" : "Reserve →"}
         </a>
       </div>
     </li>

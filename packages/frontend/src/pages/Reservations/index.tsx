@@ -1,3 +1,5 @@
+import { BackToShows } from "./BackToShows";
+import { ExternalTicketNotice } from "./ExternalTicketNotice";
 import { Field, FieldWrapper, Section } from "./Helpers";
 import { LineUp, Room, Show } from "../../types";
 import { createReservation, fetchShowByTimestamp } from "../../utils/api";
@@ -168,16 +170,15 @@ export default function Reservation() {
     return null;
   }
 
+  if (showData.data.show.forwardUrl) {
+    return <ExternalTicketNotice show={showData.data.show} />;
+  }
+
   const maxReservationSize = showData?.data?.room?.maxReservationSize ?? 4;
 
   return (
     <div className="mx-auto max-w-[1080px] pb-10">
-      <a
-        href="/"
-        className="mb-4 inline-block font-mono text-meta uppercase tracking-wider text-muted no-underline hover:text-text"
-      >
-        ‹ Back to shows
-      </a>
+      <BackToShows />
 
       <PageHeader
         eyebrow="You're almost in"
