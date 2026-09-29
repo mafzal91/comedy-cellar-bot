@@ -7,6 +7,11 @@ export interface Update {
 export const updates: Update[] = [
   {
     date: "September 2026",
+    title: "Tickets for Specially Ticketed Shows",
+    text: "Some shows, like special events, are ticketed through a partner such as Fever instead of the Comedy Cellar's reservation system. Those shows now say \"Get Tickets\" and take you straight to the ticket page, rather than a reservation form that can't book them.",
+  },
+  {
+    date: "September 2026",
     title: "Comic Booking Email Notifications",
     text: "Following a comic now gets you an email when they're booked on a show that still has open seats. Turn it on with the bell on any comic's profile page, and see everything you follow under Comic Notifications in your profile settings.",
   },
