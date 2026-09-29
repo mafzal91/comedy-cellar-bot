@@ -15,7 +15,7 @@ export type ShowStatus = StatusPillStatus; // "available" | "selling-fast" | "so
  * `forwardUrl` and can't be reserved through us, so they link straight out.
  */
 export function getReserveAction(
-  show: Pick<Show, "forwardUrl" | "timestamp">
+  show: Pick<Show, "forwardUrl" | "timestamp">,
 ): { external: boolean; reserveHref: string } {
   return {
     external: !!show.forwardUrl,
