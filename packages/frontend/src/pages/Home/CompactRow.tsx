@@ -111,11 +111,15 @@ export function CompactRow({
         <div className="justify-self-end">
           {view.reservable ? (
             <Link
-              href={`/reservations/${show.timestamp}`}
+              href={view.ticketUrl ?? `/reservations/${show.timestamp}`}
+              {...(view.ticketUrl && {
+                target: "_blank",
+                rel: "noreferrer noopener",
+              })}
               onClick={(event: MouseEvent) => event.stopPropagation()}
               className="inline-flex items-center whitespace-nowrap rounded-pill bg-solid px-2.5 py-1.5 font-sans text-[11px] font-bold text-solid-fg! no-underline transition hover:bg-brand hover:text-brand-fg! hover:no-underline sm:px-3.5 sm:py-2 sm:text-[12px]"
             >
-              Reserve &rarr;
+              {view.ticketUrl ? "Tickets ↗" : "Reserve →"}
             </Link>
           ) : (
             <span className="whitespace-nowrap font-mono text-meta text-faint">

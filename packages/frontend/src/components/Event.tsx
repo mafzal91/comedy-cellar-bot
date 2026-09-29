@@ -79,7 +79,7 @@ export function Event(props: EventItemProps) {
             <div className="hidden shrink-0 items-center gap-2.5 sm:order-2 sm:flex">
               {view.reservable && (
                 <Link
-                  href={reservationUrl}
+                  href={view.ticketUrl ?? reservationUrl}
                   target="_blank"
                   rel="noreferrer noopener"
                   aria-label="Open reservation page in a new tab"
@@ -135,12 +135,16 @@ export function Event(props: EventItemProps) {
             <div className="flex flex-1 items-center justify-end gap-2 sm:flex-none">
               {view.reservable ? (
                 <Link
-                  href={`/reservations/${timestamp}`}
+                  href={view.ticketUrl ?? `/reservations/${timestamp}`}
+                  {...(view.ticketUrl && {
+                    target: "_blank",
+                    rel: "noreferrer noopener",
+                  })}
                   variant="plain"
                   onClick={(e) => e.stopPropagation()}
                   className="inline-flex shrink-0 items-center rounded-pill bg-solid px-4 py-2 font-sans text-caption font-bold text-solid-fg no-underline transition hover:bg-brand hover:text-brand-fg hover:no-underline"
                 >
-                  Reserve Tickets &rarr;
+                  {view.ticketUrl ? "Get Tickets ↗" : "Reserve Tickets →"}
                 </Link>
               ) : (
                 <span className="shrink-0 font-mono text-[11px] text-faint">
@@ -150,7 +154,7 @@ export function Event(props: EventItemProps) {
               <div className="flex items-center gap-2 sm:hidden">
                 {view.reservable && (
                   <Link
-                    href={reservationUrl}
+                    href={view.ticketUrl ?? reservationUrl}
                     target="_blank"
                     rel="noreferrer noopener"
                     aria-label="Open reservation page in a new tab"

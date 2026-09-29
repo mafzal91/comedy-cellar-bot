@@ -168,7 +168,38 @@ export default function Reservation() {
     return null;
   }
 
-  const maxReservationSize = showData?.data?.room?.maxReservationSize ?? 4;
+  // Third-party ticketed shows (e.g. Fever) can't be reserved here
+  if (showData.data.show.forwardUrl) {
+    return (
+      <div className="mx-auto max-w-[1080px] pb-10">
+        <a
+          href="/"
+          className="mb-4 inline-block font-mono text-meta uppercase tracking-wider text-muted no-underline hover:text-text"
+        >
+          ‹ Back to shows
+        </a>
+        <PageHeader
+          eyebrow="Tickets sold separately"
+          title="Get Your Tickets"
+          className="mb-6"
+        />
+        <p className="mb-4 text-body text-text">
+          {showData.data.show.description} is ticketed through a third party, so
+          it can't be reserved here.
+        </p>
+        <Link
+          target="_blank"
+          rel="noopener noreferrer"
+          href={showData.data.show.forwardUrl}
+          className="font-bold text-gold!"
+        >
+          Get tickets ↗
+        </Link>
+      </div>
+    );
+  }
+
+  const maxReservationSize =showData?.data?.room?.maxReservationSize ?? 4;
 
   return (
     <div className="mx-auto max-w-[1080px] pb-10">

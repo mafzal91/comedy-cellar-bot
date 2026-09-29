@@ -70,6 +70,13 @@ export const create = async (_evt) => {
       throw new ReservationError("Cannot find Show");
     }
 
+    // Ticketed through a third party (e.g. Fever) — can't be booked here
+    if (show.forwardUrl) {
+      throw new ReservationError(
+        "This show is ticketed separately and can't be reserved here"
+      );
+    }
+
     if (show.soldout) {
       throw new ReservationError("Show is sold out");
     }

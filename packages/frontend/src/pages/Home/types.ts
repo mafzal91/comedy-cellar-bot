@@ -27,6 +27,7 @@ export type ShowView = {
   soldOut: boolean;
   isEventOver: boolean;
   reservable: boolean; // reservations open (mirrors the existing gate)
+  ticketUrl: string | null; // external ticketing link; replaces our reserve flow
   closed: boolean; // reservations closed (past or sold out)
   dateTimeString: string; // ISO for <time dateTime>
 };
@@ -45,6 +46,7 @@ export function getShowView(show: Show): ShowView {
     occupancyRate,
     totalGuests,
     max,
+    forwardUrl,
   } = show;
 
   const dateTime = new Date(timestamp * 1000);
@@ -78,6 +80,8 @@ export function getShowView(show: Show): ShowView {
     soldOut: soldout,
     isEventOver,
     reservable,
+    // Third-party ticketed shows (e.g. Fever) send people to forwardUrl
+    ticketUrl: forwardUrl || null,
     closed: !reservable,
     dateTimeString: dateTime.toISOString(),
   };
