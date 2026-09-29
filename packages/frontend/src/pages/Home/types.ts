@@ -11,6 +11,19 @@ export type ViewMode = "relaxed" | "compact";
 export type ShowStatus = StatusPillStatus; // "available" | "selling-fast" | "sold-out" | "ended"
 
 /**
+ * Where the reserve CTA goes. Third-party ticketed shows (e.g. Fever) carry a
+ * `forwardUrl` and can't be reserved through us, so they link straight out.
+ */
+export function getReserveAction(
+  show: Pick<Show, "forwardUrl" | "timestamp">
+): { external: boolean; reserveHref: string } {
+  return {
+    external: !!show.forwardUrl,
+    reserveHref: show.forwardUrl || `/reservations/${show.timestamp}`,
+  };
+}
+
+/**
  * Presentation view-model derived from a `Show`. All display-only fields — the
  * underlying `Show` data and the reserve/expand behavior stay untouched.
  */
@@ -27,7 +40,8 @@ export type ShowView = {
   soldOut: boolean;
   isEventOver: boolean;
   reservable: boolean; // reservations open (mirrors the existing gate)
-  ticketUrl: string | null; // external ticketing link; replaces our reserve flow
+  external: boolean; // ticketed by a third party (forwardUrl) — not reservable here
+  reserveHref: string; // forwardUrl for external shows, else our reservation page
   closed: boolean; // reservations closed (past or sold out)
   dateTimeString: string; // ISO for <time dateTime>
 };
@@ -46,7 +60,6 @@ export function getShowView(show: Show): ShowView {
     occupancyRate,
     totalGuests,
     max,
-    forwardUrl,
   } = show;
 
   const dateTime = new Date(timestamp * 1000);
@@ -80,8 +93,7 @@ export function getShowView(show: Show): ShowView {
     soldOut: soldout,
     isEventOver,
     reservable,
-    // Third-party ticketed shows (e.g. Fever) send people to forwardUrl
-    ticketUrl: forwardUrl || null,
+    ...getReserveAction(show),
     closed: !reservable,
     dateTimeString: dateTime.toISOString(),
   };
