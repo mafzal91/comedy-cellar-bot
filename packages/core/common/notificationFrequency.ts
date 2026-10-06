@@ -20,6 +20,16 @@ export const MINUTES_PER_DAY = 24 * 60;
 // brand-new subscriber's first digest waits out the window itself.
 export const IMMEDIATE_BATCH_WINDOW_MINUTES = 60;
 
+// Quiet period before ANY digest goes out: nothing is sent while an item was
+// queued less than this long ago. A calendar drop is ingested by one
+// newShowCron run that walks forward a day at a time (a few minutes for a few
+// weeks of shows), and the notification cron ticks every 15 minutes, including
+// on the same :00 the scrape starts. Without this, an "immediately" subscriber
+// could be sent the first night or two mid-scrape and the rest of the drop a
+// batch window later. Measured from the NEWEST queued item, so a long scrape
+// keeps holding until it has been quiet this long.
+export const SETTLE_MINUTES = 10;
+
 export const FREQUENCY_IMMEDIATELY = 0;
 export const FREQUENCY_WEEKLY = 7 * MINUTES_PER_DAY; // 10080
 export const FREQUENCY_MONTHLY = 30 * MINUTES_PER_DAY; // 43200
