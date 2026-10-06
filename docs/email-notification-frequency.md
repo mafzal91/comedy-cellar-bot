@@ -91,6 +91,21 @@ no previous send to measure from, we hold it for the 60-minute window (rather th
 the full 7 or 30 days) so their opening email still batches a burst, then their
 chosen cadence takes over.
 
+## The settle period (don't send mid-scrape)
+
+When the Cellar opens a new block of dates, one run of the new-show scraper walks
+forward a day at a time and queues the whole drop over a few minutes. That scraper
+starts on the hour, and so does a notification tick. Without a guard, an
+"immediately" user could be emailed the first night or two mid-scrape, then get the
+rest of the drop an hour later in a second email.
+
+So before anyone is emailed, the job checks the **newest** queued item: if anything
+was queued in the last **10 minutes**, the whole tick is skipped. Because it's
+measured from the newest item, a long scrape keeps holding until it has been quiet
+for 10 minutes, and the drop then goes out as one email on the next tick (at most
+~15 minutes later). It applies to both digests (new shows and new comics), since
+the same scrape fills both queues. Constant: `SETTLE_MINUTES`.
+
 ## Keeping the queues from growing forever
 
 Because queue rows are kept (not deleted on send), they're cleaned up on a schedule
