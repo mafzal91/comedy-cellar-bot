@@ -13,3 +13,12 @@ export function formatDateHeading(timestamp: number) {
 export function formatDateShort(timestamp: number) {
   return formatInTimeZone(timestamp * 1000, TIME_ZONE, "MMM d");
 }
+
+// Tight form for the compact time chips: "7:00pm".
+export function formatTimeCompact(timestamp: number) {
+  return formatInTimeZone(timestamp * 1000, TIME_ZONE, "h:mmaaa");
+}
+
+export function formatDayAbbrev(timestamp: number) {
+  return formatInTimeZone(timestamp * 1000, TIME_ZONE, "EEE");
+}
